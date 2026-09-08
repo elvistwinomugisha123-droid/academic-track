@@ -1,0 +1,172 @@
+{
+  "schema_version": "1.0.0",
+  "extraction_date": "2026-09-08",
+  "status": "extracted_with_human_review_required",
+  "method": {
+    "basis": "derived",
+    "tools": "PyMuPDF native text and geometric table cells; PDF visual inspection",
+    "text_normalization": "Whitespace collapsed; source spelling, restrictions and classification punctuation preserved. Source bullet hierarchy retained within full activity units.",
+    "page_number_convention": "page_pdf is 1-based physical PDF page; page_printed uses observed main-text offset of -2.",
+    "no_external_sources": true,
+    "no_ocr_inference": "Image-only covers and decorative pages visually inspected; uncertain diagram text queued."
+  },
+  "rights_and_authority": {
+    "permission_endorsement_or_license_inferred": false,
+    "authority_source": "Supplied NCDC publication wording; no external authenticity or currentness verification."
+  },
+  "documents": [
+    {
+      "id": "ncdc-biology-2019",
+      "filename": "Biology_Syllabus_compressed (1).pdf",
+      "library_file_id": "libfile_4b3838f4aad48191821e1329c3c844c1",
+      "document_title": "Biology Syllabus",
+      "authority": "National Curriculum Development Centre (NCDC)",
+      "publisher": "National Curriculum Development Centre",
+      "publication_year": 2019,
+      "document_version": null,
+      "isbn": "978-9970-00-115-6",
+      "rights_notice": "All rights reserved. No part of this publication may be reproduced, stored in a retrieval system, transmitted in any form or by any means; electronic, mechanical, photocopying, recording or otherwise without the prior written permission of NCDC.",
+      "additional_rights_notice": null,
+      "metadata_source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 3,
+        "page_printed": 1,
+        "pages_pdf": [
+          3
+        ],
+        "pages_printed": [
+          1
+        ],
+        "section_heading": "Publication details",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "page_count": 58,
+      "document_type": "official_subject_syllabus",
+      "sha256": "5b6bf4e8aa9d255be59148ac585a169baa5469186d96f9731428e263dd9c1b1c",
+      "extraction_status": "extracted_with_review_items",
+      "main_curriculum_pages_pdf": [
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ],
+      "non_curriculum_or_decorative_pages_pdf": [
+        1,
+        2,
+        57,
+        58
+      ],
+      "visual_inspection_note": "Image-only cover/background/back-cover; framework page 7 is an illustrative photograph. No missing topic text inferred."
+    },
+    {
+      "id": "ncdc-framework-2019",
+      "filename": "Curriculum_Framework.pdf",
+      "library_file_id": "libfile_e41ff490bdd081918cd0121a41879342",
+      "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+      "authority": "National Curriculum Development Centre (NCDC)",
+      "publisher": "National Curriculum Development Centre",
+      "publication_year": 2019,
+      "document_version": null,
+      "isbn": "978-9970-00-130-9",
+      "rights_notice": "All rights reserved. No part of this publication may be reproduced, stored in a retrieval system, transmitted in any form or by any means; electronic, mechanical, photocopying, recording or otherwise without the prior written permission of NCDC.",
+      "additional_rights_notice": "Some of the images used are sourced through the internet for illustrative purposes. Copyright belongs to the respective photographers/artists",
+      "metadata_source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 3,
+        "page_printed": 1,
+        "pages_pdf": [
+          3
+        ],
+        "pages_printed": [
+          1
+        ],
+        "section_heading": "Publication details",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "page_count": 26,
+      "document_type": "official_curriculum_framework",
+      "sha256": "75578bece361085dab500e2e7d6c2e1dd581c23bfb9bd8796be27351a77e253c",
+      "extraction_status": "extracted_with_review_items",
+      "main_curriculum_pages_pdf": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "non_curriculum_or_decorative_pages_pdf": [
+        1,
+        2,
+        7,
+        24,
+        25,
+        26
+      ],
+      "visual_inspection_note": "Image-only cover/background/back-cover; framework page 7 is an illustrative photograph. No missing topic text inferred."
+    },
+    {
+      "id": "user-extraction-brief",
+      "filename": "Pasted text(1).txt",
+      "library_file_id": "libfile_bd11dc7dcf7881918eda332529296a1d",
+      "authority": "User-provided task instructions; not NCDC curriculum authority",
+      "publication_year": null,
+      "document_version": null,
+      "rights_notice": null,
+      "page_count": null,
+      "document_type": "task_instructions",
+      "extraction_status": "read_in_full_and_applied",
+      "sha256": "e8ba618c14951141a11090f9ca62650bb50c2b05fdb7a4c34be10e45f34d9a7f"
+    }
+  ]
+}

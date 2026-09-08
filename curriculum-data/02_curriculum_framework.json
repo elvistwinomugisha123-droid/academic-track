@@ -1,0 +1,4323 @@
+{
+  "id": "ncdc-lsc-2019",
+  "schema_version": "1.0.0",
+  "entity_type": "curriculum_framework",
+  "title": "Lower Secondary Curriculum Framework",
+  "source": {
+    "document_id": "ncdc-framework-2019",
+    "authority": "National Curriculum Development Centre (NCDC)",
+    "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+    "publication_year": 2019,
+    "document_version": null,
+    "page_pdf": 3,
+    "page_printed": 1,
+    "pages_pdf": [
+      3
+    ],
+    "pages_printed": [
+      1
+    ],
+    "section_heading": "Foreword and publication details",
+    "source_type": "official_curriculum",
+    "rights_notice_present": true
+  },
+  "records": [
+    {
+      "id": "framework-key-outcome-self-assured-individuals",
+      "entity_type": "key_learning_outcome",
+      "category": "key_learning_outcome",
+      "text": "Self-assured individuals who: • Demonstrate self- motivation, self-management and self-esteem • Know their own preferences, strengths and limitations • Adjust their behaviour and language appropriately to different social situations • Relate well to a range of personality types",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 8,
+        "page_printed": 6,
+        "pages_pdf": [
+          8
+        ],
+        "pages_printed": [
+          6
+        ],
+        "section_heading": "Key Learning Outcome",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "key_learning_outcome"
+      }
+    },
+    {
+      "id": "framework-key-outcome-responsible-and-patriotic-citizens",
+      "entity_type": "key_learning_outcome",
+      "category": "key_learning_outcome",
+      "text": "Responsible and patriotic citizens who: • Cherish the values promoted in the curriculum • Promote equity, the development of indigenous cultures and languages and appreciate other people’s cultures • Apply environmental and health awareness when making decisions for themselves and their community • Are positive in their own identity as individuals and global citizens • Are motivated to contribute to the well-being of themselves, their community and the nation",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 8,
+        "page_printed": 6,
+        "pages_pdf": [
+          8
+        ],
+        "pages_printed": [
+          6
+        ],
+        "section_heading": "Key Learning Outcome",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "key_learning_outcome"
+      }
+    },
+    {
+      "id": "framework-key-outcome-lifelong-learners",
+      "entity_type": "key_learning_outcome",
+      "category": "key_learning_outcome",
+      "text": "Lifelong learners who: • Can plan, reflect and direct their own learning • Actively seek lifelong learning opportunities for personal and professional development",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 8,
+        "page_printed": 6,
+        "pages_pdf": [
+          8
+        ],
+        "pages_printed": [
+          6
+        ],
+        "section_heading": "Key Learning Outcome",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "key_learning_outcome"
+      }
+    },
+    {
+      "id": "framework-key-outcome-positive-contributors-to-society",
+      "entity_type": "key_learning_outcome",
+      "category": "key_learning_outcome",
+      "text": "Positive contributors to society who: • Have acquired and can apply the Generic Skills • Demonstrate knowledge and understanding of the emerging needs of society and the economy • Understand how to design, make and critically evaluate products and processes to address needs • Appreciate the physical, biological and technological world and make informed decisions about sustainable development and its impact on people and the environment.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 8,
+        "page_printed": 6,
+        "pages_pdf": [
+          8
+        ],
+        "pages_printed": [
+          6
+        ],
+        "section_heading": "Key Learning Outcome",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "key_learning_outcome"
+      }
+    },
+    {
+      "id": "framework-value-respect-for-humanity-and-environment",
+      "entity_type": "value",
+      "category": "value",
+      "text": "Respect for humanity and environment",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 9,
+        "page_printed": 7,
+        "pages_pdf": [
+          9
+        ],
+        "pages_printed": [
+          7
+        ],
+        "section_heading": "Value",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "value"
+      }
+    },
+    {
+      "id": "framework-value-honesty",
+      "entity_type": "value",
+      "category": "value",
+      "text": "Honesty; uphold and defend the truth at all times",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 9,
+        "page_printed": 7,
+        "pages_pdf": [
+          9
+        ],
+        "pages_printed": [
+          7
+        ],
+        "section_heading": "Value",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "value"
+      }
+    },
+    {
+      "id": "framework-value-justice-and-fairness-in-dealing-with-others",
+      "entity_type": "value",
+      "category": "value",
+      "text": "Justice and fairness in dealing with others",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 9,
+        "page_printed": 7,
+        "pages_pdf": [
+          9
+        ],
+        "pages_printed": [
+          7
+        ],
+        "section_heading": "Value",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "value"
+      }
+    },
+    {
+      "id": "framework-value-hard-work-for-self-reliance",
+      "entity_type": "value",
+      "category": "value",
+      "text": "Hard work for self-reliance",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 9,
+        "page_printed": 7,
+        "pages_pdf": [
+          9
+        ],
+        "pages_printed": [
+          7
+        ],
+        "section_heading": "Value",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "value"
+      }
+    },
+    {
+      "id": "framework-value-integrity",
+      "entity_type": "value",
+      "category": "value",
+      "text": "Integrity; moral uprightness and sound character",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 9,
+        "page_printed": 7,
+        "pages_pdf": [
+          9
+        ],
+        "pages_printed": [
+          7
+        ],
+        "section_heading": "Value",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "value"
+      }
+    },
+    {
+      "id": "framework-value-creativity-and-innovativeness",
+      "entity_type": "value",
+      "category": "value",
+      "text": "Creativity and innovativeness",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 9,
+        "page_printed": 7,
+        "pages_pdf": [
+          9
+        ],
+        "pages_printed": [
+          7
+        ],
+        "section_heading": "Value",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "value"
+      }
+    },
+    {
+      "id": "framework-value-social-responsibility",
+      "entity_type": "value",
+      "category": "value",
+      "text": "Social Responsibility",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 9,
+        "page_printed": 7,
+        "pages_pdf": [
+          9
+        ],
+        "pages_printed": [
+          7
+        ],
+        "section_heading": "Value",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "value"
+      }
+    },
+    {
+      "id": "framework-value-social-harmony",
+      "entity_type": "value",
+      "category": "value",
+      "text": "Social Harmony",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 9,
+        "page_printed": 7,
+        "pages_pdf": [
+          9
+        ],
+        "pages_printed": [
+          7
+        ],
+        "section_heading": "Value",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "value"
+      }
+    },
+    {
+      "id": "framework-value-national-unity",
+      "entity_type": "value",
+      "category": "value",
+      "text": "National Unity",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 9,
+        "page_printed": 7,
+        "pages_pdf": [
+          9
+        ],
+        "pages_printed": [
+          7
+        ],
+        "section_heading": "Value",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "value"
+      }
+    },
+    {
+      "id": "framework-value-national-consciousness-and-patriotism",
+      "entity_type": "value",
+      "category": "value",
+      "text": "National Consciousness and patriotism",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 9,
+        "page_printed": 7,
+        "pages_pdf": [
+          9
+        ],
+        "pages_printed": [
+          7
+        ],
+        "section_heading": "Value",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "value"
+      }
+    },
+    {
+      "id": "framework-values-implementation",
+      "entity_type": "teaching_learning_principle",
+      "category": "teaching_learning_principle",
+      "text": "These values are not taught directly in lessons, nor will they be assessed, but they will inform and shape all teaching and learning.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 9,
+        "page_printed": 7,
+        "pages_pdf": [
+          9
+        ],
+        "pages_printed": [
+          7
+        ],
+        "section_heading": "Teaching Learning Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "teaching_learning_principle"
+      }
+    },
+    {
+      "id": "framework-generic-skill-critical-thinking-and-problem-solving",
+      "entity_type": "generic_skill",
+      "category": "generic_skill",
+      "text": "Critical thinking and problem-solving",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill"
+      }
+    },
+    {
+      "id": "framework-generic-skill-critical-thinking-and-problem-solving-descriptor-01",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Plan and carry out investigations",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-critical-thinking-and-problem-solving"
+    },
+    {
+      "id": "framework-generic-skill-critical-thinking-and-problem-solving-descriptor-02",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Sort and analyse information",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-critical-thinking-and-problem-solving"
+    },
+    {
+      "id": "framework-generic-skill-critical-thinking-and-problem-solving-descriptor-03",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Identify problems and ways forward",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-critical-thinking-and-problem-solving"
+    },
+    {
+      "id": "framework-generic-skill-critical-thinking-and-problem-solving-descriptor-04",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Predict outcomes and make reasoned decisions",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-critical-thinking-and-problem-solving"
+    },
+    {
+      "id": "framework-generic-skill-critical-thinking-and-problem-solving-descriptor-05",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Evaluate different solutions",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-critical-thinking-and-problem-solving"
+    },
+    {
+      "id": "framework-generic-skill-co-operation-and-self-directed-learning",
+      "entity_type": "generic_skill",
+      "category": "generic_skill",
+      "text": "Co-operation and self-directed Learning",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill"
+      }
+    },
+    {
+      "id": "framework-generic-skill-co-operation-and-self-directed-learning-descriptor-01",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Work effectively in diverse teams",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-co-operation-and-self-directed-learning"
+    },
+    {
+      "id": "framework-generic-skill-co-operation-and-self-directed-learning-descriptor-02",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Interact effectively with others",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-co-operation-and-self-directed-learning"
+    },
+    {
+      "id": "framework-generic-skill-co-operation-and-self-directed-learning-descriptor-03",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Take responsibility for own learning",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-co-operation-and-self-directed-learning"
+    },
+    {
+      "id": "framework-generic-skill-co-operation-and-self-directed-learning-descriptor-04",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Work independently with persistence",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-co-operation-and-self-directed-learning"
+    },
+    {
+      "id": "framework-generic-skill-co-operation-and-self-directed-learning-descriptor-05",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Manage goals and time",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-co-operation-and-self-directed-learning"
+    },
+    {
+      "id": "framework-generic-skill-creativity-and-innovation",
+      "entity_type": "generic_skill",
+      "category": "generic_skill",
+      "text": "Creativity and innovation",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill"
+      }
+    },
+    {
+      "id": "framework-generic-skill-creativity-and-innovation-descriptor-01",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Use imaginations to explore possibilities",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-creativity-and-innovation"
+    },
+    {
+      "id": "framework-generic-skill-creativity-and-innovation-descriptor-02",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Work with others to generate ideas",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-creativity-and-innovation"
+    },
+    {
+      "id": "framework-generic-skill-creativity-and-innovation-descriptor-03",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Suggest and develop new solutions",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-creativity-and-innovation"
+    },
+    {
+      "id": "framework-generic-skill-creativity-and-innovation-descriptor-04",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Try out innovative alternatives",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-creativity-and-innovation"
+    },
+    {
+      "id": "framework-generic-skill-creativity-and-innovation-descriptor-05",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Look for patterns and make generalisations",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-creativity-and-innovation"
+    },
+    {
+      "id": "framework-generic-skill-mathematical-computations-and-ict-proficiency",
+      "entity_type": "generic_skill",
+      "category": "generic_skill",
+      "text": "Mathematical computations and ICT proficiency",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill"
+      }
+    },
+    {
+      "id": "framework-generic-skill-mathematical-computations-and-ict-proficiency-descriptor-01",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Use numbers and measurements accurately",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-mathematical-computations-and-ict-proficiency"
+    },
+    {
+      "id": "framework-generic-skill-mathematical-computations-and-ict-proficiency-descriptor-02",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Interpret and interrogate mathematical data",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-mathematical-computations-and-ict-proficiency"
+    },
+    {
+      "id": "framework-generic-skill-mathematical-computations-and-ict-proficiency-descriptor-03",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Use mathematics to justify and support decisions",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-mathematical-computations-and-ict-proficiency"
+    },
+    {
+      "id": "framework-generic-skill-mathematical-computations-and-ict-proficiency-descriptor-04",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Use technology to create, manipulate and process information",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-mathematical-computations-and-ict-proficiency"
+    },
+    {
+      "id": "framework-generic-skill-mathematical-computations-and-ict-proficiency-descriptor-05",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Use technology to collaborate, communicate and refine their work",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-mathematical-computations-and-ict-proficiency"
+    },
+    {
+      "id": "framework-generic-skill-communication",
+      "entity_type": "generic_skill",
+      "category": "generic_skill",
+      "text": "Communication",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill"
+      }
+    },
+    {
+      "id": "framework-generic-skill-communication-descriptor-01",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Listen attentively and with comprehension",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-communication"
+    },
+    {
+      "id": "framework-generic-skill-communication-descriptor-02",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Talk confidently and explain ideas/opinions clearly",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-communication"
+    },
+    {
+      "id": "framework-generic-skill-communication-descriptor-03",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Read accurately and fluently",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-communication"
+    },
+    {
+      "id": "framework-generic-skill-communication-descriptor-04",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Write and present coherently",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-communication"
+    },
+    {
+      "id": "framework-generic-skill-communication-descriptor-05",
+      "entity_type": "generic_skill_descriptor",
+      "category": "generic_skill_descriptor",
+      "text": "Use a range of media to communicate ideas",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 10,
+        "page_printed": 8,
+        "pages_pdf": [
+          10
+        ],
+        "pages_printed": [
+          8
+        ],
+        "section_heading": "Generic Skill Descriptor",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "generic_skill_descriptor"
+      },
+      "generic_skill_id": "framework-generic-skill-communication"
+    },
+    {
+      "id": "framework-generic-skills-within-subjects",
+      "entity_type": "teaching_learning_principle",
+      "category": "teaching_learning_principle",
+      "text": "Generic Skills within the Subjects These skills are not separate subjects in themselves; they are developed within the subjects of the curriculum. They also facilitate learning within those subjects. It is when these generic skills are deployed that learning is most effective. The model below shows how the generic skills intersect with each of the subjects. Within the intersections, learners develop the skills in the context of the subject. For example, Mathematics can provide a context for developing critical thinking skills; History can provide a context for developing communication skills. Every subject area can provide a context for the development of every generic skill. The diagram below shows how this operates. The diagram presents only some of the subjects because it is impossible to fit all of them into a diagram, but the model applies equally to all subjects. The generic skills are a key part of the new curriculum. They have been built into the syllabuses for each of the subjects, and these subjects provide the context for the skills development. The subjects also provide the contexts for progression within the skills. The same skill definitions apply to all year groups, and skills progression is provided by the increasing complexity of the subject matter within each subject. For example, within ‘critical thinking’, learners begin thinking critically about the relatively simple subject matter in Senior 1 and then progress to thinking about the much more complex matters in Senior 4. Thus the progression is in the increasing complexity of the matter being thought about.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 11,
+        "page_printed": 9,
+        "pages_pdf": [
+          11
+        ],
+        "pages_printed": [
+          9
+        ],
+        "section_heading": "Teaching Learning Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "teaching_learning_principle"
+      }
+    },
+    {
+      "id": "framework-cross-cutting-environmental-awareness",
+      "entity_type": "cross_cutting_issue",
+      "category": "cross_cutting_issue",
+      "text": "Environmental awareness: The curriculum supports the need for action to sustain the Ugandan and global natural environment and resources. The curriculum develops learners’ awareness and concern for protection of the environment and climate change;",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 12,
+        "page_printed": 10,
+        "pages_pdf": [
+          12
+        ],
+        "pages_printed": [
+          10
+        ],
+        "section_heading": "Cross Cutting Issue",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "cross_cutting_issue"
+      }
+    },
+    {
+      "id": "framework-cross-cutting-health-awareness",
+      "entity_type": "cross_cutting_issue",
+      "category": "cross_cutting_issue",
+      "text": "Health awareness: The curriculum promotes awareness and understanding of the major health challenges facing Uganda and the action required for their mitigation. These include HIV and AIDS prevention, eradication of malaria and other communicable diseases, provision of adequate sanitation and clean water, development of appropriate hygiene standards and reproductive health issues;",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 12,
+        "page_printed": 10,
+        "pages_pdf": [
+          12
+        ],
+        "pages_printed": [
+          10
+        ],
+        "section_heading": "Cross Cutting Issue",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "cross_cutting_issue"
+      }
+    },
+    {
+      "id": "framework-cross-cutting-mixed-abilities-and-involvement",
+      "entity_type": "cross_cutting_issue",
+      "category": "cross_cutting_issue",
+      "text": "Mixed abilities and involvement: This includes gender mainstreaming and the integration of people with special learning needs. Learners should understand the challenges relating to the need to accept different learning capabilities.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 12,
+        "page_printed": 10,
+        "pages_pdf": [
+          12
+        ],
+        "pages_printed": [
+          10
+        ],
+        "section_heading": "Cross Cutting Issue",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "cross_cutting_issue"
+      }
+    },
+    {
+      "id": "framework-cross-cutting-socio-economic-issues",
+      "entity_type": "cross_cutting_issue",
+      "category": "cross_cutting_issue",
+      "text": "Socio-economic issues: The curriculum will provide learners with knowledge, understanding and skills for dealing with major challenges facing Uganda, including poverty, village gardening inefficiency, energy generation and supply, a high fertility level and consequent rapid population growth, and unemployment.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 12,
+        "page_printed": 10,
+        "pages_pdf": [
+          12
+        ],
+        "pages_printed": [
+          10
+        ],
+        "section_heading": "Cross Cutting Issue",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "cross_cutting_issue"
+      }
+    },
+    {
+      "id": "framework-cross-cutting-citizenship-and-patriotism",
+      "entity_type": "cross_cutting_issue",
+      "category": "cross_cutting_issue",
+      "text": "Citizenship and Patriotism: Citizenship education aims to develop the learners’ capacity to participate in a fair and inclusive society. The curriculum gives opportunities for learners to explore the core citizenship concepts of diversity/interdependence, equality/justice, democracy/active participation, right to be heard and fair treatment.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 12,
+        "page_printed": 10,
+        "pages_pdf": [
+          12
+        ],
+        "pages_printed": [
+          10
+        ],
+        "section_heading": "Cross Cutting Issue",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "cross_cutting_issue"
+      }
+    },
+    {
+      "id": "framework-cross-cutting-life-skills",
+      "entity_type": "cross_cutting_issue",
+      "category": "cross_cutting_issue",
+      "text": "Life skills: These are the personal and social skills that enable young people to function confidently and competently among themselves with other people and in the wider community. Life skills help an individual to: • Make informed decisions • Practice healthy behaviours • Recognise and assess risky situations • Avoid risky situations • Change attitude become good citizens • Be active and constructive in life • Solve problems met in different situations • Cope with stress and control emotions",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 12,
+        "page_printed": 10,
+        "pages_pdf": [
+          12
+        ],
+        "pages_printed": [
+          10
+        ],
+        "section_heading": "Cross Cutting Issue",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "medium",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "cross_cutting_issue"
+      },
+      "human_review_ids": [
+        "review-015"
+      ]
+    },
+    {
+      "id": "framework-cross-cutting-implementation",
+      "entity_type": "teaching_learning_principle",
+      "category": "teaching_learning_principle",
+      "text": "The life skills have been built into the syllabuses of each Subject. The way in which they are handled within the Subject is very similar to the way generic skills are handled as the model below shows:",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 12,
+        "page_printed": 10,
+        "pages_pdf": [
+          12
+        ],
+        "pages_printed": [
+          10
+        ],
+        "section_heading": "Teaching Learning Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "teaching_learning_principle"
+      }
+    },
+    {
+      "id": "framework-teaching-01",
+      "entity_type": "teaching_learning_principle",
+      "category": "teaching_learning_principle",
+      "text": "The thrust of the new syllabuses is experiential and towards deeper understanding. This requires a shift from ‘knowledge- transmission’ mode to a more ‘active-learning’ approach in which learners are challenged to think for themselves, draw conclusions, solve problems and make their own judgements.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 20,
+        "page_printed": 18,
+        "pages_pdf": [
+          20
+        ],
+        "pages_printed": [
+          18
+        ],
+        "section_heading": "Teaching Learning Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 20,
+            "bbox": [
+              36.0,
+              206.25,
+              287.06,
+              265.54
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "teaching_learning_principle"
+      }
+    },
+    {
+      "id": "framework-teaching-02",
+      "entity_type": "teaching_learning_principle",
+      "category": "teaching_learning_principle",
+      "text": "Learners will take some control of their own learning, by sharing the use of appropriately-designed textbooks and accessing multimedia content where available. The new curriculum encourages schools to provide learners with increased opportunities to build work-related knowledge, experience and skills. The generic skills have been integrated throughout the curriculum and can only be acquired through active approaches.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 20,
+        "page_printed": 18,
+        "pages_pdf": [
+          20
+        ],
+        "pages_printed": [
+          18
+        ],
+        "section_heading": "Teaching Learning Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 20,
+            "bbox": [
+              35.99,
+              271.89,
+              281.07,
+              367.07
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "teaching_learning_principle"
+      }
+    },
+    {
+      "id": "framework-teaching-03",
+      "entity_type": "teaching_learning_principle",
+      "category": "teaching_learning_principle",
+      "text": "The role of the teacher is to build on learners’ existing knowledge and experience, and to extend that by posing problems to the learners. This makes them think about their own ideas and experiences as well as adding new knowledge and skills to it.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 20,
+        "page_printed": 18,
+        "pages_pdf": [
+          20
+        ],
+        "pages_printed": [
+          18
+        ],
+        "section_heading": "Teaching Learning Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 20,
+            "bbox": [
+              35.99,
+              373.42,
+              284.06,
+              432.6
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "teaching_learning_principle"
+      }
+    },
+    {
+      "id": "framework-teaching-04",
+      "entity_type": "teaching_learning_principle",
+      "category": "teaching_learning_principle",
+      "text": "Learners need to interact with real situations inside and outside the classroom. They need to look at pictures or diagrams, examine statistics, or read texts from a range of sources. They need to find out knowledge and ideas for themselves. They should then be expected to express these in their own words, not those of the teacher, and so demonstrate that they have understood what they have learnt.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 20,
+        "page_printed": 18,
+        "pages_pdf": [
+          20
+        ],
+        "pages_printed": [
+          18
+        ],
+        "section_heading": "Teaching Learning Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 20,
+            "bbox": [
+              286.8,
+              170.61,
+              561.03,
+              289.42
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "teaching_learning_principle"
+      }
+    },
+    {
+      "id": "framework-teaching-05",
+      "entity_type": "teaching_learning_principle",
+      "category": "teaching_learning_principle",
+      "text": "In this approach, learners are encouraged to:",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 20,
+        "page_printed": 18,
+        "pages_pdf": [
+          20
+        ],
+        "pages_printed": [
+          18
+        ],
+        "section_heading": "Teaching Learning Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 20,
+            "bbox": [
+              309.0,
+              295.66,
+              488.42,
+              306.94
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "teaching_learning_principle"
+      }
+    },
+    {
+      "id": "framework-teaching-06",
+      "entity_type": "teaching_learning_principle",
+      "category": "teaching_learning_principle",
+      "text": "• be responsible for their own learning",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 20,
+        "page_printed": 18,
+        "pages_pdf": [
+          20
+        ],
+        "pages_printed": [
+          18
+        ],
+        "section_heading": "Teaching Learning Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 20,
+            "bbox": [
+              309.0,
+              311.73,
+              473.42,
+              325.33
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "teaching_learning_principle"
+      }
+    },
+    {
+      "id": "framework-teaching-07",
+      "entity_type": "teaching_learning_principle",
+      "category": "teaching_learning_principle",
+      "text": "• think for themselves and form their own ideas and opinions",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 20,
+        "page_printed": 18,
+        "pages_pdf": [
+          20
+        ],
+        "pages_printed": [
+          18
+        ],
+        "section_heading": "Teaching Learning Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 20,
+            "bbox": [
+              309.0,
+              329.61,
+              510.61,
+              354.46
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "teaching_learning_principle"
+      }
+    },
+    {
+      "id": "framework-teaching-08",
+      "entity_type": "teaching_learning_principle",
+      "category": "teaching_learning_principle",
+      "text": "• Become critical thinkers, ready to face new challenges and situations for themselves.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 20,
+        "page_printed": 18,
+        "pages_pdf": [
+          20
+        ],
+        "pages_printed": [
+          18
+        ],
+        "section_heading": "Teaching Learning Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 20,
+            "bbox": [
+              309.0,
+              359.25,
+              558.5,
+              384.1
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "teaching_learning_principle"
+      }
+    },
+    {
+      "id": "framework-teaching-09",
+      "entity_type": "teaching_learning_principle",
+      "category": "teaching_learning_principle",
+      "text": "There is a wide range of strategies to encourage this approach. Some of these are set out in the diagram below.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 20,
+        "page_printed": 18,
+        "pages_pdf": [
+          20
+        ],
+        "pages_printed": [
+          18
+        ],
+        "section_heading": "Teaching Learning Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 20,
+            "bbox": [
+              309.01,
+              390.34,
+              582.9,
+              413.62
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "teaching_learning_principle"
+      }
+    },
+    {
+      "id": "framework-gender-equity-01",
+      "entity_type": "gender_equity",
+      "category": "gender_equity",
+      "text": "The curriculum applies equally to male and female learners. There is no subject that applies to only one gender.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 21,
+        "page_printed": 19,
+        "pages_pdf": [
+          21
+        ],
+        "pages_printed": [
+          19
+        ],
+        "section_heading": "Gender Equity",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 21,
+            "bbox": [
+              36.36,
+              140.61,
+              274.83,
+              164.01
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "gender_equity"
+      }
+    },
+    {
+      "id": "framework-gender-equity-02",
+      "entity_type": "gender_equity",
+      "category": "gender_equity",
+      "text": "Schools need to ensure that all learners have equal access to the curriculum, regardless of gender. To this they need to consider:",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 21,
+        "page_printed": 19,
+        "pages_pdf": [
+          21
+        ],
+        "pages_printed": [
+          19
+        ],
+        "section_heading": "Gender Equity",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 21,
+            "bbox": [
+              36.36,
+              168.93,
+              274.94,
+              204.22
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "gender_equity"
+      }
+    },
+    {
+      "id": "framework-gender-equity-03",
+      "entity_type": "gender_equity",
+      "category": "gender_equity",
+      "text": "• Giving equal support and encouragement to girls as well as boys • Ensuring that gender stereotypes are avoided and challenged • Setting equally high expectations for both genders • Making sure that the school is welcoming to both genders • Ensuring that girls as well as boys are listened to with respect and given full opportunity to contribute to lessons • Encouraging both boys and girls to attend, and supporting them to achieve",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 21,
+        "page_printed": 19,
+        "pages_pdf": [
+          21
+        ],
+        "pages_printed": [
+          19
+        ],
+        "section_heading": "Gender Equity",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 21,
+            "bbox": [
+              36.36,
+              207.57,
+              285.51,
+              342.46
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "gender_equity"
+      }
+    },
+    {
+      "id": "framework-inclusion-02",
+      "entity_type": "inclusion_mixed_ability",
+      "category": "inclusion_mixed_ability",
+      "text": "It is essential that all young people are enabled to access education. This includes those with disabilities, those from disadvantaged communities and those with particular learning difficulties. The curriculum applies to all schools and learners, but the way in which it is interpreted and taught needs to be adapted to ensure that all learners are included. Schools should aim to give every learner the opportunity to experience success in learning and to achieve as high a standard as possible.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 21,
+        "page_printed": 19,
+        "pages_pdf": [
+          21
+        ],
+        "pages_printed": [
+          19
+        ],
+        "section_heading": "Inclusion Mixed Ability",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 21,
+            "bbox": [
+              308.99,
+              183.81,
+              556.49,
+              291.1
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "inclusion_mixed_ability"
+      }
+    },
+    {
+      "id": "framework-inclusion-03",
+      "entity_type": "inclusion_mixed_ability",
+      "category": "inclusion_mixed_ability",
+      "text": "To do this, schools will need to consider:",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 21,
+        "page_printed": 19,
+        "pages_pdf": [
+          21
+        ],
+        "pages_printed": [
+          19
+        ],
+        "section_heading": "Inclusion Mixed Ability",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 21,
+            "bbox": [
+              308.99,
+              297.34,
+              471.73,
+              308.62
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "inclusion_mixed_ability"
+      }
+    },
+    {
+      "id": "framework-inclusion-04",
+      "entity_type": "inclusion_mixed_ability",
+      "category": "inclusion_mixed_ability",
+      "text": "• Creating effective and supportive learning environments • Providing appropriate support to learners with mixed abilities and special educational needs • Providing specialist equipment or materials where appropriate • Varying teaching approaches where necessary to ensure that all learners are learning",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 21,
+        "page_printed": 19,
+        "pages_pdf": [
+          21
+        ],
+        "pages_printed": [
+          19
+        ],
+        "section_heading": "Inclusion Mixed Ability",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 21,
+            "bbox": [
+              308.98,
+              313.42,
+              551.65,
+              406.67
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "inclusion_mixed_ability"
+      }
+    },
+    {
+      "id": "framework-inclusion-05",
+      "entity_type": "inclusion_mixed_ability",
+      "category": "inclusion_mixed_ability",
+      "text": "Learners with visual impairment should have opportunities to access and have physical contact with artefacts and materials, and where necessary, texts in Braille. Learners with hearing impairment should have opportunity to experience sound through physical contact with musical instruments and other sources of sound. Provision should be made for these learners to learn and use sign language where necessary.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 21,
+        "page_printed": 19,
+        "pages_pdf": [
+          21
+        ],
+        "pages_printed": [
+          19
+        ],
+        "section_heading": "Inclusion Mixed Ability",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 21,
+            "bbox": [
+              0.0,
+              413.03,
+              564.74,
+              587.25
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "inclusion_mixed_ability"
+      }
+    },
+    {
+      "id": "framework-learning-environment-01",
+      "entity_type": "learning_environment",
+      "category": "learning_environment",
+      "text": "The learning environment can assist learners to learn. It does not need to be expensively decorated. As a minimum, classrooms should:",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 22,
+        "page_printed": 20,
+        "pages_pdf": [
+          22
+        ],
+        "pages_printed": [
+          20
+        ],
+        "section_heading": "Learning Environment",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 22,
+            "bbox": [
+              36.0,
+              128.73,
+              274.72,
+              164.01
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "learning_environment"
+      }
+    },
+    {
+      "id": "framework-learning-environment-02",
+      "entity_type": "learning_environment",
+      "category": "learning_environment",
+      "text": "• Be clean without rubbish on the floors and with clean windows • Have furniture arranged so learners can work in groups • Have talking walls that display learners’ work, posters for information and learning materials • Be owned by learners. • Have proper ventilation",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 22,
+        "page_printed": 20,
+        "pages_pdf": [
+          22
+        ],
+        "pages_printed": [
+          20
+        ],
+        "section_heading": "Learning Environment",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 22,
+            "bbox": [
+              36.01,
+              168.8,
+              273.98,
+              264.85
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "learning_environment"
+      }
+    },
+    {
+      "id": "framework-learning-environment-03",
+      "entity_type": "learning_environment",
+      "category": "learning_environment",
+      "text": "In addition to textbooks, learners need access to other non-text learning materials. These include improvised, no cost and low- cost materials which are available within a local community or environment. They will also include chemicals for Science experiments, calculators for Mathematics, instruments and materials for Art and Design and tools for Technology and Design. These materials will enable learners to learn for themselves and to ensure a greater depth of understanding is achieved of the concepts leant.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 22,
+        "page_printed": 20,
+        "pages_pdf": [
+          22
+        ],
+        "pages_printed": [
+          20
+        ],
+        "section_heading": "Learning Environment",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 22,
+            "bbox": [
+              36.0,
+              270.58,
+              287.43,
+              377.76
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "learning_environment"
+      }
+    },
+    {
+      "id": "framework-learning-environment-04",
+      "entity_type": "learning_environment",
+      "category": "learning_environment",
+      "text": "Above all the learning environment should be welcoming and supportive.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 22,
+        "page_printed": 20,
+        "pages_pdf": [
+          22
+        ],
+        "pages_printed": [
+          20
+        ],
+        "section_heading": "Learning Environment",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 22,
+            "bbox": [
+              36.0,
+              384.11,
+              286.46,
+              407.4
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "learning_environment"
+      }
+    },
+    {
+      "id": "framework-assessment-01",
+      "entity_type": "assessment_principle",
+      "category": "assessment_principle",
+      "text": "The reformed, outcomes-based curriculum requires a revised, skill-oriented approach to assessment that will support learning and reward achievement at all levels. This will be criterion-referenced to ensure that standards are maintained year by year.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 22,
+        "page_printed": 20,
+        "pages_pdf": [
+          22
+        ],
+        "pages_printed": [
+          20
+        ],
+        "section_heading": "Assessment Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 22,
+            "bbox": [
+              308.99,
+              128.73,
+              544.33,
+              188.02
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "assessment_principle"
+      }
+    },
+    {
+      "id": "framework-assessment-02",
+      "entity_type": "assessment_principle",
+      "category": "assessment_principle",
+      "text": "The new approach to assessment supports the changed emphasis in the nature of learning and teaching under the new curriculum by:",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 22,
+        "page_printed": 20,
+        "pages_pdf": [
+          22
+        ],
+        "pages_printed": [
+          20
+        ],
+        "section_heading": "Assessment Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 22,
+            "bbox": [
+              308.99,
+              194.37,
+              544.08,
+              229.54
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "assessment_principle"
+      }
+    },
+    {
+      "id": "framework-assessment-03",
+      "entity_type": "assessment_principle",
+      "category": "assessment_principle",
+      "text": "• Assessing the learner’s understanding, not just their knowledge, of key concepts in each subject. • Focusing on the learner’s ability to apply their knowledge in a range of situations. • Enabling the learner to demonstrate a selection of relevant generic skills • Using a diversified range of assessment techniques like oral, written, performance and demonstration of practical skills’ • Encouraging the development of learners’ abilities to reflect on their own learning and carry out self-assessment.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 22,
+        "page_printed": 20,
+        "pages_pdf": [
+          22
+        ],
+        "pages_printed": [
+          20
+        ],
+        "section_heading": "Assessment Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 22,
+            "bbox": [
+              308.99,
+              234.33,
+              560.18,
+              378.35
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "assessment_principle"
+      }
+    },
+    {
+      "id": "framework-assessment-04",
+      "entity_type": "assessment_principle",
+      "category": "assessment_principle",
+      "text": "New materials will support classroom learning in the new lower secondary curriculum and provide for the assessment and reporting of achievement for all learners following the curriculum.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 22,
+        "page_printed": 20,
+        "pages_pdf": [
+          22
+        ],
+        "pages_printed": [
+          20
+        ],
+        "section_heading": "Assessment Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 22,
+            "bbox": [
+              309.0,
+              384.71,
+              549.01,
+              432.0
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "assessment_principle"
+      }
+    },
+    {
+      "id": "framework-assessment-05",
+      "entity_type": "assessment_principle",
+      "category": "assessment_principle",
+      "text": "The new curriculum emphasises the assessment of the skills required for the world of work and these have been built into the subject learning expectations.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 22,
+        "page_printed": 20,
+        "pages_pdf": [
+          22
+        ],
+        "pages_printed": [
+          20
+        ],
+        "section_heading": "Assessment Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 22,
+            "bbox": [
+              309.0,
+              438.35,
+              549.04,
+              473.64
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "assessment_principle"
+      }
+    },
+    {
+      "id": "framework-assessment-06",
+      "entity_type": "assessment_principle",
+      "category": "assessment_principle",
+      "text": "The assessment framework sets out the expectations in more detail. It refers to the importance of classroom based formative assessment and the need for assessment as learning as well as assessment of learning. All are important and explained in the framework. Learners will still be formally assessed at the end of Senior 4, but the results of those assessments will lead to the award of a Uganda Certificate of Education (UCE) that will consist of learner’s achievement assessed in the final examination and also in controlled individual work in Senior 3 and 4.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 22,
+        "page_printed": 20,
+        "pages_pdf": [
+          22
+        ],
+        "pages_printed": [
+          20
+        ],
+        "section_heading": "Assessment Principle",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true,
+        "spans": [
+          {
+            "page_pdf": 22,
+            "bbox": [
+              0.0,
+              479.99,
+              542.93,
+              626.4
+            ]
+          }
+        ]
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "assessment_principle"
+      }
+    },
+    {
+      "id": "framework-curriculum-menu",
+      "entity_type": "curriculum_menu",
+      "category": "curriculum_menu",
+      "text": "The Curriculum Menu The Lower Secondary Curriculum Menu consists of 20 subjects. A school is expected to select 12 subjects to be offered out of the 20 subjects on the menu. At S1 and S2, learners are expected to offer 11 compulsory subjects plus one elective. At S3 and S4 learners are expected to offer a minimum of 8 and maximum of 9 subjects, out of which 7 are compulsory. The Subjects Learners will study a set of compulsory subjects and will be able to choose from a range of elective subjects that will allow them to follow their own interests and to specialise in particular areas The compulsory subjects at S1 and 2 are; English, Entrepreneurship, Mathematics, Biology, Chemistry, Physics (or General Science for learners with special educational needs), Geography, History and Political Education, Kiswahili, Physical education and Religious Education. At S3 and 4 there is a greater focus on a narrower range, with 7 compulsory subjects which are: Mathematics, English, Chemistry, Biology, Physics, (General Science), Geography and History & Political Education and a maximum of two elective subjects. Emphasis should be placed on integrating ICT in all subjects as a pedagogical tool. In all subjects there is an emphasis on deeper understanding and the development of the ability to apply the subject learning in a range of situations. The range of subjects will enable learners to: • Participate effectively in political, social, economic, scientific and technological development of their families, communities and the country at large • Contribute effectively to the world of making a living, work in paid employment, and/or progress to BTVET institutions, tertiary and higher education and training. • Solve problems in their families, communities and work through a scientific problem-solving approach which integrates critical, creative and innovative thinking, effective communication, a high degree of numeracy, use of appropriate technology, social and interpersonal skills, self-motivation and management and the observation of the agreed values",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 13,
+        "page_printed": 11,
+        "pages_pdf": [
+          13
+        ],
+        "pages_printed": [
+          11
+        ],
+        "section_heading": "Curriculum Menu",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "curriculum_menu"
+      }
+    },
+    {
+      "id": "framework-subject-options",
+      "entity_type": "subject_menu",
+      "category": "subject_menu",
+      "text": "The range of subjects to be studied is set out below. Subjects of the Lower Secondary Curriculum S1-2 S3-4 11 Compulsory plus 1 Elective 7 Compulsory plus 2 Electives Compulsory English Compulsory English Mathematics Mathematics History & Political Education History & Political Education Geography Geography Physics Physics Biology General Science Biology General Science Chemistry Chemistry Physical Education Practical (pre- vocational) Electives Agriculture Religious Education Entrepreneurship Entrepreneurship Art and Design Kiswahili Information Communication Technology Nutrition and Food Technology Performing Arts 1 Elective from Agriculture Physical Education Information Communication Technology Technology and Design French/German/Latin/Arabic/Chinese Local Language Literature in English Language Electives Foreign Languages Art and Design Kiswahili Performing Arts Literature Technology and design Local Languages Nutrition & Food Technology Religious Education Electives Christian Religious Education Islamic Religious Education The 8 practical (pre-vocational) elective subjects at S3 and 4 will specifically prepare learners to join the world of work and gainful employment in Uganda, and will enable them to gain a vocational qualification. This aims at addressing the problem of youth unemployment in Uganda. Learners of these subjects will be trained and assessed to the standard set by Directorate of Industrial Training (DIT). This kind of training and assessment focuses on ensuring that learners comply with the requirements of the world of work or employment in a stated occupation. The assessment leads to an award of a work pass at Level 1 in the Uganda Vocational Qualifications Framework (UVQF).",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 14,
+        "page_printed": 12,
+        "pages_pdf": [
+          14
+        ],
+        "pages_printed": [
+          12
+        ],
+        "section_heading": "Subject Menu",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "medium",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_menu"
+      },
+      "human_review_ids": [
+        "review-016",
+        "review-017"
+      ]
+    },
+    {
+      "id": "framework-school-day-and-periods",
+      "entity_type": "time_allocation_guidance",
+      "category": "time_allocation_guidance",
+      "text": "Time allocations The School day starts at 8:00 am and instruction time ends at 2:40 pm. Between 2:40 pm and 4:30 pm learners will have teacher supervised time for their creativity and innovation. Learning time needs to be allocated at school level, for example, some practical subjects will need longer periods than more theoretical ones. The recommended allocation of time to each Subject below is based on 8 periods a day of 40 minutes each. This totals 1,600 learning minutes per week.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Time Allocation Guidance",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "time_allocation_guidance"
+      }
+    },
+    {
+      "id": "framework-time-english",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "English",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "English",
+      "periods_per_week": {
+        "S1-2": 6,
+        "S3-4": 6
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-time-mathematics",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "Mathematics",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "Mathematics",
+      "periods_per_week": {
+        "S1-2": 5,
+        "S3-4": 5
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-time-history-political-education",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "History & Political Education",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "History & Political Education",
+      "periods_per_week": {
+        "S1-2": 3,
+        "S3-4": 3
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-time-geography",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "Geography",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "Geography",
+      "periods_per_week": {
+        "S1-2": 3,
+        "S3-4": 3
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-time-physics",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "Physics",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "Physics",
+      "periods_per_week": {
+        "S1-2": 3,
+        "S3-4": 4
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-time-biology",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "Biology",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "Biology",
+      "periods_per_week": {
+        "S1-2": 3,
+        "S3-4": 4
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-time-chemistry",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "Chemistry",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "Chemistry",
+      "periods_per_week": {
+        "S1-2": 3,
+        "S3-4": 4
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-time-general-science",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "General Science",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "General Science",
+      "periods_per_week": {
+        "S1-2": 6,
+        "S3-4": 6
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-time-pe",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "PE",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "PE",
+      "periods_per_week": {
+        "S1-2": 2,
+        "S3-4": null
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-time-re",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "RE",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "RE",
+      "periods_per_week": {
+        "S1-2": 2,
+        "S3-4": null
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-time-agriculture",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "Agriculture",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "Agriculture",
+      "periods_per_week": {
+        "S1-2": 2,
+        "S3-4": null
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-time-kiswahili",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "Kiswahili",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "Kiswahili",
+      "periods_per_week": {
+        "S1-2": 2,
+        "S3-4": null
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-time-entrepreneurship",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "Entrepreneurship",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "Entrepreneurship",
+      "periods_per_week": {
+        "S1-2": 2,
+        "S3-4": null
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-time-elective-1",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "Elective 1",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "Elective 1",
+      "periods_per_week": {
+        "S1-2": 2,
+        "S3-4": "3 (4 if practical)"
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-time-elective-2",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "Elective 2",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "Elective 2",
+      "periods_per_week": {
+        "S1-2": 2,
+        "S3-4": "3 (4 if practical)"
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-time-school-programme",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "School programme",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "School programme",
+      "periods_per_week": {
+        "S1-2": 3,
+        "S3-4": 2
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-time-library-period",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "Library period",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "Library period",
+      "periods_per_week": {
+        "S1-2": 1,
+        "S3-4": 1
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-time-total",
+      "entity_type": "subject_time_allocation",
+      "category": "subject_time_allocation",
+      "text": "TOTAL",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 15,
+        "page_printed": 13,
+        "pages_pdf": [
+          15
+        ],
+        "pages_printed": [
+          13
+        ],
+        "section_heading": "Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_time_allocation"
+      },
+      "subject_or_category": "TOTAL",
+      "periods_per_week": {
+        "S1-2": 40,
+        "S3-4": 40
+      },
+      "blank_cell_meaning": "not specified in this table; not zero"
+    },
+    {
+      "id": "framework-elective-time-technology-and-design",
+      "entity_type": "elective_subject_time_allocation",
+      "category": "elective_subject_time_allocation",
+      "text": "Technology and Design",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 16,
+        "page_printed": 14,
+        "pages_pdf": [
+          16
+        ],
+        "pages_printed": [
+          14
+        ],
+        "section_heading": "Elective Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "elective_subject_time_allocation"
+      },
+      "source_group": "Practical: Pre-vocational",
+      "levels": [
+        "S3",
+        "S4"
+      ],
+      "periods_per_week": 4
+    },
+    {
+      "id": "framework-elective-time-nutrition-and-food-technology",
+      "entity_type": "elective_subject_time_allocation",
+      "category": "elective_subject_time_allocation",
+      "text": "Nutrition and Food Technology",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 16,
+        "page_printed": 14,
+        "pages_pdf": [
+          16
+        ],
+        "pages_printed": [
+          14
+        ],
+        "section_heading": "Elective Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "elective_subject_time_allocation"
+      },
+      "source_group": "Practical: Pre-vocational",
+      "levels": [
+        "S3",
+        "S4"
+      ],
+      "periods_per_week": 4
+    },
+    {
+      "id": "framework-elective-time-art-and-design",
+      "entity_type": "elective_subject_time_allocation",
+      "category": "elective_subject_time_allocation",
+      "text": "Art and Design",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 16,
+        "page_printed": 14,
+        "pages_pdf": [
+          16
+        ],
+        "pages_printed": [
+          14
+        ],
+        "section_heading": "Elective Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "elective_subject_time_allocation"
+      },
+      "source_group": "Practical: Pre-vocational",
+      "levels": [
+        "S3",
+        "S4"
+      ],
+      "periods_per_week": 4
+    },
+    {
+      "id": "framework-elective-time-performing-arts",
+      "entity_type": "elective_subject_time_allocation",
+      "category": "elective_subject_time_allocation",
+      "text": "Performing Arts",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 16,
+        "page_printed": 14,
+        "pages_pdf": [
+          16
+        ],
+        "pages_printed": [
+          14
+        ],
+        "section_heading": "Elective Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "elective_subject_time_allocation"
+      },
+      "source_group": "Practical: Pre-vocational",
+      "levels": [
+        "S3",
+        "S4"
+      ],
+      "periods_per_week": 4
+    },
+    {
+      "id": "framework-elective-time-physical-education",
+      "entity_type": "elective_subject_time_allocation",
+      "category": "elective_subject_time_allocation",
+      "text": "Physical Education",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 16,
+        "page_printed": 14,
+        "pages_pdf": [
+          16
+        ],
+        "pages_printed": [
+          14
+        ],
+        "section_heading": "Elective Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "elective_subject_time_allocation"
+      },
+      "source_group": "Practical: Pre-vocational",
+      "levels": [
+        "S3",
+        "S4"
+      ],
+      "periods_per_week": 4
+    },
+    {
+      "id": "framework-elective-time-agriculture",
+      "entity_type": "elective_subject_time_allocation",
+      "category": "elective_subject_time_allocation",
+      "text": "Agriculture",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 16,
+        "page_printed": 14,
+        "pages_pdf": [
+          16
+        ],
+        "pages_printed": [
+          14
+        ],
+        "section_heading": "Elective Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "elective_subject_time_allocation"
+      },
+      "source_group": "Practical: Pre-vocational",
+      "levels": [
+        "S3",
+        "S4"
+      ],
+      "periods_per_week": 4
+    },
+    {
+      "id": "framework-elective-time-entrepreneurship",
+      "entity_type": "elective_subject_time_allocation",
+      "category": "elective_subject_time_allocation",
+      "text": "Entrepreneurship",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 16,
+        "page_printed": 14,
+        "pages_pdf": [
+          16
+        ],
+        "pages_printed": [
+          14
+        ],
+        "section_heading": "Elective Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "elective_subject_time_allocation"
+      },
+      "source_group": "Practical: Pre-vocational",
+      "levels": [
+        "S3",
+        "S4"
+      ],
+      "periods_per_week": 4
+    },
+    {
+      "id": "framework-elective-time-information-communication-technology",
+      "entity_type": "elective_subject_time_allocation",
+      "category": "elective_subject_time_allocation",
+      "text": "Information Communication Technology",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 16,
+        "page_printed": 14,
+        "pages_pdf": [
+          16
+        ],
+        "pages_printed": [
+          14
+        ],
+        "section_heading": "Elective Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "elective_subject_time_allocation"
+      },
+      "source_group": "Practical: Pre-vocational",
+      "levels": [
+        "S3",
+        "S4"
+      ],
+      "periods_per_week": 4
+    },
+    {
+      "id": "framework-elective-time-foreign-languages",
+      "entity_type": "elective_subject_time_allocation",
+      "category": "elective_subject_time_allocation",
+      "text": "Foreign Languages",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 16,
+        "page_printed": 14,
+        "pages_pdf": [
+          16
+        ],
+        "pages_printed": [
+          14
+        ],
+        "section_heading": "Elective Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "elective_subject_time_allocation"
+      },
+      "source_group": "Languages",
+      "levels": [
+        "S3",
+        "S4"
+      ],
+      "periods_per_week": 3
+    },
+    {
+      "id": "framework-elective-time-local-languages",
+      "entity_type": "elective_subject_time_allocation",
+      "category": "elective_subject_time_allocation",
+      "text": "Local Languages",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 16,
+        "page_printed": 14,
+        "pages_pdf": [
+          16
+        ],
+        "pages_printed": [
+          14
+        ],
+        "section_heading": "Elective Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "elective_subject_time_allocation"
+      },
+      "source_group": "Languages",
+      "levels": [
+        "S3",
+        "S4"
+      ],
+      "periods_per_week": 3
+    },
+    {
+      "id": "framework-elective-time-literature-in-english",
+      "entity_type": "elective_subject_time_allocation",
+      "category": "elective_subject_time_allocation",
+      "text": "Literature in English",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 16,
+        "page_printed": 14,
+        "pages_pdf": [
+          16
+        ],
+        "pages_printed": [
+          14
+        ],
+        "section_heading": "Elective Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "elective_subject_time_allocation"
+      },
+      "source_group": "Languages",
+      "levels": [
+        "S3",
+        "S4"
+      ],
+      "periods_per_week": 3
+    },
+    {
+      "id": "framework-elective-time-kiswahili",
+      "entity_type": "elective_subject_time_allocation",
+      "category": "elective_subject_time_allocation",
+      "text": "Kiswahili",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 16,
+        "page_printed": 14,
+        "pages_pdf": [
+          16
+        ],
+        "pages_printed": [
+          14
+        ],
+        "section_heading": "Elective Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "elective_subject_time_allocation"
+      },
+      "source_group": "Languages",
+      "levels": [
+        "S3",
+        "S4"
+      ],
+      "periods_per_week": 3
+    },
+    {
+      "id": "framework-elective-time-christian-religious-education",
+      "entity_type": "elective_subject_time_allocation",
+      "category": "elective_subject_time_allocation",
+      "text": "Christian Religious Education",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 16,
+        "page_printed": 14,
+        "pages_pdf": [
+          16
+        ],
+        "pages_printed": [
+          14
+        ],
+        "section_heading": "Elective Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "elective_subject_time_allocation"
+      },
+      "source_group": "Religious Education",
+      "levels": [
+        "S3",
+        "S4"
+      ],
+      "periods_per_week": 3
+    },
+    {
+      "id": "framework-elective-time-islamic-religious-education",
+      "entity_type": "elective_subject_time_allocation",
+      "category": "elective_subject_time_allocation",
+      "text": "Islamic Religious Education",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 16,
+        "page_printed": 14,
+        "pages_pdf": [
+          16
+        ],
+        "pages_printed": [
+          14
+        ],
+        "section_heading": "Elective Subject Time Allocation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "elective_subject_time_allocation"
+      },
+      "source_group": "Religious Education",
+      "levels": [
+        "S3",
+        "S4"
+      ],
+      "periods_per_week": 3
+    },
+    {
+      "id": "framework-overall-model",
+      "entity_type": "framework_model",
+      "category": "framework_model",
+      "text": "Five different elements of the new curriculum have been referred to: • Values • Key Learning Outcomes • Generic Skills • Cross-cutting issues • Subjects How do all these elements come together to form a holistic curriculum? The model below helps show this. In this model, the values can be seen at the very heart of the curriculum, core to all learning. Surrounding the values are the five generic skills. These are developed through each of the Subjects surrounding them. The five cross- cutting issues link the subjects together. THE OVERALL FRAMEWORK MODEL",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 19,
+        "page_printed": 17,
+        "pages_pdf": [
+          19
+        ],
+        "pages_printed": [
+          17
+        ],
+        "section_heading": "Framework Model",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "medium",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "framework_model"
+      },
+      "human_review_ids": [
+        "review-019"
+      ]
+    },
+    {
+      "id": "framework-subject-rationale-it-is-the-official-language-and-medium-of-ins",
+      "entity_type": "subject_rationale",
+      "category": "subject_rationale",
+      "text": "It is the official language and medium of instruction at the secondary level of education.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 17,
+        "page_printed": 15,
+        "pages_pdf": [
+          17
+        ],
+        "pages_printed": [
+          15
+        ],
+        "section_heading": "Subject Rationale",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_rationale"
+      }
+    },
+    {
+      "id": "framework-subject-rationale-it-is-the-language-which-learners-use-to-lear",
+      "entity_type": "subject_rationale",
+      "category": "subject_rationale",
+      "text": "It is the language which learners use to learn all the other subjects on the curriculum. It is the subject which provides learners with communication skills in English/Sign Language.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 17,
+        "page_printed": 15,
+        "pages_pdf": [
+          17
+        ],
+        "pages_printed": [
+          15
+        ],
+        "section_heading": "Subject Rationale",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_rationale"
+      }
+    },
+    {
+      "id": "framework-subject-rationale-this-alternative-caters-for-critical-thinking",
+      "entity_type": "subject_rationale",
+      "category": "subject_rationale",
+      "text": "This alternative caters for critical thinking skills so as to help learners look beyond the headlines. It also trains the mind and teaches individuals how to think and process information. It provides a basis for research and inquiry into the past so as to learn from it, while political education highlights the importance of politics in development.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 17,
+        "page_printed": 15,
+        "pages_pdf": [
+          17
+        ],
+        "pages_printed": [
+          15
+        ],
+        "section_heading": "Subject Rationale",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_rationale"
+      }
+    },
+    {
+      "id": "framework-subject-rationale-provide-a-wider-communication-base-for-the-le",
+      "entity_type": "subject_rationale",
+      "category": "subject_rationale",
+      "text": "Provide a wider communication base for the learners and increases their job opportunities beyond the borders.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 17,
+        "page_printed": 15,
+        "pages_pdf": [
+          17
+        ],
+        "pages_printed": [
+          15
+        ],
+        "section_heading": "Subject Rationale",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_rationale"
+      }
+    },
+    {
+      "id": "framework-subject-rationale-it-caters-for-the-appreciation-of-nutritional",
+      "entity_type": "subject_rationale",
+      "category": "subject_rationale",
+      "text": "It caters for the appreciation of nutritional and health-related issues that influence and promote the well-being of individuals, families, communities, and the environment. Learners also acquire skills for self-employment.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 18,
+        "page_printed": 16,
+        "pages_pdf": [
+          18
+        ],
+        "pages_printed": [
+          16
+        ],
+        "section_heading": "Subject Rationale",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_rationale"
+      }
+    },
+    {
+      "id": "framework-subject-rationale-it-also-incorporates-concepts-of-all-the-othe",
+      "entity_type": "subject_rationale",
+      "category": "subject_rationale",
+      "text": "It also incorporates concepts of all the other Business Education subjects such as (Commerce, Accounts and Office Practice). This strengthens the NDP II theme: Strengthening Uganda’s Competitiveness for Sustainable Wealth Creation, Employment and Growth and Goal: “To achieve Middle Income status by 2020.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 18,
+        "page_printed": 16,
+        "pages_pdf": [
+          18
+        ],
+        "pages_printed": [
+          16
+        ],
+        "section_heading": "Subject Rationale",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_rationale"
+      }
+    },
+    {
+      "id": "framework-subject-rationale-it-is-a-critical-and-topical-issue-in-the-mod",
+      "entity_type": "subject_rationale",
+      "category": "subject_rationale",
+      "text": "It is a critical and topical issue in the modern times and a key requirement for engaging in the 21st century. Since the world is moving technological it supports the teaching and learning process by providing a wide range of resources while preparing learners for the modern workplace. It also prepares learners for programmes like computer science, cyber security, computer programming and other IT related careers.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 18,
+        "page_printed": 16,
+        "pages_pdf": [
+          18
+        ],
+        "pages_printed": [
+          16
+        ],
+        "section_heading": "Subject Rationale",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_rationale"
+      }
+    },
+    {
+      "id": "framework-subject-justifications-english-to-kiswahili",
+      "entity_type": "subject_rationale_table",
+      "category": "subject_rationale_table",
+      "text": "JUSTIFICATION FOR THE SUBJECTS ON THE NEW CURRICULUM S/N SUBJECT REASON FOR HAVING IT ON THE CURRICULUM FRAMEWORK 1 English Language/ Sign Language It is the official language and medium of instruction at the secondary level of education. It is the language which learners use to learn all the other subjects on the curriculum. It is the subject which provides learners with communication skills in English/Sign Language. 2 Literature in English It develops the learner’s literary skills of comprehension, interpretation, analysis, evaluation, application and organization which can be used in other disciplines. It also prepares the learner to have inquiry and critical thinking skills 3 Mathematics Mathematics is fundamental to national prosperity in providing tools for understanding science, engineering, technology and economics. It is essential in public decision-making and for participation in the knowledge economy, and promotes critical thinking. 4 Biology The interconnectedness of concepts in Biology provide support for learners to comprehend other science subjects of Agriculture, Mathematics and Geography better. It helps learners make more informed decisions about their own health and about significant biological issues such as genetically modified crops, the use of antibiotics, and the eradication of invasive species. It prepares learners to pursue science related disciplines in higher education. 5 Chemistry Chemistry enables learners to understand the properties of different materials and to transform them into new and useful substances. Through chemistry, we can understand changes that we observe in the natural and physical world. It gives us understandings on which to base educated choices about consumer products and management of resources. It prepares learners to pursue science related disciplines in higher education in line with the Vision 2040 conceptualisation of Strengthening Fundamentals (Infrastructure, Human Capital, Science, Technology, Engineering and Innovations, Security and Defence) 6 Physics Physics lies at the heart of the natural sciences. Almost any scientific problem can be approached using the ideas and methods of Physics. Physics explains how the world works and helps us understand why things in the natural world happen the way they do. It prepares learners to pursue science related disciplines in higher education in line with the Vision 2040 conceptualisation of Strengthening Fundamentals (Infrastructure, Human Capital, Science, Technology, Engineering and Innovations, Security and Defence). General Science (This will be an alternative to Biology, Physics and Chemistry) This option will provide an opportunity for learners with special needs to acquire scientific skills. It will specifically cater for learners with visual impairment and some of those who are unable to carryout practical activities because of physical disabilities. This is in line with SDG4 which advocates for equitable quality education and promotion of life-long learning opportunities for all, and with sub-goal target 3; to achieve equitable access to relevant and quality education and training. 7 History and Political Education This alternative caters for critical thinking skills so as to help learners look beyond the headlines. It also trains the mind and teaches individuals how to think and process information. It provides a basis for research and inquiry into the past so as to learn from it, while political education highlights the importance of politics in development. 8 Geography It enables learners recognise the responsibilities they have in relation to other people, the environment and long-term sustainability of the planet. It develops critical thinking skills and life skills like map reading. 9 Foreign Languages (French, German, Arabic, Latin, Chinese) Provide a wider communication base for the learners and increases their job opportunities beyond the borders. 10 Local Languages Local language is a key to maintaining the cultural heritage and helps build self-esteem and creates a sense of belonging. 11 Kiswahili It helps individuals to benefit from the East African integration using this medium of communication for further studies and employment in the region and beyond.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 17,
+        "page_printed": 15,
+        "pages_pdf": [
+          17
+        ],
+        "pages_printed": [
+          15
+        ],
+        "section_heading": "Subject Rationale Table",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_rationale_table"
+      }
+    },
+    {
+      "id": "framework-subject-justifications-art-to-technology",
+      "entity_type": "subject_rationale_table",
+      "category": "subject_rationale_table",
+      "text": "S/N SUBJECT REASON FOR HAVING IT ON THE CURRICULUM FRAMEWORK 12 Art and Design It is an integral part of the development of each human being. It develops neural systems that produce a broad spectrum of benefits ranging from fine motor skills to creativity, improved emotional balance and appreciation of the environment as well as preservation of cultures. 13 Religious Education It caters for the development of the acceptable moral values, particularly in respect for one another and harmonious living. It promotes the development of values to produce an acceptable and morally right citizen. 14 Performing Arts It inspires the development for a love for music, dance, drama and increases self-confidence, creativity and sense of achievement. It helps learners to develop a healthy appreciation of culture and the arts. It builds self-confidence, imagination, empathy, cooperation, concentration, communication skills, and attributes relevant to the 21st Century. It further promotes fun and emotional stability. 15 Agriculture It enables use of modern innovative skills to increase production and add value to agricultural product. It allows learners to acquire practical skills relating to the occupation of the greater majority of Ugandans. Learners also acquire skills for self-employment. 16 Nutrition and Food Technology It caters for the appreciation of nutritional and health-related issues that influence and promote the well-being of individuals, families, communities, and the environment. Learners also acquire skills for self-employment. 17 Entrepreneurship It addresses the issue of unemployment for youth by promoting innovativeness and creative thinking so as to maximize available resources and opportunities for wealth creation. It also incorporates concepts of all the other Business Education subjects such as (Commerce, Accounts and Office Practice). This strengthens the NDP II theme: Strengthening Uganda’s Competitiveness for Sustainable Wealth Creation, Employment and Growth and Goal: “To achieve Middle Income status by 2020. 18 Physical Education It provides for the development of the skills, knowledge, and competencies required for healthy living. Learners involved in physical activity better control their weight and have a better chance of avoiding obesity-related problems, including diabetes, high cholesterol and high blood pressure. Physically active learners are also more likely to make wise health and dietary choices later in life. It also provides for further studies in sports science and other sports related careers. 19 Information Communication and Technology (ICT) Skills It is a critical and topical issue in the modern times and a key requirement for engaging in the 21st century. Since the world is moving technological it supports the teaching and learning process by providing a wide range of resources while preparing learners for the modern workplace. It also prepares learners for programmes like computer science, cyber security, computer programming and other IT related careers. 20 Technology and Design It provides a variety of skills and abilities essential for employment in today’s economy. Learners are exposed to life situations that form the basis for problem-solving skills. Learners are also prepared for engineering and other TVET related programmes. This is in line with the NDP II objective 1 which aims: to Increase Sustainable Production, Productivity and Value Addition in Key Growth Opportunities.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 18,
+        "page_printed": 16,
+        "pages_pdf": [
+          18
+        ],
+        "pages_printed": [
+          16
+        ],
+        "section_heading": "Subject Rationale Table",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_rationale_table"
+      }
+    },
+    {
+      "id": "framework-biology-rationale",
+      "entity_type": "subject_rationale",
+      "category": "subject_rationale",
+      "text": "The interconnectedness of concepts in Biology provide support for learners to comprehend other science subjects of Agriculture, Mathematics and Geography better. It helps learners make more informed decisions about their own health and about significant biological issues such as genetically modified crops, the use of antibiotics, and the eradication of invasive species. It prepares learners to pursue science related disciplines in higher education.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 17,
+        "page_printed": 15,
+        "pages_pdf": [
+          17
+        ],
+        "pages_printed": [
+          15
+        ],
+        "section_heading": "Subject Rationale",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "subject_rationale"
+      },
+      "subject_id": "ncdc-lsc-biology"
+    },
+    {
+      "id": "framework-introduction-and-education-aims",
+      "entity_type": "implementation_guidance",
+      "category": "implementation_guidance",
+      "text": "INTRODUCTION Education is a fundamental human right that is essential to personal and socio-economic development. It is an avenue for creating societies that are just, peaceful and sustainable. The Uganda Vision 2040 aims to transform Uganda into a modern and prosperous country, while the NDP recognises the existing weaknesses in education, including the low efficiency and variable quality at the secondary level. The Sustainable Development Goal 4, advocates for equitable and quality education, while the National Development Plan II focuses on enhancement of human capital, development, strengthening mechanisms for quality, effective, efficient service delivery and improvement of quality and relevance of skills development. The NRM Manifesto (2016-2021), emphasises continuous assessment examination systems; strengthening soft skills, which promote self-esteem, conscientiousness and a general positive attitude to work; promoting e-learning and computer literacy, in order to enhance learning outcomes. The 1992 Government White Paper on Education articulates the purposes of Uganda’s education system which continues to be the definitive source of guidance for the sector. The White Paper states that the broad aims of education are: promoting citizenship; inculcating moral, ethical and spiritual values; promoting scientific, technical and cultural knowledge, skills and attitudes; eradicating illiteracy and equipping individuals with basic skills and knowledge and with the ability to contribute to the building of an integrated, self-sustaining and independent national economy. In alignment with the above, the Education and Sports Sector Strategic plan (2017/20) advocates for the delivery of equitable, relevant and quality education for all. The current secondary school curriculum of Uganda, although highly regarded, is focused on the needs of a minority academically oriented elite yet emphasis should be on the needs of the majority of learners. The Ministry of Education and Sports (MoES) through the National Curriculum Development Centre (NCDC) therefore, undertook a review of the Lower Secondary Curriculum, aimed at providing a learning environment, opportunities, interactions, tasks and instructions that foster deep learning by putting the learner at the centre of the learning experience. This is in line with the aims of secondary education in Uganda as outlined: The aims of secondary education in Uganda are: • Instilling and promoting national unity, an understanding of the social and civic responsibilities; • Promoting an appreciating and understanding of the cultural heritage of Uganda including its languages; • Imparting and promoting a sense of self-discipline, ethical and spiritual values, personal and responsibility and initiative; • Enabling individuals to acquire and develop knowledge and an understanding of emerging needs of society and the economy; • Providing up-dated and comprehensive knowledge in theoretical and practical aspects of innovative production, modern management methods in the field of commerce and industry and their application in the context of socio- economic development of Uganda; • Enabling individuals to develop basic scientific, technological, technical, agricultural and commercial skills required for self-employment; • Enabling individuals to develop personal skills of problem solving, information gathering and interpretation, independent reading and writing, self-improvement through learning and development of social, physical and leadership skills such as are obtained through games, sports, societies and clubs; • Laying the foundation for further education; • Enabling the individuals to apply acquired skills in solving problems of the community, and • Instilling positive attitudes towards productive work.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 5,
+        "page_printed": 3,
+        "pages_pdf": [
+          5
+        ],
+        "pages_printed": [
+          3
+        ],
+        "section_heading": "Implementation Guidance",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "implementation_guidance"
+      }
+    },
+    {
+      "id": "framework-curriculum-background",
+      "entity_type": "implementation_guidance",
+      "category": "implementation_guidance",
+      "text": "BACKGROUND The review was based on the Education Sector Strategic Plan (ESSP, 2009 – 2018) which set out strategies to improve the quality and relevance of secondary education. The ESSP’s sub- objective 2.2 was to ensure that “Post-primary students [are] prepared to enter the workforce and higher education”. This is also in line with the strategic plan of 2017-2020. To achieve this objective, one of the Ministry’s strategies was to revise the curriculum and improve instruction and assessment by eliminating the short comings. The review focused on: producing a secondary school graduate who has the competences that are required in the 21st century; promoting values and attitudes; providing effective learning and acquisition of skills in order to reduce unemployment among school graduates. The review also aimed at reducing the content overload and contact hours in the classroom so as to create time for research, project work; talent development and creativity; allowing for emerging fields of knowledge across all subjects and doing away with obsolete information. There was need to address the social and economic needs of the country like the mining sector, tourism, services provision, science and technology development and to ensure rigorous career guidance programme to expose learners to the related subjects. This will enable learners to make informed choices as they transit and to equip them with knowledge and skills that will enhance their competitiveness in the global value chain. To meet the above requirements, the review was based on: • The development of a holistic education for personal and national development based on clear shared values. • A commitment to higher standards, deeper understanding and greater opportunities for learners to succeed. • A focus on the key skills which are essential to work, learning, and life, and which will promote life-long learning. • Core subjects with a clear focus on essential learning to a deeper level, and to remove unnecessary and out–of-date content. • Elective subjects to allow choice and specialisation, especially at Senior Three • An integrated approach that will develop the ability to apply learning in practical situations. The ESSP further outlined what the reforms imply: “This reform will necessitate a sweeping revision of the general secondary curriculum, away from strictly academic learning objectives that are thought to prepare students for erudite higher education and towards a set of competencies that serve both those who continue their education after S4 and those who choose to enter the workforce. The new curriculum will enable learners to acquire specific vocational skills that they can use once they enter the world of work. The new curriculum will help learners make informed decisions as citizens and family members, and it will give those who continue with their education, either immediately in S5 or later in life, the learning skills they need to think critically and study efficiently.”",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 6,
+        "page_printed": 4,
+        "pages_pdf": [
+          6
+        ],
+        "pages_printed": [
+          4
+        ],
+        "section_heading": "Implementation Guidance",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "implementation_guidance"
+      }
+    },
+    {
+      "id": "framework-active-learning-strategies",
+      "entity_type": "active_learning_expectation",
+      "category": "active_learning_expectation",
+      "text": "IDEAS Concept mapping Brainstorming Inqui ry and curiosi ty Predict, observe, explain Open ended experiments RESEARCH Small group research Library assignments Analysis of hand d ata Collection of m aterial SKILLS & PROCESSES Investigative processes Practices Mastery learning Skills development Values clariﬁcation Process writing METHODS Debates Story-telling Small group discussion Class discussions Creative writing Quality questioning Projects PEOPLE Peer teaching Cooperative learning Interviews Visits and visitors PROBLEM SOLVING Brief design Model building Whole group extended Decision making process Testing solutions PRESENTATIONS Role play Drama and dan ce Talks and reports Demonstration Posters Story shells Simulation PERSONAL EXPERIENCE Learner s’ personal experiences Investigations Hands -on a ctivities Interactive learning Excursions, ﬁeld LEARNING MAY BE ACHIEVED THROUGH:",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 20,
+        "page_printed": 18,
+        "pages_pdf": [
+          20
+        ],
+        "pages_printed": [
+          18
+        ],
+        "section_heading": "Active Learning Expectation",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "medium",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "active_learning_expectation"
+      },
+      "human_review_ids": [
+        "review-018"
+      ]
+    },
+    {
+      "id": "framework-graduate-profile",
+      "entity_type": "graduate_profile",
+      "category": "graduate_profile",
+      "text": "Communicate fluently both orally and in written form. • Apply computation of basic mathematics concepts, principles and processes to solve problems in daily life. • Inquire and apply scientific, technological and agricultural knowledge for self employment • Innovate, create, think critically and be entrepreneurial • Use information technology and communication to access, gather, evaluate, store and present information. • Learn to learn by studying, researching, building on existing knowledge and experience and assessing the status of own learning. • Identify and solve problems and make decisions. • Manage self by setting own goals, being financially literate and observing personal health and protecting the environment. • Build relationships, manage conflict identify and relate with others and work effectively with others as members of a team.",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 23,
+        "page_printed": 21,
+        "pages_pdf": [
+          23
+        ],
+        "pages_printed": [
+          21
+        ],
+        "section_heading": "Graduate Profile",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "high",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "graduate_profile"
+      }
+    },
+    {
+      "id": "framework-graduate-profile-context",
+      "entity_type": "implementation_guidance",
+      "category": "implementation_guidance",
+      "text": "1. The Sustainable Development Goals 2. National Development Goals in Vision 2040 3. General Aims of Education 1. No poverty 2. Zero hunger 3. Good health and well being 4. Quality education 5. Gender quality 6. Clean water and sanitation 7. Affordable and clean energy 8. Decent work and economic growth 9. Industry innovation and infrastructure 10. Reduced inequalities 11. Sustainable cities and communities 12. Responsible consumption and production 13. Climate action 14. Life below water 15. Life on land Peace and Justice 16. Partnership for the goals The National Vision is “A transformed Ugandan society from a peasant to a modern and prosperous country within 30 years”. The following are the aspirations for Uganda’s future development. 1. To live and work in a peaceful , secure, harmonious and stable country and at peace with the neighbours 2. To have unity in diversity and equal opportunities 3. To be resourceful and prosperous nationals contributing to national development 4. To have access to affordable quality health and education. 5. To have world class infrastructure and services and modern technology to improve productivity and production. 6. To have a green economy and clean environment. 7. To have a highly moral and ethical society with strong religious and spiritual values. 1. Forging national unity and harmony 2. Evolving democratic institutions and practices in Society 3. Guaranteeing fundamental Human rights 4. Creating national wealth 5. Upholding and maintenance of national independence and patriotic Feeling 6. Promoting, oral and Ethical values 7. Promoting a feeling of humanitarianism and cooperation 6. Product/Profile Learners should be able to: 5. Curriculum Menu 4. Secondary Education aims and Objectives • Communicate fluently both orally and in written form. • Apply computation of basic mathematics concepts, principles and processes to solve problems in daily life. • Inquire and apply scientific, technological and agricultural knowledge for self employment • Innovate, create, think critically and be entrepreneurial • Use information technology and communication to access, gather, evaluate, store and present information. • Learn to learn by studying, researching, building on existing knowledge and experience and assessing the status of own learning. • Identify and solve problems and make decisions. • Manage self by setting own goals, being financially literate and observing personal health and protecting the environment. • Build relationships, manage conflict identify and relate with others and work effectively with others as members of a team. 1. English 2. Biology 3. Physics 4. Chemistry 5. Mathematics 6. General Science (in lieu of Biology, Chemistry & Physics) 7. Geography 8. History and Political Education 9. Physical Education 10. Kiswahili 11. Local language 12. Foreign Languages 13. Religious Education (IRE/CRE) 14. Literature in English 15. Performing Arts 16. Agriculture 17. Information and Communications Technology 18. Technology & Design 19. Nutrition & Food Technology 20. Art & Design 21. Entrepreneurship. 1. Instilling and promoting national unity and an understanding of social and civil responsibility. 2. Promoting an appreciation and understanding of the cultural heritage of Uganda including its languages; 3. Imparting and promoting a sense of self-discipline, ethical and spiritual values personal responsibility and initiatives; 4. Enabling individuals to acquire and develop knowledge and an understanding of emerging needs of society and the economy. 5. Providing up-to-date and comprehensive knowledge in theoretical and practical aspects of innovative production, modern management methods in the field of commerce and industry and their application in the context of socio-economic development of Uganda. 6. Enabling individuals to develop basic scientific, technological, technical, agricultural and commercial skills required for self employment; 7. Enabling individuals to develop personal skills of problem solving, information gathering and interpretation, independence reading and writing, self improvement through learning and development of social, physical and leadership skills such as are obtained through sports, societies and clubs. 8. Laying the foundation for further education; 9. Enabling the individual to apply acquire skills in solving problem of the community; and 10. Instilling positive attitudes towards productive work. The ‘O’ LEVEL Graduate Profile",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 23,
+        "page_printed": 21,
+        "pages_pdf": [
+          23
+        ],
+        "pages_printed": [
+          21
+        ],
+        "section_heading": "Implementation Guidance",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "extraction_confidence": "medium",
+      "normalized_metadata": {
+        "basis": "derived",
+        "category": "implementation_guidance"
+      },
+      "human_review_ids": [
+        "review-020"
+      ]
+    }
+  ],
+  "normalization_contract": {
+    "basis": "derived",
+    "ids_categories_relationships": "ATE normalization, not NCDC wording",
+    "text": "source wording with whitespace normalized",
+    "missing_values": "null means absent or unresolved, never zero",
+    "source_scope": "2019 supplied edition only; no claim about later policy"
+  }
+}

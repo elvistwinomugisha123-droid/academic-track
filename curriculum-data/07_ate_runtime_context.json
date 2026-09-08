@@ -1,0 +1,3102 @@
+{
+  "schema_version": "1.0.0",
+  "basis": "derived",
+  "authority_boundary": {
+    "canonical_source_data": [
+      "02_curriculum_framework.json",
+      "03_biology_subject.json",
+      "04_biology_topics.json",
+      "05_biology_entities.jsonl"
+    ],
+    "normalization": "IDs, categories, graph edges, counts, and runtime selection are ATE derivations.",
+    "ai_generation": "No lesson, test question, resource proposal or educational content generated.",
+    "review_handling": "Resolve human_review_ids from 09_human_review_queue.json; do not silently repair source ambiguity.",
+    "empty_arrays": "No item stated in the applicable source section; not a prohibition.",
+    "classification": "Keep source notation; do not infer gs expansion.",
+    "version_scope": "Supplied 2019 documents only."
+  },
+  "subject_context": {
+    "subject_id": "ncdc-lsc-biology",
+    "framework_id": "ncdc-lsc-2019",
+    "framework_guidance_ids": [
+      "framework-key-outcome-self-assured-individuals",
+      "framework-key-outcome-responsible-and-patriotic-citizens",
+      "framework-key-outcome-lifelong-learners",
+      "framework-key-outcome-positive-contributors-to-society",
+      "framework-value-respect-for-humanity-and-environment",
+      "framework-value-honesty",
+      "framework-value-justice-and-fairness-in-dealing-with-others",
+      "framework-value-hard-work-for-self-reliance",
+      "framework-value-integrity",
+      "framework-value-creativity-and-innovativeness",
+      "framework-value-social-responsibility",
+      "framework-value-social-harmony",
+      "framework-value-national-unity",
+      "framework-value-national-consciousness-and-patriotism",
+      "framework-values-implementation",
+      "framework-generic-skill-critical-thinking-and-problem-solving",
+      "framework-generic-skill-critical-thinking-and-problem-solving-descriptor-01",
+      "framework-generic-skill-critical-thinking-and-problem-solving-descriptor-02",
+      "framework-generic-skill-critical-thinking-and-problem-solving-descriptor-03",
+      "framework-generic-skill-critical-thinking-and-problem-solving-descriptor-04",
+      "framework-generic-skill-critical-thinking-and-problem-solving-descriptor-05",
+      "framework-generic-skill-co-operation-and-self-directed-learning",
+      "framework-generic-skill-co-operation-and-self-directed-learning-descriptor-01",
+      "framework-generic-skill-co-operation-and-self-directed-learning-descriptor-02",
+      "framework-generic-skill-co-operation-and-self-directed-learning-descriptor-03",
+      "framework-generic-skill-co-operation-and-self-directed-learning-descriptor-04",
+      "framework-generic-skill-co-operation-and-self-directed-learning-descriptor-05",
+      "framework-generic-skill-creativity-and-innovation",
+      "framework-generic-skill-creativity-and-innovation-descriptor-01",
+      "framework-generic-skill-creativity-and-innovation-descriptor-02",
+      "framework-generic-skill-creativity-and-innovation-descriptor-03",
+      "framework-generic-skill-creativity-and-innovation-descriptor-04",
+      "framework-generic-skill-creativity-and-innovation-descriptor-05",
+      "framework-generic-skill-mathematical-computations-and-ict-proficiency",
+      "framework-generic-skill-mathematical-computations-and-ict-proficiency-descriptor-01",
+      "framework-generic-skill-mathematical-computations-and-ict-proficiency-descriptor-02",
+      "framework-generic-skill-mathematical-computations-and-ict-proficiency-descriptor-03",
+      "framework-generic-skill-mathematical-computations-and-ict-proficiency-descriptor-04",
+      "framework-generic-skill-mathematical-computations-and-ict-proficiency-descriptor-05",
+      "framework-generic-skill-communication",
+      "framework-generic-skill-communication-descriptor-01",
+      "framework-generic-skill-communication-descriptor-02",
+      "framework-generic-skill-communication-descriptor-03",
+      "framework-generic-skill-communication-descriptor-04",
+      "framework-generic-skill-communication-descriptor-05",
+      "framework-generic-skills-within-subjects",
+      "framework-cross-cutting-environmental-awareness",
+      "framework-cross-cutting-health-awareness",
+      "framework-cross-cutting-mixed-abilities-and-involvement",
+      "framework-cross-cutting-socio-economic-issues",
+      "framework-cross-cutting-citizenship-and-patriotism",
+      "framework-cross-cutting-life-skills",
+      "framework-cross-cutting-implementation",
+      "framework-teaching-01",
+      "framework-teaching-02",
+      "framework-teaching-03",
+      "framework-teaching-04",
+      "framework-teaching-05",
+      "framework-teaching-06",
+      "framework-teaching-07",
+      "framework-teaching-08",
+      "framework-teaching-09",
+      "framework-gender-equity-01",
+      "framework-gender-equity-02",
+      "framework-gender-equity-03",
+      "framework-inclusion-02",
+      "framework-inclusion-03",
+      "framework-inclusion-04",
+      "framework-inclusion-05",
+      "framework-learning-environment-01",
+      "framework-learning-environment-02",
+      "framework-learning-environment-03",
+      "framework-learning-environment-04",
+      "framework-assessment-01",
+      "framework-assessment-02",
+      "framework-assessment-03",
+      "framework-assessment-04",
+      "framework-assessment-05",
+      "framework-assessment-06",
+      "framework-school-day-and-periods",
+      "framework-active-learning-strategies"
+    ],
+    "subject_guidance_ids": [
+      "biology-subject_curriculum_outcomes_values-0-01",
+      "biology-subject_curriculum_outcomes_values-0-02",
+      "biology-subject_curriculum_outcomes_values-0-03",
+      "biology-subject_curriculum_outcomes_values-0-04",
+      "biology-subject_curriculum_outcomes_values-0-05",
+      "biology-subject_curriculum_outcomes_values-0-06",
+      "biology-subject_curriculum_outcomes_values-0-07",
+      "biology-subject_curriculum_outcomes_values-0-08",
+      "biology-subject_curriculum_outcomes_values-0-09",
+      "biology-subject_curriculum_outcomes_values-0-10",
+      "biology-subject_curriculum_outcomes_values-0-11",
+      "biology-subject_curriculum_outcomes_values-0-12",
+      "biology-subject_curriculum_outcomes_values-0-13",
+      "biology-subject_curriculum_outcomes_values-0-14",
+      "biology-subject_curriculum_outcomes_values-0-15",
+      "biology-subject_curriculum_outcomes_values-0-16",
+      "biology-subject_curriculum_outcomes_values-0-17",
+      "biology-subject_curriculum_outcomes_values-0-18",
+      "biology-subject_curriculum_outcomes_values-0-19",
+      "biology-subject_curriculum_outcomes_values-0-20",
+      "biology-subject_curriculum_outcomes_values-0-21",
+      "biology-subject_curriculum_outcomes_values-0-22",
+      "biology-subject_curriculum_outcomes_values-0-23",
+      "biology-subject_curriculum_outcomes_values-0-24",
+      "biology-subject_curriculum_outcomes_values-0-25",
+      "biology-subject_curriculum_outcomes_values-0-26",
+      "biology-subject_curriculum_outcomes_values-0-27",
+      "biology-subject_curriculum_outcomes_values-0-28",
+      "biology-subject_curriculum_outcomes_values-0-29",
+      "biology-subject_curriculum_outcomes_values-0-30",
+      "biology-subject_generic_skills-0-01",
+      "biology-subject_generic_skills-0-02",
+      "biology-subject_generic_skills-0-03",
+      "biology-subject_generic_skills-0-04",
+      "biology-subject_generic_skills-0-05",
+      "biology-subject_generic_skills-0-06",
+      "biology-subject_generic_skills-0-07",
+      "biology-subject_generic_skills-0-08",
+      "biology-subject_generic_skills-0-09",
+      "biology-subject_generic_skills-0-10",
+      "biology-subject_generic_skills-0-11",
+      "biology-subject_generic_skills-0-12",
+      "biology-subject_generic_skills-0-13",
+      "biology-subject_generic_skills-0-14",
+      "biology-subject_generic_skills-0-15",
+      "biology-subject_generic_skills-0-16",
+      "biology-subject_generic_skills-0-17",
+      "biology-subject_generic_skills-0-18",
+      "biology-subject_generic_skills-0-19",
+      "biology-subject_generic_skills-0-20",
+      "biology-subject_generic_skills-0-21",
+      "biology-subject_generic_skills-0-22",
+      "biology-subject_generic_skills-0-23",
+      "biology-subject_generic_skills-0-24",
+      "biology-subject_generic_skills-0-25",
+      "biology-subject_generic_skills-0-26",
+      "biology-subject_generic_skills-0-27",
+      "biology-subject_generic_skills-0-28",
+      "biology-subject_generic_skills-0-29",
+      "biology-subject_generic_skills-0-30",
+      "biology-subject_generic_skills-0-31",
+      "biology-subject_generic_skills-0-32",
+      "biology-subject_generic_skills-0-33",
+      "biology-subject_generic_skills-0-34",
+      "biology-generic_skills_in_biology-0-01",
+      "biology-generic_skills_in_biology-0-02",
+      "biology-generic_skills_in_biology-0-03",
+      "biology-generic_skills_in_biology-0-04",
+      "biology-generic_skills_in_biology-0-05",
+      "biology-generic_skills_in_biology-0-06",
+      "biology-generic_skills_in_biology-0-07",
+      "biology-generic_skills_in_biology-0-08",
+      "biology-generic_skills_in_biology-0-09",
+      "biology-generic_skills_in_biology-0-10",
+      "biology-generic_skills_in_biology-0-11",
+      "biology-ict_integration-0-01",
+      "biology-ict_integration-0-02",
+      "biology-ict_integration-0-03",
+      "biology-ict_integration-0-04",
+      "biology-ict_integration-0-05",
+      "biology-ict_integration-0-06",
+      "biology-ict_integration-0-07",
+      "biology-ict_integration-0-08",
+      "biology-ict_integration-0-09",
+      "biology-ict_integration-0-10",
+      "biology-ict_integration-0-11",
+      "biology-ict_integration-0-12",
+      "biology-ict_integration-0-13",
+      "biology-ict_integration-0-14",
+      "biology-ict_integration-0-15",
+      "biology-ict_integration-0-16",
+      "biology-ict_integration-0-17",
+      "biology-ict_integration-0-18",
+      "biology-subject_teaching_and_rationale-0-01",
+      "biology-subject_teaching_and_rationale-0-02",
+      "biology-subject_teaching_and_rationale-0-03",
+      "biology-subject_teaching_and_rationale-0-04",
+      "biology-subject_teaching_and_rationale-0-05",
+      "biology-subject_teaching_and_rationale-0-06",
+      "biology-subject_teaching_and_rationale-0-07",
+      "biology-subject_teaching_and_rationale-0-08",
+      "biology-subject_teaching_and_rationale-0-09",
+      "biology-subject_teaching_and_rationale-0-10",
+      "biology-subject_teaching_and_rationale-0-11",
+      "biology-subject_teaching_and_rationale-0-12",
+      "biology-subject_teaching_and_rationale-0-13",
+      "biology-subject_teaching_and_rationale-0-14",
+      "biology-subject_teaching_and_rationale-0-15",
+      "biology-subject_teaching_and_rationale-0-16",
+      "biology-subject_teaching_and_rationale-0-17",
+      "biology-subject_teaching_and_rationale-0-18",
+      "biology-subject_teaching_and_rationale-0-19",
+      "biology-subject_teaching_and_rationale-0-20",
+      "biology-subject_teaching_and_rationale-0-21",
+      "biology-subject_teaching_and_rationale-0-22",
+      "biology-lesson_planning_guidance-0-01",
+      "biology-lesson_planning_guidance-0-02",
+      "biology-lesson_planning_guidance-0-03",
+      "biology-lesson_planning_guidance-0-04",
+      "biology-lesson_planning_guidance-0-05",
+      "biology-lesson_planning_guidance-0-06",
+      "biology-lesson_planning_guidance-0-07",
+      "biology-lesson_planning_guidance-0-08",
+      "biology-assessment_principle-0-01",
+      "biology-assessment_principle-0-02",
+      "biology-assessment_principle-0-03",
+      "biology-assessment_principle-0-04",
+      "biology-assessment_principle-0-05",
+      "biology-assessment_principle-0-06",
+      "biology-assessment_principle-0-07",
+      "biology-assessment_principle-0-08",
+      "biology-assessment_principle-0-09",
+      "biology-assessment_principle-0-10",
+      "biology-assessment_principle-0-11",
+      "biology-assessment_principle-0-12",
+      "biology-assessment_principle-0-13",
+      "biology-assessment_principle-0-14",
+      "biology-assessment_principle-0-15",
+      "biology-assessment_principle-0-16",
+      "biology-assessment_principle-0-17",
+      "biology-assessment_principle-0-18",
+      "biology-assessment_principle-0-19",
+      "biology-assessment_principle-0-20",
+      "biology-assessment_principle-0-21",
+      "biology-assessment_principle-21-01",
+      "biology-assessment_principle-21-02",
+      "biology-assessment_principle-21-03",
+      "biology-assessment_principle-21-04",
+      "biology-assessment_principle-21-05",
+      "biology-assessment_principle-21-06",
+      "biology-assessment_principle-21-07",
+      "biology-assessment_principle-21-08",
+      "biology-assessment_principle-21-09",
+      "biology-assessment_principle-21-10",
+      "biology-assessment_principle-21-11",
+      "biology-assessment_principle-21-12",
+      "biology-assessment_principle-21-13",
+      "biology-assessment_principle-21-14",
+      "biology-assessment_principle-21-15",
+      "biology-assessment_principle-21-16",
+      "biology-assessment_principle-37-01",
+      "biology-assessment_principle-37-02",
+      "biology-assessment_principle-37-03",
+      "biology-assessment_principle-37-04",
+      "biology-assessment_principle-37-05",
+      "biology-assessment_principle-37-06",
+      "biology-assessment_principle-37-07",
+      "biology-assessment_principle-37-08",
+      "biology-assessment_principle-37-09",
+      "biology-assessment_principle-37-10",
+      "biology-assessment_principle-37-11",
+      "biology-assessment_principle-37-12",
+      "biology-assessment_principle-37-13",
+      "biology-assessment_record_keeping-0-01",
+      "biology-assessment_record_keeping-0-02",
+      "biology-assessment_record_keeping-0-03",
+      "biology-assessment_record_keeping-0-04",
+      "biology-assessment_record_keeping-0-05",
+      "biology-assessment_record_keeping-0-06",
+      "biology-assessment_record_keeping-0-07",
+      "biology-assessment_record_keeping-0-08",
+      "biology-assessment_record_keeping-0-09",
+      "biology-assessment_record_keeping-0-10",
+      "biology-assessment_record_keeping-0-11",
+      "biology-assessment_record_keeping-0-12",
+      "biology-assessment_record_keeping-0-13",
+      "biology-assessment_record_keeping-0-14",
+      "biology-assessment_record_keeping-0-15",
+      "biology-assessment_record_keeping-15-01",
+      "biology-assessment_record_keeping-15-02",
+      "biology-assessment_record_keeping-15-03",
+      "biology-assessment_record_keeping-15-04",
+      "biology-assessment_record_keeping-15-05",
+      "biology-assessment_record_keeping-15-06",
+      "biology-assessment_record_keeping-15-07",
+      "biology-assessment_record_keeping-15-08",
+      "biology-assessment_record_keeping-15-09",
+      "biology-assessment_record_keeping-15-10",
+      "biology-assessment_record_keeping-15-11",
+      "biology-assessment_record_keeping-15-12",
+      "biology-assessment_record_keeping-15-13",
+      "biology-assessment_record_keeping-15-14",
+      "biology-assessment_record_keeping-15-15",
+      "biology-assessment_record_keeping-15-16",
+      "biology-assessment_record_keeping-15-17",
+      "biology-assessment_record_keeping-15-18",
+      "biology-assessment_record_keeping-15-19",
+      "biology-assessment_record_keeping-15-20",
+      "biology-assessment_record_keeping-15-21",
+      "biology-assessment_record_keeping-15-22",
+      "biology-assessment_record_keeping-15-23",
+      "biology-glossary-0-01",
+      "biology-glossary-0-02",
+      "biology-glossary-0-03",
+      "biology-glossary-0-04",
+      "biology-glossary-0-05",
+      "biology-glossary-0-06",
+      "biology-glossary-0-07",
+      "biology-glossary-0-08",
+      "biology-glossary-0-09",
+      "biology-glossary-0-10",
+      "biology-glossary-0-11",
+      "biology-glossary-0-12",
+      "biology-glossary-0-13",
+      "biology-glossary-0-14"
+    ],
+    "classification_definition_ids": [
+      "biology-classification-legend",
+      "biology-classification-k",
+      "biology-classification-u",
+      "biology-classification-s",
+      "biology-classification-v",
+      "biology-classification-a",
+      "biology-classification-gs"
+    ]
+  },
+  "topics": [
+    {
+      "topic_id": "bio-s1-t1-1.1",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s1-t1-1.1-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s1-t1-1.1-lo-01",
+          "bio-s1-t1-1.1-lo-02",
+          "bio-s1-t1-1.1-lo-03"
+        ],
+        "suggested_activity_ids": [
+          "bio-s1-t1-1.1-act-01",
+          "bio-s1-t1-1.1-act-02",
+          "bio-s1-t1-1.1-act-03"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s1-t1-1.1-assess-01",
+          "bio-s1-t1-1.1-assess-02",
+          "bio-s1-t1-1.1-assess-03",
+          "bio-s1-t1-1.1-assess-04"
+        ],
+        "note_ids": [
+          "bio-s1-t1-1.1-note-01"
+        ],
+        "preamble_ids": [
+          "bio-s1-t1-1.1-lo-preamble"
+        ]
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s1-t1-1.1-lo-01",
+          "bio-s1-t1-1.1-lo-02",
+          "bio-s1-t1-1.1-lo-03"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s1-t1-1.1-assess-01",
+          "bio-s1-t1-1.1-assess-02",
+          "bio-s1-t1-1.1-assess-03",
+          "bio-s1-t1-1.1-assess-04"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s1-t1-1.1-assess-03",
+          "bio-s1-t1-1.1-note-01"
+        ],
+        "note_ids": [
+          "bio-s1-t1-1.1-note-01"
+        ]
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s1-t1-1.1",
+        "learning_outcome_ids": [
+          "bio-s1-t1-1.1-lo-01",
+          "bio-s1-t1-1.1-lo-02",
+          "bio-s1-t1-1.1-lo-03"
+        ],
+        "activity_ids": [
+          "bio-s1-t1-1.1-act-01",
+          "bio-s1-t1-1.1-act-02",
+          "bio-s1-t1-1.1-act-03"
+        ],
+        "ict_support_ids": [
+          "bio-s1-t1-1.1-ict-01",
+          "bio-s1-t1-1.1-ict-02"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s1",
+        "term_id": "bio-s1-t1",
+        "programme_planner_id": "bio-s1-t1-planner-introduction-to-biology",
+        "learning_outcome_ids": [
+          "bio-s1-t1-1.1-lo-01",
+          "bio-s1-t1-1.1-lo-02",
+          "bio-s1-t1-1.1-lo-03"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s1-t1-1.2",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s1-t1-1.2-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s1-t1-1.2-lo-01",
+          "bio-s1-t1-1.2-lo-02",
+          "bio-s1-t1-1.2-lo-03",
+          "bio-s1-t1-1.2-lo-04"
+        ],
+        "suggested_activity_ids": [
+          "bio-s1-t1-1.2-act-01",
+          "bio-s1-t1-1.2-act-02",
+          "bio-s1-t1-1.2-act-03",
+          "bio-s1-t1-1.2-act-04",
+          "bio-s1-t1-1.2-act-05"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s1-t1-1.2-assess-01",
+          "bio-s1-t1-1.2-assess-02",
+          "bio-s1-t1-1.2-assess-03",
+          "bio-s1-t1-1.2-assess-04"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s1-t1-1.2-lo-01",
+          "bio-s1-t1-1.2-lo-02",
+          "bio-s1-t1-1.2-lo-03",
+          "bio-s1-t1-1.2-lo-04"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s1-t1-1.2-assess-01",
+          "bio-s1-t1-1.2-assess-02",
+          "bio-s1-t1-1.2-assess-03",
+          "bio-s1-t1-1.2-assess-04"
+        ],
+        "restriction_bearing_entity_ids": [],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s1-t1-1.2",
+        "learning_outcome_ids": [
+          "bio-s1-t1-1.2-lo-01",
+          "bio-s1-t1-1.2-lo-02",
+          "bio-s1-t1-1.2-lo-03",
+          "bio-s1-t1-1.2-lo-04"
+        ],
+        "activity_ids": [
+          "bio-s1-t1-1.2-act-01",
+          "bio-s1-t1-1.2-act-02",
+          "bio-s1-t1-1.2-act-03",
+          "bio-s1-t1-1.2-act-04",
+          "bio-s1-t1-1.2-act-05"
+        ],
+        "ict_support_ids": [
+          "bio-s1-t1-1.2-ict-01"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s1",
+        "term_id": "bio-s1-t1",
+        "programme_planner_id": "bio-s1-t1-planner-cells",
+        "learning_outcome_ids": [
+          "bio-s1-t1-1.2-lo-01",
+          "bio-s1-t1-1.2-lo-02",
+          "bio-s1-t1-1.2-lo-03",
+          "bio-s1-t1-1.2-lo-04"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s1-t1-1.3.1",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s1-t1-1.3.1-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s1-t1-1.3.1-lo-01",
+          "bio-s1-t1-1.3.1-lo-02"
+        ],
+        "suggested_activity_ids": [
+          "bio-s1-t1-1.3.1-act-01",
+          "bio-s1-t1-1.3.1-act-02",
+          "bio-s1-t1-1.3.1-act-03"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s1-t1-1.3.1-assess-01",
+          "bio-s1-t1-1.3.1-assess-02",
+          "bio-s1-t1-1.3.1-assess-03"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s1-t1-1.3.1-lo-01",
+          "bio-s1-t1-1.3.1-lo-02"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s1-t1-1.3.1-assess-01",
+          "bio-s1-t1-1.3.1-assess-02",
+          "bio-s1-t1-1.3.1-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s1-t1-1.3.1",
+        "learning_outcome_ids": [
+          "bio-s1-t1-1.3.1-lo-01",
+          "bio-s1-t1-1.3.1-lo-02"
+        ],
+        "activity_ids": [
+          "bio-s1-t1-1.3.1-act-01",
+          "bio-s1-t1-1.3.1-act-02",
+          "bio-s1-t1-1.3.1-act-03"
+        ],
+        "ict_support_ids": []
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s1",
+        "term_id": "bio-s1-t1",
+        "programme_planner_id": "bio-s1-t1-planner-classification",
+        "learning_outcome_ids": [
+          "bio-s1-t1-1.3.1-lo-01",
+          "bio-s1-t1-1.3.1-lo-02"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s1-t2-1.3.2",
+      "human_review_ids": [
+        "review-003",
+        "review-012"
+      ],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s1-t2-1.3.2-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s1-t2-1.3.2-lo-01",
+          "bio-s1-t2-1.3.2-lo-02",
+          "bio-s1-t2-1.3.2-lo-03",
+          "bio-s1-t2-1.3.2-lo-04",
+          "bio-s1-t2-1.3.2-lo-05",
+          "bio-s1-t2-1.3.2-lo-06",
+          "bio-s1-t2-1.3.2-lo-07",
+          "bio-s1-t2-1.3.2-lo-08",
+          "bio-s1-t2-1.3.2-lo-09"
+        ],
+        "suggested_activity_ids": [
+          "bio-s1-t2-1.3.2-act-01",
+          "bio-s1-t2-1.3.2-act-02",
+          "bio-s1-t2-1.3.2-act-03",
+          "bio-s1-t2-1.3.2-act-04",
+          "bio-s1-t2-1.3.2-act-05",
+          "bio-s1-t2-1.3.2-act-06",
+          "bio-s1-t2-1.3.2-act-07",
+          "bio-s1-t2-1.3.2-act-08",
+          "bio-s1-t2-1.3.2-act-09"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s1-t2-1.3.2-assess-01",
+          "bio-s1-t2-1.3.2-assess-02",
+          "bio-s1-t2-1.3.2-assess-03",
+          "bio-s1-t2-1.3.2-assess-04"
+        ],
+        "note_ids": [
+          "bio-s1-t2-1.3.2-note-01"
+        ],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s1-t2-1.3.2-lo-01",
+          "bio-s1-t2-1.3.2-lo-02",
+          "bio-s1-t2-1.3.2-lo-03",
+          "bio-s1-t2-1.3.2-lo-04",
+          "bio-s1-t2-1.3.2-lo-05",
+          "bio-s1-t2-1.3.2-lo-06",
+          "bio-s1-t2-1.3.2-lo-07",
+          "bio-s1-t2-1.3.2-lo-08",
+          "bio-s1-t2-1.3.2-lo-09"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s1-t2-1.3.2-assess-01",
+          "bio-s1-t2-1.3.2-assess-02",
+          "bio-s1-t2-1.3.2-assess-03",
+          "bio-s1-t2-1.3.2-assess-04"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s1-t2-1.3.2-lo-05",
+          "bio-s1-t2-1.3.2-lo-07",
+          "bio-s1-t2-1.3.2-lo-08",
+          "bio-s1-t2-1.3.2-lo-09",
+          "bio-s1-t2-1.3.2-act-04",
+          "bio-s1-t2-1.3.2-note-01"
+        ],
+        "note_ids": [
+          "bio-s1-t2-1.3.2-note-01"
+        ]
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s1-t2-1.3.2",
+        "learning_outcome_ids": [
+          "bio-s1-t2-1.3.2-lo-01",
+          "bio-s1-t2-1.3.2-lo-02",
+          "bio-s1-t2-1.3.2-lo-03",
+          "bio-s1-t2-1.3.2-lo-04",
+          "bio-s1-t2-1.3.2-lo-05",
+          "bio-s1-t2-1.3.2-lo-06",
+          "bio-s1-t2-1.3.2-lo-07",
+          "bio-s1-t2-1.3.2-lo-08",
+          "bio-s1-t2-1.3.2-lo-09"
+        ],
+        "activity_ids": [
+          "bio-s1-t2-1.3.2-act-01",
+          "bio-s1-t2-1.3.2-act-02",
+          "bio-s1-t2-1.3.2-act-03",
+          "bio-s1-t2-1.3.2-act-04",
+          "bio-s1-t2-1.3.2-act-05",
+          "bio-s1-t2-1.3.2-act-06",
+          "bio-s1-t2-1.3.2-act-07",
+          "bio-s1-t2-1.3.2-act-08",
+          "bio-s1-t2-1.3.2-act-09"
+        ],
+        "ict_support_ids": [
+          "bio-s1-t2-1.3.2-ict-01"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s1",
+        "term_id": "bio-s1-t2",
+        "programme_planner_id": "bio-s1-t2-planner-classification",
+        "learning_outcome_ids": [
+          "bio-s1-t2-1.3.2-lo-01",
+          "bio-s1-t2-1.3.2-lo-02",
+          "bio-s1-t2-1.3.2-lo-03",
+          "bio-s1-t2-1.3.2-lo-04",
+          "bio-s1-t2-1.3.2-lo-05",
+          "bio-s1-t2-1.3.2-lo-06",
+          "bio-s1-t2-1.3.2-lo-07",
+          "bio-s1-t2-1.3.2-lo-08",
+          "bio-s1-t2-1.3.2-lo-09"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s1-t2-1.3.3",
+      "human_review_ids": [
+        "review-001"
+      ],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s1-t2-1.3.3-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s1-t2-1.3.3-lo-01",
+          "bio-s1-t2-1.3.3-lo-02"
+        ],
+        "suggested_activity_ids": [
+          "bio-s1-t2-1.3.3-act-01",
+          "bio-s1-t2-1.3.3-act-02",
+          "bio-s1-t2-1.3.3-act-03"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s1-t2-1.3.3-assess-01",
+          "bio-s1-t2-1.3.3-assess-02",
+          "bio-s1-t2-1.3.3-assess-03",
+          "bio-s1-t2-1.3.3-assess-04"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s1-t2-1.3.3-lo-01",
+          "bio-s1-t2-1.3.3-lo-02"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s1-t2-1.3.3-assess-01",
+          "bio-s1-t2-1.3.3-assess-02",
+          "bio-s1-t2-1.3.3-assess-03",
+          "bio-s1-t2-1.3.3-assess-04"
+        ],
+        "restriction_bearing_entity_ids": [],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s1-t2-1.3.3",
+        "learning_outcome_ids": [
+          "bio-s1-t2-1.3.3-lo-01",
+          "bio-s1-t2-1.3.3-lo-02"
+        ],
+        "activity_ids": [
+          "bio-s1-t2-1.3.3-act-01",
+          "bio-s1-t2-1.3.3-act-02",
+          "bio-s1-t2-1.3.3-act-03"
+        ],
+        "ict_support_ids": [
+          "bio-s1-t2-1.3.3-ict-01"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s1",
+        "term_id": "bio-s1-t2",
+        "programme_planner_id": "bio-s1-t2-planner-classification",
+        "learning_outcome_ids": [
+          "bio-s1-t2-1.3.3-lo-01",
+          "bio-s1-t2-1.3.3-lo-02"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s1-t3-1.4",
+      "human_review_ids": [
+        "review-013"
+      ],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s1-t3-1.4-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s1-t3-1.4-lo-01",
+          "bio-s1-t3-1.4-lo-02",
+          "bio-s1-t3-1.4-lo-03",
+          "bio-s1-t3-1.4-lo-04"
+        ],
+        "suggested_activity_ids": [
+          "bio-s1-t3-1.4-act-01",
+          "bio-s1-t3-1.4-act-02",
+          "bio-s1-t3-1.4-act-03",
+          "bio-s1-t3-1.4-act-04",
+          "bio-s1-t3-1.4-act-05"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s1-t3-1.4-assess-01",
+          "bio-s1-t3-1.4-assess-02",
+          "bio-s1-t3-1.4-assess-03"
+        ],
+        "note_ids": [
+          "bio-s1-t3-1.4-note-01"
+        ],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s1-t3-1.4-lo-01",
+          "bio-s1-t3-1.4-lo-02",
+          "bio-s1-t3-1.4-lo-03",
+          "bio-s1-t3-1.4-lo-04"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s1-t3-1.4-assess-01",
+          "bio-s1-t3-1.4-assess-02",
+          "bio-s1-t3-1.4-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s1-t3-1.4-lo-01",
+          "bio-s1-t3-1.4-note-01"
+        ],
+        "note_ids": [
+          "bio-s1-t3-1.4-note-01"
+        ]
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s1-t3-1.4",
+        "learning_outcome_ids": [
+          "bio-s1-t3-1.4-lo-01",
+          "bio-s1-t3-1.4-lo-02",
+          "bio-s1-t3-1.4-lo-03",
+          "bio-s1-t3-1.4-lo-04"
+        ],
+        "activity_ids": [
+          "bio-s1-t3-1.4-act-01",
+          "bio-s1-t3-1.4-act-02",
+          "bio-s1-t3-1.4-act-03",
+          "bio-s1-t3-1.4-act-04",
+          "bio-s1-t3-1.4-act-05"
+        ],
+        "ict_support_ids": [
+          "bio-s1-t3-1.4-ict-01"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s1",
+        "term_id": "bio-s1-t3",
+        "programme_planner_id": "bio-s1-t3-planner-insects",
+        "learning_outcome_ids": [
+          "bio-s1-t3-1.4-lo-01",
+          "bio-s1-t3-1.4-lo-02",
+          "bio-s1-t3-1.4-lo-03",
+          "bio-s1-t3-1.4-lo-04"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s1-t3-1.5",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s1-t3-1.5-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s1-t3-1.5-lo-01",
+          "bio-s1-t3-1.5-lo-02",
+          "bio-s1-t3-1.5-lo-03"
+        ],
+        "suggested_activity_ids": [
+          "bio-s1-t3-1.5-act-01",
+          "bio-s1-t3-1.5-act-02",
+          "bio-s1-t3-1.5-act-03",
+          "bio-s1-t3-1.5-act-04",
+          "bio-s1-t3-1.5-act-05",
+          "bio-s1-t3-1.5-act-06",
+          "bio-s1-t3-1.5-act-07"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s1-t3-1.5-assess-01",
+          "bio-s1-t3-1.5-assess-02",
+          "bio-s1-t3-1.5-assess-03",
+          "bio-s1-t3-1.5-assess-04"
+        ],
+        "note_ids": [
+          "bio-s1-t3-1.5-note-01"
+        ],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s1-t3-1.5-lo-01",
+          "bio-s1-t3-1.5-lo-02",
+          "bio-s1-t3-1.5-lo-03"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s1-t3-1.5-assess-01",
+          "bio-s1-t3-1.5-assess-02",
+          "bio-s1-t3-1.5-assess-03",
+          "bio-s1-t3-1.5-assess-04"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s1-t3-1.5-act-06",
+          "bio-s1-t3-1.5-note-01"
+        ],
+        "note_ids": [
+          "bio-s1-t3-1.5-note-01"
+        ]
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s1-t3-1.5",
+        "learning_outcome_ids": [
+          "bio-s1-t3-1.5-lo-01",
+          "bio-s1-t3-1.5-lo-02",
+          "bio-s1-t3-1.5-lo-03"
+        ],
+        "activity_ids": [
+          "bio-s1-t3-1.5-act-01",
+          "bio-s1-t3-1.5-act-02",
+          "bio-s1-t3-1.5-act-03",
+          "bio-s1-t3-1.5-act-04",
+          "bio-s1-t3-1.5-act-05",
+          "bio-s1-t3-1.5-act-06",
+          "bio-s1-t3-1.5-act-07"
+        ],
+        "ict_support_ids": [
+          "bio-s1-t3-1.5-ict-01"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s1",
+        "term_id": "bio-s1-t3",
+        "programme_planner_id": "bio-s1-t3-planner-flowering-plants",
+        "learning_outcome_ids": [
+          "bio-s1-t3-1.5-lo-01",
+          "bio-s1-t3-1.5-lo-02",
+          "bio-s1-t3-1.5-lo-03"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s2-t1-2.1",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s2-t1-2.1-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s2-t1-2.1-lo-01",
+          "bio-s2-t1-2.1-lo-02",
+          "bio-s2-t1-2.1-lo-03",
+          "bio-s2-t1-2.1-lo-04",
+          "bio-s2-t1-2.1-lo-05"
+        ],
+        "suggested_activity_ids": [
+          "bio-s2-t1-2.1-act-01",
+          "bio-s2-t1-2.1-act-02",
+          "bio-s2-t1-2.1-act-03",
+          "bio-s2-t1-2.1-act-04",
+          "bio-s2-t1-2.1-act-05",
+          "bio-s2-t1-2.1-act-06"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s2-t1-2.1-assess-01",
+          "bio-s2-t1-2.1-assess-02",
+          "bio-s2-t1-2.1-assess-03",
+          "bio-s2-t1-2.1-assess-04",
+          "bio-s2-t1-2.1-assess-05",
+          "bio-s2-t1-2.1-assess-06"
+        ],
+        "note_ids": [
+          "bio-s2-t1-2.1-note-01"
+        ],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s2-t1-2.1-lo-01",
+          "bio-s2-t1-2.1-lo-02",
+          "bio-s2-t1-2.1-lo-03",
+          "bio-s2-t1-2.1-lo-04",
+          "bio-s2-t1-2.1-lo-05"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s2-t1-2.1-assess-01",
+          "bio-s2-t1-2.1-assess-02",
+          "bio-s2-t1-2.1-assess-03",
+          "bio-s2-t1-2.1-assess-04",
+          "bio-s2-t1-2.1-assess-05",
+          "bio-s2-t1-2.1-assess-06"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s2-t1-2.1-act-02",
+          "bio-s2-t1-2.1-note-01"
+        ],
+        "note_ids": [
+          "bio-s2-t1-2.1-note-01"
+        ]
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s2-t1-2.1",
+        "learning_outcome_ids": [
+          "bio-s2-t1-2.1-lo-01",
+          "bio-s2-t1-2.1-lo-02",
+          "bio-s2-t1-2.1-lo-03",
+          "bio-s2-t1-2.1-lo-04",
+          "bio-s2-t1-2.1-lo-05"
+        ],
+        "activity_ids": [
+          "bio-s2-t1-2.1-act-01",
+          "bio-s2-t1-2.1-act-02",
+          "bio-s2-t1-2.1-act-03",
+          "bio-s2-t1-2.1-act-04",
+          "bio-s2-t1-2.1-act-05",
+          "bio-s2-t1-2.1-act-06"
+        ],
+        "ict_support_ids": [
+          "bio-s2-t1-2.1-ict-01"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s2",
+        "term_id": "bio-s2-t1",
+        "programme_planner_id": "bio-s2-t1-planner-physical-and-chemical-properties-of-soil",
+        "learning_outcome_ids": [
+          "bio-s2-t1-2.1-lo-01",
+          "bio-s2-t1-2.1-lo-02",
+          "bio-s2-t1-2.1-lo-03",
+          "bio-s2-t1-2.1-lo-04",
+          "bio-s2-t1-2.1-lo-05"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s2-t1-2.2",
+      "human_review_ids": [
+        "review-014"
+      ],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s2-t1-2.2-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s2-t1-2.2-lo-01",
+          "bio-s2-t1-2.2-lo-02",
+          "bio-s2-t1-2.2-lo-03",
+          "bio-s2-t1-2.2-lo-04",
+          "bio-s2-t1-2.2-lo-05"
+        ],
+        "suggested_activity_ids": [
+          "bio-s2-t1-2.2-act-01",
+          "bio-s2-t1-2.2-act-02",
+          "bio-s2-t1-2.2-act-03",
+          "bio-s2-t1-2.2-act-04",
+          "bio-s2-t1-2.2-act-05",
+          "bio-s2-t1-2.2-act-06",
+          "bio-s2-t1-2.2-act-07"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s2-t1-2.2-assess-01",
+          "bio-s2-t1-2.2-assess-02",
+          "bio-s2-t1-2.2-assess-03",
+          "bio-s2-t1-2.2-assess-04",
+          "bio-s2-t1-2.2-assess-05"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s2-t1-2.2-lo-01",
+          "bio-s2-t1-2.2-lo-02",
+          "bio-s2-t1-2.2-lo-03",
+          "bio-s2-t1-2.2-lo-04",
+          "bio-s2-t1-2.2-lo-05"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s2-t1-2.2-assess-01",
+          "bio-s2-t1-2.2-assess-02",
+          "bio-s2-t1-2.2-assess-03",
+          "bio-s2-t1-2.2-assess-04",
+          "bio-s2-t1-2.2-assess-05"
+        ],
+        "restriction_bearing_entity_ids": [],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s2-t1-2.2",
+        "learning_outcome_ids": [
+          "bio-s2-t1-2.2-lo-01",
+          "bio-s2-t1-2.2-lo-02",
+          "bio-s2-t1-2.2-lo-03",
+          "bio-s2-t1-2.2-lo-04",
+          "bio-s2-t1-2.2-lo-05"
+        ],
+        "activity_ids": [
+          "bio-s2-t1-2.2-act-01",
+          "bio-s2-t1-2.2-act-02",
+          "bio-s2-t1-2.2-act-03",
+          "bio-s2-t1-2.2-act-04",
+          "bio-s2-t1-2.2-act-05",
+          "bio-s2-t1-2.2-act-06",
+          "bio-s2-t1-2.2-act-07"
+        ],
+        "ict_support_ids": [
+          "bio-s2-t1-2.2-ict-01",
+          "bio-s2-t1-2.2-ict-02"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s2",
+        "term_id": "bio-s2-t1",
+        "programme_planner_id": "bio-s2-t1-planner-soil-erosion-and-conservation-causes-effects-and-prevention",
+        "learning_outcome_ids": [
+          "bio-s2-t1-2.2-lo-01",
+          "bio-s2-t1-2.2-lo-02",
+          "bio-s2-t1-2.2-lo-03",
+          "bio-s2-t1-2.2-lo-04",
+          "bio-s2-t1-2.2-lo-05"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s2-t2-3.1",
+      "human_review_ids": [
+        "review-007",
+        "review-008"
+      ],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s2-t2-3.1-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s2-t2-3.1-lo-01",
+          "bio-s2-t2-3.1-lo-02",
+          "bio-s2-t2-3.1-lo-03",
+          "bio-s2-t2-3.1-lo-04",
+          "bio-s2-t2-3.1-lo-05",
+          "bio-s2-t2-3.1-lo-06",
+          "bio-s2-t2-3.1-lo-07",
+          "bio-s2-t2-3.1-lo-08"
+        ],
+        "suggested_activity_ids": [
+          "bio-s2-t2-3.1-act-01",
+          "bio-s2-t2-3.1-act-02",
+          "bio-s2-t2-3.1-act-03",
+          "bio-s2-t2-3.1-act-04",
+          "bio-s2-t2-3.1-act-05",
+          "bio-s2-t2-3.1-act-06",
+          "bio-s2-t2-3.1-act-07",
+          "bio-s2-t2-3.1-act-08"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s2-t2-3.1-assess-01",
+          "bio-s2-t2-3.1-assess-02",
+          "bio-s2-t2-3.1-assess-03"
+        ],
+        "note_ids": [
+          "bio-s2-t2-3.1-note-01"
+        ],
+        "preamble_ids": [
+          "bio-s2-t2-3.1-ict-preamble"
+        ]
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s2-t2-3.1-lo-01",
+          "bio-s2-t2-3.1-lo-02",
+          "bio-s2-t2-3.1-lo-03",
+          "bio-s2-t2-3.1-lo-04",
+          "bio-s2-t2-3.1-lo-05",
+          "bio-s2-t2-3.1-lo-06",
+          "bio-s2-t2-3.1-lo-07",
+          "bio-s2-t2-3.1-lo-08"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s2-t2-3.1-assess-01",
+          "bio-s2-t2-3.1-assess-02",
+          "bio-s2-t2-3.1-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s2-t2-3.1-lo-03",
+          "bio-s2-t2-3.1-note-01"
+        ],
+        "note_ids": [
+          "bio-s2-t2-3.1-note-01"
+        ]
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s2-t2-3.1",
+        "learning_outcome_ids": [
+          "bio-s2-t2-3.1-lo-01",
+          "bio-s2-t2-3.1-lo-02",
+          "bio-s2-t2-3.1-lo-03",
+          "bio-s2-t2-3.1-lo-04",
+          "bio-s2-t2-3.1-lo-05",
+          "bio-s2-t2-3.1-lo-06",
+          "bio-s2-t2-3.1-lo-07",
+          "bio-s2-t2-3.1-lo-08"
+        ],
+        "activity_ids": [
+          "bio-s2-t2-3.1-act-01",
+          "bio-s2-t2-3.1-act-02",
+          "bio-s2-t2-3.1-act-03",
+          "bio-s2-t2-3.1-act-04",
+          "bio-s2-t2-3.1-act-05",
+          "bio-s2-t2-3.1-act-06",
+          "bio-s2-t2-3.1-act-07",
+          "bio-s2-t2-3.1-act-08"
+        ],
+        "ict_support_ids": [
+          "bio-s2-t2-3.1-ict-01",
+          "bio-s2-t2-3.1-ict-02",
+          "bio-s2-t2-3.1-ict-03"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s2",
+        "term_id": "bio-s2-t2",
+        "programme_planner_id": "bio-s2-t2-planner-nutrition-types-and-nutrient-compounds",
+        "learning_outcome_ids": [
+          "bio-s2-t2-3.1-lo-01",
+          "bio-s2-t2-3.1-lo-02",
+          "bio-s2-t2-3.1-lo-03",
+          "bio-s2-t2-3.1-lo-04",
+          "bio-s2-t2-3.1-lo-05",
+          "bio-s2-t2-3.1-lo-06",
+          "bio-s2-t2-3.1-lo-07",
+          "bio-s2-t2-3.1-lo-08"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s2-t2-3.2",
+      "human_review_ids": [
+        "review-023"
+      ],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s2-t2-3.2-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s2-t2-3.2-lo-01",
+          "bio-s2-t2-3.2-lo-02",
+          "bio-s2-t2-3.2-lo-03",
+          "bio-s2-t2-3.2-lo-04"
+        ],
+        "suggested_activity_ids": [
+          "bio-s2-t2-3.2-act-01",
+          "bio-s2-t2-3.2-act-02",
+          "bio-s2-t2-3.2-act-03",
+          "bio-s2-t2-3.2-act-04",
+          "bio-s2-t2-3.2-act-05"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s2-t2-3.2-assess-01",
+          "bio-s2-t2-3.2-assess-02",
+          "bio-s2-t2-3.2-assess-03"
+        ],
+        "note_ids": [],
+        "preamble_ids": [
+          "bio-s2-t2-3.2-ict-preamble"
+        ]
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s2-t2-3.2-lo-01",
+          "bio-s2-t2-3.2-lo-02",
+          "bio-s2-t2-3.2-lo-03",
+          "bio-s2-t2-3.2-lo-04"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s2-t2-3.2-assess-01",
+          "bio-s2-t2-3.2-assess-02",
+          "bio-s2-t2-3.2-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s2-t2-3.2",
+        "learning_outcome_ids": [
+          "bio-s2-t2-3.2-lo-01",
+          "bio-s2-t2-3.2-lo-02",
+          "bio-s2-t2-3.2-lo-03",
+          "bio-s2-t2-3.2-lo-04"
+        ],
+        "activity_ids": [
+          "bio-s2-t2-3.2-act-01",
+          "bio-s2-t2-3.2-act-02",
+          "bio-s2-t2-3.2-act-03",
+          "bio-s2-t2-3.2-act-04",
+          "bio-s2-t2-3.2-act-05"
+        ],
+        "ict_support_ids": [
+          "bio-s2-t2-3.2-ict-01",
+          "bio-s2-t2-3.2-ict-02",
+          "bio-s2-t2-3.2-ict-03"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s2",
+        "term_id": "bio-s2-t2",
+        "programme_planner_id": "bio-s2-t2-planner-nutrition-in-green-plants",
+        "learning_outcome_ids": [
+          "bio-s2-t2-3.2-lo-01",
+          "bio-s2-t2-3.2-lo-02",
+          "bio-s2-t2-3.2-lo-03",
+          "bio-s2-t2-3.2-lo-04"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s2-t2-3.3",
+      "human_review_ids": [
+        "review-024"
+      ],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s2-t2-3.3-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s2-t2-3.3-lo-01",
+          "bio-s2-t2-3.3-lo-02",
+          "bio-s2-t2-3.3-lo-03",
+          "bio-s2-t2-3.3-lo-04",
+          "bio-s2-t2-3.3-lo-05",
+          "bio-s2-t2-3.3-lo-06",
+          "bio-s2-t2-3.3-lo-07"
+        ],
+        "suggested_activity_ids": [
+          "bio-s2-t2-3.3-act-01",
+          "bio-s2-t2-3.3-act-02",
+          "bio-s2-t2-3.3-act-03",
+          "bio-s2-t2-3.3-act-04",
+          "bio-s2-t2-3.3-act-05",
+          "bio-s2-t2-3.3-act-06",
+          "bio-s2-t2-3.3-act-07",
+          "bio-s2-t2-3.3-act-08",
+          "bio-s2-t2-3.3-act-09",
+          "bio-s2-t2-3.3-act-10",
+          "bio-s2-t2-3.3-act-11",
+          "bio-s2-t2-3.3-act-12"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s2-t2-3.3-assess-01",
+          "bio-s2-t2-3.3-assess-02",
+          "bio-s2-t2-3.3-assess-03"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s2-t2-3.3-lo-01",
+          "bio-s2-t2-3.3-lo-02",
+          "bio-s2-t2-3.3-lo-03",
+          "bio-s2-t2-3.3-lo-04",
+          "bio-s2-t2-3.3-lo-05",
+          "bio-s2-t2-3.3-lo-06",
+          "bio-s2-t2-3.3-lo-07"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s2-t2-3.3-assess-01",
+          "bio-s2-t2-3.3-assess-02",
+          "bio-s2-t2-3.3-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s2-t2-3.3-lo-01"
+        ],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s2-t2-3.3",
+        "learning_outcome_ids": [
+          "bio-s2-t2-3.3-lo-01",
+          "bio-s2-t2-3.3-lo-02",
+          "bio-s2-t2-3.3-lo-03",
+          "bio-s2-t2-3.3-lo-04",
+          "bio-s2-t2-3.3-lo-05",
+          "bio-s2-t2-3.3-lo-06",
+          "bio-s2-t2-3.3-lo-07"
+        ],
+        "activity_ids": [
+          "bio-s2-t2-3.3-act-01",
+          "bio-s2-t2-3.3-act-02",
+          "bio-s2-t2-3.3-act-03",
+          "bio-s2-t2-3.3-act-04",
+          "bio-s2-t2-3.3-act-05",
+          "bio-s2-t2-3.3-act-06",
+          "bio-s2-t2-3.3-act-07",
+          "bio-s2-t2-3.3-act-08",
+          "bio-s2-t2-3.3-act-09",
+          "bio-s2-t2-3.3-act-10",
+          "bio-s2-t2-3.3-act-11",
+          "bio-s2-t2-3.3-act-12"
+        ],
+        "ict_support_ids": [
+          "bio-s2-t2-3.3-ict-01"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s2",
+        "term_id": "bio-s2-t2",
+        "programme_planner_id": "bio-s2-t2-planner-nutrition-in-mammals",
+        "learning_outcome_ids": [
+          "bio-s2-t2-3.3-lo-01",
+          "bio-s2-t2-3.3-lo-02",
+          "bio-s2-t2-3.3-lo-03",
+          "bio-s2-t2-3.3-lo-04",
+          "bio-s2-t2-3.3-lo-05",
+          "bio-s2-t2-3.3-lo-06",
+          "bio-s2-t2-3.3-lo-07"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s2-t3-4.1",
+      "human_review_ids": [
+        "review-004",
+        "review-010"
+      ],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s2-t3-4.1-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s2-t3-4.1-lo-01",
+          "bio-s2-t3-4.1-lo-02",
+          "bio-s2-t3-4.1-lo-03",
+          "bio-s2-t3-4.1-lo-04",
+          "bio-s2-t3-4.1-lo-05"
+        ],
+        "suggested_activity_ids": [
+          "bio-s2-t3-4.1-act-01",
+          "bio-s2-t3-4.1-act-02",
+          "bio-s2-t3-4.1-act-03",
+          "bio-s2-t3-4.1-act-04",
+          "bio-s2-t3-4.1-act-05",
+          "bio-s2-t3-4.1-act-06",
+          "bio-s2-t3-4.1-act-07"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s2-t3-4.1-assess-01",
+          "bio-s2-t3-4.1-assess-02",
+          "bio-s2-t3-4.1-assess-03"
+        ],
+        "note_ids": [
+          "bio-s2-t3-4.1-note-01"
+        ],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s2-t3-4.1-lo-01",
+          "bio-s2-t3-4.1-lo-02",
+          "bio-s2-t3-4.1-lo-03",
+          "bio-s2-t3-4.1-lo-04",
+          "bio-s2-t3-4.1-lo-05"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s2-t3-4.1-assess-01",
+          "bio-s2-t3-4.1-assess-02",
+          "bio-s2-t3-4.1-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s2-t3-4.1-note-01"
+        ],
+        "note_ids": [
+          "bio-s2-t3-4.1-note-01"
+        ]
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s2-t3-4.1",
+        "learning_outcome_ids": [
+          "bio-s2-t3-4.1-lo-01",
+          "bio-s2-t3-4.1-lo-02",
+          "bio-s2-t3-4.1-lo-03",
+          "bio-s2-t3-4.1-lo-04",
+          "bio-s2-t3-4.1-lo-05"
+        ],
+        "activity_ids": [
+          "bio-s2-t3-4.1-act-01",
+          "bio-s2-t3-4.1-act-02",
+          "bio-s2-t3-4.1-act-03",
+          "bio-s2-t3-4.1-act-04",
+          "bio-s2-t3-4.1-act-05",
+          "bio-s2-t3-4.1-act-06",
+          "bio-s2-t3-4.1-act-07"
+        ],
+        "ict_support_ids": [
+          "bio-s2-t3-4.1-ict-01"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s2",
+        "term_id": "bio-s2-t3",
+        "programme_planner_id": "bio-s2-t3-planner-transport-in-plants",
+        "learning_outcome_ids": [
+          "bio-s2-t3-4.1-lo-01",
+          "bio-s2-t3-4.1-lo-02",
+          "bio-s2-t3-4.1-lo-03",
+          "bio-s2-t3-4.1-lo-04",
+          "bio-s2-t3-4.1-lo-05"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s2-t3-4.2",
+      "human_review_ids": [
+        "review-002",
+        "review-011"
+      ],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s2-t3-4.2-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s2-t3-4.2-lo-01",
+          "bio-s2-t3-4.2-lo-02",
+          "bio-s2-t3-4.2-lo-03",
+          "bio-s2-t3-4.2-lo-04",
+          "bio-s2-t3-4.2-lo-05",
+          "bio-s2-t3-4.2-lo-06",
+          "bio-s2-t3-4.2-lo-07",
+          "bio-s2-t3-4.2-lo-08",
+          "bio-s2-t3-4.2-lo-09",
+          "bio-s2-t3-4.2-lo-10",
+          "bio-s2-t3-4.2-lo-11"
+        ],
+        "suggested_activity_ids": [
+          "bio-s2-t3-4.2-act-01",
+          "bio-s2-t3-4.2-act-02",
+          "bio-s2-t3-4.2-act-03",
+          "bio-s2-t3-4.2-act-04",
+          "bio-s2-t3-4.2-act-05",
+          "bio-s2-t3-4.2-act-06",
+          "bio-s2-t3-4.2-act-07",
+          "bio-s2-t3-4.2-act-08"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s2-t3-4.2-assess-01",
+          "bio-s2-t3-4.2-assess-02",
+          "bio-s2-t3-4.2-assess-03"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s2-t3-4.2-lo-01",
+          "bio-s2-t3-4.2-lo-02",
+          "bio-s2-t3-4.2-lo-03",
+          "bio-s2-t3-4.2-lo-04",
+          "bio-s2-t3-4.2-lo-05",
+          "bio-s2-t3-4.2-lo-06",
+          "bio-s2-t3-4.2-lo-07",
+          "bio-s2-t3-4.2-lo-08",
+          "bio-s2-t3-4.2-lo-09",
+          "bio-s2-t3-4.2-lo-10",
+          "bio-s2-t3-4.2-lo-11"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s2-t3-4.2-assess-01",
+          "bio-s2-t3-4.2-assess-02",
+          "bio-s2-t3-4.2-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s2-t3-4.2",
+        "learning_outcome_ids": [
+          "bio-s2-t3-4.2-lo-01",
+          "bio-s2-t3-4.2-lo-02",
+          "bio-s2-t3-4.2-lo-03",
+          "bio-s2-t3-4.2-lo-04",
+          "bio-s2-t3-4.2-lo-05",
+          "bio-s2-t3-4.2-lo-06",
+          "bio-s2-t3-4.2-lo-07",
+          "bio-s2-t3-4.2-lo-08",
+          "bio-s2-t3-4.2-lo-09",
+          "bio-s2-t3-4.2-lo-10",
+          "bio-s2-t3-4.2-lo-11"
+        ],
+        "activity_ids": [
+          "bio-s2-t3-4.2-act-01",
+          "bio-s2-t3-4.2-act-02",
+          "bio-s2-t3-4.2-act-03",
+          "bio-s2-t3-4.2-act-04",
+          "bio-s2-t3-4.2-act-05",
+          "bio-s2-t3-4.2-act-06",
+          "bio-s2-t3-4.2-act-07",
+          "bio-s2-t3-4.2-act-08"
+        ],
+        "ict_support_ids": []
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s2",
+        "term_id": "bio-s2-t3",
+        "programme_planner_id": "bio-s2-t3-planner-transport-in-animals",
+        "learning_outcome_ids": [
+          "bio-s2-t3-4.2-lo-01",
+          "bio-s2-t3-4.2-lo-02",
+          "bio-s2-t3-4.2-lo-03",
+          "bio-s2-t3-4.2-lo-04",
+          "bio-s2-t3-4.2-lo-05",
+          "bio-s2-t3-4.2-lo-06",
+          "bio-s2-t3-4.2-lo-07",
+          "bio-s2-t3-4.2-lo-08",
+          "bio-s2-t3-4.2-lo-09",
+          "bio-s2-t3-4.2-lo-10",
+          "bio-s2-t3-4.2-lo-11"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s3-t1-5.1",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s3-t1-5.1-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s3-t1-5.1-lo-01",
+          "bio-s3-t1-5.1-lo-02",
+          "bio-s3-t1-5.1-lo-03",
+          "bio-s3-t1-5.1-lo-04",
+          "bio-s3-t1-5.1-lo-05",
+          "bio-s3-t1-5.1-lo-06"
+        ],
+        "suggested_activity_ids": [
+          "bio-s3-t1-5.1-act-01",
+          "bio-s3-t1-5.1-act-02",
+          "bio-s3-t1-5.1-act-03",
+          "bio-s3-t1-5.1-act-04",
+          "bio-s3-t1-5.1-act-05",
+          "bio-s3-t1-5.1-act-06"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t1-5.1-assess-01",
+          "bio-s3-t1-5.1-assess-02",
+          "bio-s3-t1-5.1-assess-03"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s3-t1-5.1-lo-01",
+          "bio-s3-t1-5.1-lo-02",
+          "bio-s3-t1-5.1-lo-03",
+          "bio-s3-t1-5.1-lo-04",
+          "bio-s3-t1-5.1-lo-05",
+          "bio-s3-t1-5.1-lo-06"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t1-5.1-assess-01",
+          "bio-s3-t1-5.1-assess-02",
+          "bio-s3-t1-5.1-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s3-t1-5.1",
+        "learning_outcome_ids": [
+          "bio-s3-t1-5.1-lo-01",
+          "bio-s3-t1-5.1-lo-02",
+          "bio-s3-t1-5.1-lo-03",
+          "bio-s3-t1-5.1-lo-04",
+          "bio-s3-t1-5.1-lo-05",
+          "bio-s3-t1-5.1-lo-06"
+        ],
+        "activity_ids": [
+          "bio-s3-t1-5.1-act-01",
+          "bio-s3-t1-5.1-act-02",
+          "bio-s3-t1-5.1-act-03",
+          "bio-s3-t1-5.1-act-04",
+          "bio-s3-t1-5.1-act-05",
+          "bio-s3-t1-5.1-act-06"
+        ],
+        "ict_support_ids": []
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s3",
+        "term_id": "bio-s3-t1",
+        "programme_planner_id": "bio-s3-t1-planner-gaseous-exchange",
+        "learning_outcome_ids": [
+          "bio-s3-t1-5.1-lo-01",
+          "bio-s3-t1-5.1-lo-02",
+          "bio-s3-t1-5.1-lo-03",
+          "bio-s3-t1-5.1-lo-04",
+          "bio-s3-t1-5.1-lo-05",
+          "bio-s3-t1-5.1-lo-06"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s3-t1-5.2",
+      "human_review_ids": [
+        "review-025"
+      ],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s3-t1-5.2-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s3-t1-5.2-lo-01",
+          "bio-s3-t1-5.2-lo-02",
+          "bio-s3-t1-5.2-lo-03",
+          "bio-s3-t1-5.2-lo-04",
+          "bio-s3-t1-5.2-lo-05",
+          "bio-s3-t1-5.2-lo-06",
+          "bio-s3-t1-5.2-lo-07",
+          "bio-s3-t1-5.2-lo-08"
+        ],
+        "suggested_activity_ids": [
+          "bio-s3-t1-5.2-act-01",
+          "bio-s3-t1-5.2-act-02",
+          "bio-s3-t1-5.2-act-03",
+          "bio-s3-t1-5.2-act-04",
+          "bio-s3-t1-5.2-act-05",
+          "bio-s3-t1-5.2-act-06",
+          "bio-s3-t1-5.2-act-07",
+          "bio-s3-t1-5.2-act-08",
+          "bio-s3-t1-5.2-act-09",
+          "bio-s3-t1-5.2-act-10"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t1-5.2-assess-01",
+          "bio-s3-t1-5.2-assess-02",
+          "bio-s3-t1-5.2-assess-03"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s3-t1-5.2-lo-01",
+          "bio-s3-t1-5.2-lo-02",
+          "bio-s3-t1-5.2-lo-03",
+          "bio-s3-t1-5.2-lo-04",
+          "bio-s3-t1-5.2-lo-05",
+          "bio-s3-t1-5.2-lo-06",
+          "bio-s3-t1-5.2-lo-07",
+          "bio-s3-t1-5.2-lo-08"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t1-5.2-assess-01",
+          "bio-s3-t1-5.2-assess-02",
+          "bio-s3-t1-5.2-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s3-t1-5.2",
+        "learning_outcome_ids": [
+          "bio-s3-t1-5.2-lo-01",
+          "bio-s3-t1-5.2-lo-02",
+          "bio-s3-t1-5.2-lo-03",
+          "bio-s3-t1-5.2-lo-04",
+          "bio-s3-t1-5.2-lo-05",
+          "bio-s3-t1-5.2-lo-06",
+          "bio-s3-t1-5.2-lo-07",
+          "bio-s3-t1-5.2-lo-08"
+        ],
+        "activity_ids": [
+          "bio-s3-t1-5.2-act-01",
+          "bio-s3-t1-5.2-act-02",
+          "bio-s3-t1-5.2-act-03",
+          "bio-s3-t1-5.2-act-04",
+          "bio-s3-t1-5.2-act-05",
+          "bio-s3-t1-5.2-act-06",
+          "bio-s3-t1-5.2-act-07",
+          "bio-s3-t1-5.2-act-08",
+          "bio-s3-t1-5.2-act-09",
+          "bio-s3-t1-5.2-act-10"
+        ],
+        "ict_support_ids": []
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s3",
+        "term_id": "bio-s3-t1",
+        "programme_planner_id": "bio-s3-t1-planner-aerobic-respiration-and-anaerobic-respiration",
+        "learning_outcome_ids": [
+          "bio-s3-t1-5.2-lo-01",
+          "bio-s3-t1-5.2-lo-02",
+          "bio-s3-t1-5.2-lo-03",
+          "bio-s3-t1-5.2-lo-04",
+          "bio-s3-t1-5.2-lo-05",
+          "bio-s3-t1-5.2-lo-06",
+          "bio-s3-t1-5.2-lo-07",
+          "bio-s3-t1-5.2-lo-08"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s3-t1-6.1",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s3-t1-6.1-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s3-t1-6.1-lo-01",
+          "bio-s3-t1-6.1-lo-02",
+          "bio-s3-t1-6.1-lo-03",
+          "bio-s3-t1-6.1-lo-04",
+          "bio-s3-t1-6.1-lo-05",
+          "bio-s3-t1-6.1-lo-06"
+        ],
+        "suggested_activity_ids": [
+          "bio-s3-t1-6.1-act-01",
+          "bio-s3-t1-6.1-act-02",
+          "bio-s3-t1-6.1-act-03",
+          "bio-s3-t1-6.1-act-04",
+          "bio-s3-t1-6.1-act-05",
+          "bio-s3-t1-6.1-act-06",
+          "bio-s3-t1-6.1-act-07",
+          "bio-s3-t1-6.1-act-08"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t1-6.1-assess-01",
+          "bio-s3-t1-6.1-assess-02",
+          "bio-s3-t1-6.1-assess-03"
+        ],
+        "note_ids": [
+          "bio-s3-t1-6.1-note-01"
+        ],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s3-t1-6.1-lo-01",
+          "bio-s3-t1-6.1-lo-02",
+          "bio-s3-t1-6.1-lo-03",
+          "bio-s3-t1-6.1-lo-04",
+          "bio-s3-t1-6.1-lo-05",
+          "bio-s3-t1-6.1-lo-06"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t1-6.1-assess-01",
+          "bio-s3-t1-6.1-assess-02",
+          "bio-s3-t1-6.1-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s3-t1-6.1-act-01",
+          "bio-s3-t1-6.1-note-01"
+        ],
+        "note_ids": [
+          "bio-s3-t1-6.1-note-01"
+        ]
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s3-t1-6.1",
+        "learning_outcome_ids": [
+          "bio-s3-t1-6.1-lo-01",
+          "bio-s3-t1-6.1-lo-02",
+          "bio-s3-t1-6.1-lo-03",
+          "bio-s3-t1-6.1-lo-04",
+          "bio-s3-t1-6.1-lo-05",
+          "bio-s3-t1-6.1-lo-06"
+        ],
+        "activity_ids": [
+          "bio-s3-t1-6.1-act-01",
+          "bio-s3-t1-6.1-act-02",
+          "bio-s3-t1-6.1-act-03",
+          "bio-s3-t1-6.1-act-04",
+          "bio-s3-t1-6.1-act-05",
+          "bio-s3-t1-6.1-act-06",
+          "bio-s3-t1-6.1-act-07",
+          "bio-s3-t1-6.1-act-08"
+        ],
+        "ict_support_ids": []
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s3",
+        "term_id": "bio-s3-t1",
+        "programme_planner_id": "bio-s3-t1-planner-excretion-in-animals",
+        "learning_outcome_ids": [
+          "bio-s3-t1-6.1-lo-01",
+          "bio-s3-t1-6.1-lo-02",
+          "bio-s3-t1-6.1-lo-03",
+          "bio-s3-t1-6.1-lo-04",
+          "bio-s3-t1-6.1-lo-05",
+          "bio-s3-t1-6.1-lo-06"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s3-t2-7.1",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s3-t2-7.1-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s3-t2-7.1-lo-01",
+          "bio-s3-t2-7.1-lo-02",
+          "bio-s3-t2-7.1-lo-03",
+          "bio-s3-t2-7.1-lo-04"
+        ],
+        "suggested_activity_ids": [
+          "bio-s3-t2-7.1-act-01",
+          "bio-s3-t2-7.1-act-02",
+          "bio-s3-t2-7.1-act-03",
+          "bio-s3-t2-7.1-act-04",
+          "bio-s3-t2-7.1-act-05",
+          "bio-s3-t2-7.1-act-06"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t2-7.1-assess-01",
+          "bio-s3-t2-7.1-assess-02",
+          "bio-s3-t2-7.1-assess-03"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s3-t2-7.1-lo-01",
+          "bio-s3-t2-7.1-lo-02",
+          "bio-s3-t2-7.1-lo-03",
+          "bio-s3-t2-7.1-lo-04"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t2-7.1-assess-01",
+          "bio-s3-t2-7.1-assess-02",
+          "bio-s3-t2-7.1-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s3-t2-7.1",
+        "learning_outcome_ids": [
+          "bio-s3-t2-7.1-lo-01",
+          "bio-s3-t2-7.1-lo-02",
+          "bio-s3-t2-7.1-lo-03",
+          "bio-s3-t2-7.1-lo-04"
+        ],
+        "activity_ids": [
+          "bio-s3-t2-7.1-act-01",
+          "bio-s3-t2-7.1-act-02",
+          "bio-s3-t2-7.1-act-03",
+          "bio-s3-t2-7.1-act-04",
+          "bio-s3-t2-7.1-act-05",
+          "bio-s3-t2-7.1-act-06"
+        ],
+        "ict_support_ids": []
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s3",
+        "term_id": "bio-s3-t2",
+        "programme_planner_id": "bio-s3-t2-planner-chemical-coordination-in-humans",
+        "learning_outcome_ids": [
+          "bio-s3-t2-7.1-lo-01",
+          "bio-s3-t2-7.1-lo-02",
+          "bio-s3-t2-7.1-lo-03",
+          "bio-s3-t2-7.1-lo-04"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s3-t2-7.2",
+      "human_review_ids": [
+        "review-026"
+      ],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s3-t2-7.2-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s3-t2-7.2-lo-01",
+          "bio-s3-t2-7.2-lo-02",
+          "bio-s3-t2-7.2-lo-03",
+          "bio-s3-t2-7.2-lo-04",
+          "bio-s3-t2-7.2-lo-05",
+          "bio-s3-t2-7.2-lo-06",
+          "bio-s3-t2-7.2-lo-07"
+        ],
+        "suggested_activity_ids": [
+          "bio-s3-t2-7.2-act-01",
+          "bio-s3-t2-7.2-act-02",
+          "bio-s3-t2-7.2-act-03",
+          "bio-s3-t2-7.2-act-04",
+          "bio-s3-t2-7.2-act-05",
+          "bio-s3-t2-7.2-act-06",
+          "bio-s3-t2-7.2-act-07",
+          "bio-s3-t2-7.2-act-08"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t2-7.2-assess-01",
+          "bio-s3-t2-7.2-assess-02",
+          "bio-s3-t2-7.2-assess-03",
+          "bio-s3-t2-7.2-assess-04",
+          "bio-s3-t2-7.2-assess-05"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s3-t2-7.2-lo-01",
+          "bio-s3-t2-7.2-lo-02",
+          "bio-s3-t2-7.2-lo-03",
+          "bio-s3-t2-7.2-lo-04",
+          "bio-s3-t2-7.2-lo-05",
+          "bio-s3-t2-7.2-lo-06",
+          "bio-s3-t2-7.2-lo-07"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t2-7.2-assess-01",
+          "bio-s3-t2-7.2-assess-02",
+          "bio-s3-t2-7.2-assess-03",
+          "bio-s3-t2-7.2-assess-04",
+          "bio-s3-t2-7.2-assess-05"
+        ],
+        "restriction_bearing_entity_ids": [],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s3-t2-7.2",
+        "learning_outcome_ids": [
+          "bio-s3-t2-7.2-lo-01",
+          "bio-s3-t2-7.2-lo-02",
+          "bio-s3-t2-7.2-lo-03",
+          "bio-s3-t2-7.2-lo-04",
+          "bio-s3-t2-7.2-lo-05",
+          "bio-s3-t2-7.2-lo-06",
+          "bio-s3-t2-7.2-lo-07"
+        ],
+        "activity_ids": [
+          "bio-s3-t2-7.2-act-01",
+          "bio-s3-t2-7.2-act-02",
+          "bio-s3-t2-7.2-act-03",
+          "bio-s3-t2-7.2-act-04",
+          "bio-s3-t2-7.2-act-05",
+          "bio-s3-t2-7.2-act-06",
+          "bio-s3-t2-7.2-act-07",
+          "bio-s3-t2-7.2-act-08"
+        ],
+        "ict_support_ids": []
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s3",
+        "term_id": "bio-s3-t2",
+        "programme_planner_id": "bio-s3-t2-planner-nervous-coordination-in-humans",
+        "learning_outcome_ids": [
+          "bio-s3-t2-7.2-lo-01",
+          "bio-s3-t2-7.2-lo-02",
+          "bio-s3-t2-7.2-lo-03",
+          "bio-s3-t2-7.2-lo-04",
+          "bio-s3-t2-7.2-lo-05",
+          "bio-s3-t2-7.2-lo-06",
+          "bio-s3-t2-7.2-lo-07"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s3-t2-7.3",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s3-t2-7.3-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s3-t2-7.3-lo-01",
+          "bio-s3-t2-7.3-lo-02"
+        ],
+        "suggested_activity_ids": [
+          "bio-s3-t2-7.3-act-01",
+          "bio-s3-t2-7.3-act-02",
+          "bio-s3-t2-7.3-act-03"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t2-7.3-assess-01",
+          "bio-s3-t2-7.3-assess-02",
+          "bio-s3-t2-7.3-assess-03"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s3-t2-7.3-lo-01",
+          "bio-s3-t2-7.3-lo-02"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t2-7.3-assess-01",
+          "bio-s3-t2-7.3-assess-02",
+          "bio-s3-t2-7.3-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s3-t2-7.3",
+        "learning_outcome_ids": [
+          "bio-s3-t2-7.3-lo-01",
+          "bio-s3-t2-7.3-lo-02"
+        ],
+        "activity_ids": [
+          "bio-s3-t2-7.3-act-01",
+          "bio-s3-t2-7.3-act-02",
+          "bio-s3-t2-7.3-act-03"
+        ],
+        "ict_support_ids": [
+          "bio-s3-t2-7.3-ict-01"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s3",
+        "term_id": "bio-s3-t2",
+        "programme_planner_id": "bio-s3-t2-planner-receptor-organs-in-man",
+        "learning_outcome_ids": [
+          "bio-s3-t2-7.3-lo-01",
+          "bio-s3-t2-7.3-lo-02"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s3-t3-8.1",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s3-t3-8.1-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s3-t3-8.1-lo-01",
+          "bio-s3-t3-8.1-lo-02",
+          "bio-s3-t3-8.1-lo-03",
+          "bio-s3-t3-8.1-lo-04"
+        ],
+        "suggested_activity_ids": [
+          "bio-s3-t3-8.1-act-01",
+          "bio-s3-t3-8.1-act-02",
+          "bio-s3-t3-8.1-act-03",
+          "bio-s3-t3-8.1-act-04",
+          "bio-s3-t3-8.1-act-05"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t3-8.1-assess-01",
+          "bio-s3-t3-8.1-assess-02",
+          "bio-s3-t3-8.1-assess-03",
+          "bio-s3-t3-8.1-assess-04",
+          "bio-s3-t3-8.1-assess-05",
+          "bio-s3-t3-8.1-assess-06"
+        ],
+        "note_ids": [
+          "bio-s3-t3-8.1-note-01"
+        ],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s3-t3-8.1-lo-01",
+          "bio-s3-t3-8.1-lo-02",
+          "bio-s3-t3-8.1-lo-03",
+          "bio-s3-t3-8.1-lo-04"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t3-8.1-assess-01",
+          "bio-s3-t3-8.1-assess-02",
+          "bio-s3-t3-8.1-assess-03",
+          "bio-s3-t3-8.1-assess-04",
+          "bio-s3-t3-8.1-assess-05",
+          "bio-s3-t3-8.1-assess-06"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s3-t3-8.1-note-01"
+        ],
+        "note_ids": [
+          "bio-s3-t3-8.1-note-01"
+        ]
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s3-t3-8.1",
+        "learning_outcome_ids": [
+          "bio-s3-t3-8.1-lo-01",
+          "bio-s3-t3-8.1-lo-02",
+          "bio-s3-t3-8.1-lo-03",
+          "bio-s3-t3-8.1-lo-04"
+        ],
+        "activity_ids": [
+          "bio-s3-t3-8.1-act-01",
+          "bio-s3-t3-8.1-act-02",
+          "bio-s3-t3-8.1-act-03",
+          "bio-s3-t3-8.1-act-04",
+          "bio-s3-t3-8.1-act-05"
+        ],
+        "ict_support_ids": [
+          "bio-s3-t3-8.1-ict-01"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s3",
+        "term_id": "bio-s3-t3",
+        "programme_planner_id": "bio-s3-t3-planner-locomotion-in-mammals",
+        "learning_outcome_ids": [
+          "bio-s3-t3-8.1-lo-01",
+          "bio-s3-t3-8.1-lo-02",
+          "bio-s3-t3-8.1-lo-03",
+          "bio-s3-t3-8.1-lo-04"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s3-t3-9.1",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s3-t3-9.1-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s3-t3-9.1-lo-01",
+          "bio-s3-t3-9.1-lo-02",
+          "bio-s3-t3-9.1-lo-03",
+          "bio-s3-t3-9.1-lo-04",
+          "bio-s3-t3-9.1-lo-05",
+          "bio-s3-t3-9.1-lo-06"
+        ],
+        "suggested_activity_ids": [
+          "bio-s3-t3-9.1-act-01",
+          "bio-s3-t3-9.1-act-02",
+          "bio-s3-t3-9.1-act-03",
+          "bio-s3-t3-9.1-act-04",
+          "bio-s3-t3-9.1-act-05",
+          "bio-s3-t3-9.1-act-06",
+          "bio-s3-t3-9.1-act-07"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t3-9.1-assess-01",
+          "bio-s3-t3-9.1-assess-02",
+          "bio-s3-t3-9.1-assess-03",
+          "bio-s3-t3-9.1-assess-04"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s3-t3-9.1-lo-01",
+          "bio-s3-t3-9.1-lo-02",
+          "bio-s3-t3-9.1-lo-03",
+          "bio-s3-t3-9.1-lo-04",
+          "bio-s3-t3-9.1-lo-05",
+          "bio-s3-t3-9.1-lo-06"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t3-9.1-assess-01",
+          "bio-s3-t3-9.1-assess-02",
+          "bio-s3-t3-9.1-assess-03",
+          "bio-s3-t3-9.1-assess-04"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s3-t3-9.1-act-03"
+        ],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s3-t3-9.1",
+        "learning_outcome_ids": [
+          "bio-s3-t3-9.1-lo-01",
+          "bio-s3-t3-9.1-lo-02",
+          "bio-s3-t3-9.1-lo-03",
+          "bio-s3-t3-9.1-lo-04",
+          "bio-s3-t3-9.1-lo-05",
+          "bio-s3-t3-9.1-lo-06"
+        ],
+        "activity_ids": [
+          "bio-s3-t3-9.1-act-01",
+          "bio-s3-t3-9.1-act-02",
+          "bio-s3-t3-9.1-act-03",
+          "bio-s3-t3-9.1-act-04",
+          "bio-s3-t3-9.1-act-05",
+          "bio-s3-t3-9.1-act-06",
+          "bio-s3-t3-9.1-act-07"
+        ],
+        "ict_support_ids": [
+          "bio-s3-t3-9.1-ict-01"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s3",
+        "term_id": "bio-s3-t3",
+        "programme_planner_id": "bio-s3-t3-planner-growth-in-plants-and-animals",
+        "learning_outcome_ids": [
+          "bio-s3-t3-9.1-lo-01",
+          "bio-s3-t3-9.1-lo-02",
+          "bio-s3-t3-9.1-lo-03",
+          "bio-s3-t3-9.1-lo-04",
+          "bio-s3-t3-9.1-lo-05",
+          "bio-s3-t3-9.1-lo-06"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s3-t3-9.2",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s3-t3-9.2-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s3-t3-9.2-lo-01",
+          "bio-s3-t3-9.2-lo-02",
+          "bio-s3-t3-9.2-lo-03",
+          "bio-s3-t3-9.2-lo-04",
+          "bio-s3-t3-9.2-lo-05",
+          "bio-s3-t3-9.2-lo-06",
+          "bio-s3-t3-9.2-lo-07",
+          "bio-s3-t3-9.2-lo-08",
+          "bio-s3-t3-9.2-lo-09"
+        ],
+        "suggested_activity_ids": [
+          "bio-s3-t3-9.2-act-01",
+          "bio-s3-t3-9.2-act-02",
+          "bio-s3-t3-9.2-act-03",
+          "bio-s3-t3-9.2-act-04",
+          "bio-s3-t3-9.2-act-05",
+          "bio-s3-t3-9.2-act-06",
+          "bio-s3-t3-9.2-act-07",
+          "bio-s3-t3-9.2-act-08",
+          "bio-s3-t3-9.2-act-09"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t3-9.2-assess-01",
+          "bio-s3-t3-9.2-assess-02",
+          "bio-s3-t3-9.2-assess-03"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s3-t3-9.2-lo-01",
+          "bio-s3-t3-9.2-lo-02",
+          "bio-s3-t3-9.2-lo-03",
+          "bio-s3-t3-9.2-lo-04",
+          "bio-s3-t3-9.2-lo-05",
+          "bio-s3-t3-9.2-lo-06",
+          "bio-s3-t3-9.2-lo-07",
+          "bio-s3-t3-9.2-lo-08",
+          "bio-s3-t3-9.2-lo-09"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s3-t3-9.2-assess-01",
+          "bio-s3-t3-9.2-assess-02",
+          "bio-s3-t3-9.2-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s3-t3-9.2-assess-01",
+          "bio-s3-t3-9.2-assess-02"
+        ],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s3-t3-9.2",
+        "learning_outcome_ids": [
+          "bio-s3-t3-9.2-lo-01",
+          "bio-s3-t3-9.2-lo-02",
+          "bio-s3-t3-9.2-lo-03",
+          "bio-s3-t3-9.2-lo-04",
+          "bio-s3-t3-9.2-lo-05",
+          "bio-s3-t3-9.2-lo-06",
+          "bio-s3-t3-9.2-lo-07",
+          "bio-s3-t3-9.2-lo-08",
+          "bio-s3-t3-9.2-lo-09"
+        ],
+        "activity_ids": [
+          "bio-s3-t3-9.2-act-01",
+          "bio-s3-t3-9.2-act-02",
+          "bio-s3-t3-9.2-act-03",
+          "bio-s3-t3-9.2-act-04",
+          "bio-s3-t3-9.2-act-05",
+          "bio-s3-t3-9.2-act-06",
+          "bio-s3-t3-9.2-act-07",
+          "bio-s3-t3-9.2-act-08",
+          "bio-s3-t3-9.2-act-09"
+        ],
+        "ict_support_ids": [
+          "bio-s3-t3-9.2-ict-01"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s3",
+        "term_id": "bio-s3-t3",
+        "programme_planner_id": "bio-s3-t3-planner-development-in-plants-and-animals",
+        "learning_outcome_ids": [
+          "bio-s3-t3-9.2-lo-01",
+          "bio-s3-t3-9.2-lo-02",
+          "bio-s3-t3-9.2-lo-03",
+          "bio-s3-t3-9.2-lo-04",
+          "bio-s3-t3-9.2-lo-05",
+          "bio-s3-t3-9.2-lo-06",
+          "bio-s3-t3-9.2-lo-07",
+          "bio-s3-t3-9.2-lo-08",
+          "bio-s3-t3-9.2-lo-09"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s4-t1-10.1",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s4-t1-10.1-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s4-t1-10.1-lo-01",
+          "bio-s4-t1-10.1-lo-02",
+          "bio-s4-t1-10.1-lo-03"
+        ],
+        "suggested_activity_ids": [
+          "bio-s4-t1-10.1-act-01",
+          "bio-s4-t1-10.1-act-02",
+          "bio-s4-t1-10.1-act-03",
+          "bio-s4-t1-10.1-act-04"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t1-10.1-assess-01",
+          "bio-s4-t1-10.1-assess-02",
+          "bio-s4-t1-10.1-assess-03"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s4-t1-10.1-lo-01",
+          "bio-s4-t1-10.1-lo-02",
+          "bio-s4-t1-10.1-lo-03"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t1-10.1-assess-01",
+          "bio-s4-t1-10.1-assess-02",
+          "bio-s4-t1-10.1-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s4-t1-10.1",
+        "learning_outcome_ids": [
+          "bio-s4-t1-10.1-lo-01",
+          "bio-s4-t1-10.1-lo-02",
+          "bio-s4-t1-10.1-lo-03"
+        ],
+        "activity_ids": [
+          "bio-s4-t1-10.1-act-01",
+          "bio-s4-t1-10.1-act-02",
+          "bio-s4-t1-10.1-act-03",
+          "bio-s4-t1-10.1-act-04"
+        ],
+        "ict_support_ids": [
+          "bio-s4-t1-10.1-ict-01"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s4",
+        "term_id": "bio-s4-t1",
+        "programme_planner_id": "bio-s4-t1-planner-asexual-reproduction-in-plants-vegetative-reproduction",
+        "learning_outcome_ids": [
+          "bio-s4-t1-10.1-lo-01",
+          "bio-s4-t1-10.1-lo-02",
+          "bio-s4-t1-10.1-lo-03"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s4-t1-10.2",
+      "human_review_ids": [
+        "review-005"
+      ],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s4-t1-10.2-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s4-t1-10.2-lo-01",
+          "bio-s4-t1-10.2-lo-02",
+          "bio-s4-t1-10.2-lo-03",
+          "bio-s4-t1-10.2-lo-04",
+          "bio-s4-t1-10.2-lo-05",
+          "bio-s4-t1-10.2-lo-06"
+        ],
+        "suggested_activity_ids": [
+          "bio-s4-t1-10.2-act-01",
+          "bio-s4-t1-10.2-act-02",
+          "bio-s4-t1-10.2-act-03",
+          "bio-s4-t1-10.2-act-04",
+          "bio-s4-t1-10.2-act-05",
+          "bio-s4-t1-10.2-act-06"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t1-10.2-assess-01",
+          "bio-s4-t1-10.2-assess-02",
+          "bio-s4-t1-10.2-assess-03"
+        ],
+        "note_ids": [],
+        "preamble_ids": [
+          "bio-s4-t1-10.2-ict-preamble"
+        ]
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s4-t1-10.2-lo-01",
+          "bio-s4-t1-10.2-lo-02",
+          "bio-s4-t1-10.2-lo-03",
+          "bio-s4-t1-10.2-lo-04",
+          "bio-s4-t1-10.2-lo-05",
+          "bio-s4-t1-10.2-lo-06"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t1-10.2-assess-01",
+          "bio-s4-t1-10.2-assess-02",
+          "bio-s4-t1-10.2-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s4-t1-10.2",
+        "learning_outcome_ids": [
+          "bio-s4-t1-10.2-lo-01",
+          "bio-s4-t1-10.2-lo-02",
+          "bio-s4-t1-10.2-lo-03",
+          "bio-s4-t1-10.2-lo-04",
+          "bio-s4-t1-10.2-lo-05",
+          "bio-s4-t1-10.2-lo-06"
+        ],
+        "activity_ids": [
+          "bio-s4-t1-10.2-act-01",
+          "bio-s4-t1-10.2-act-02",
+          "bio-s4-t1-10.2-act-03",
+          "bio-s4-t1-10.2-act-04",
+          "bio-s4-t1-10.2-act-05",
+          "bio-s4-t1-10.2-act-06"
+        ],
+        "ict_support_ids": [
+          "bio-s4-t1-10.2-ict-01",
+          "bio-s4-t1-10.2-ict-02"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s4",
+        "term_id": "bio-s4-t1",
+        "programme_planner_id": "bio-s4-t1-planner-sexual-reproduction-in-plants",
+        "learning_outcome_ids": [
+          "bio-s4-t1-10.2-lo-01",
+          "bio-s4-t1-10.2-lo-02",
+          "bio-s4-t1-10.2-lo-03",
+          "bio-s4-t1-10.2-lo-04",
+          "bio-s4-t1-10.2-lo-05",
+          "bio-s4-t1-10.2-lo-06"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s4-t1-10.3",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s4-t1-10.3-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s4-t1-10.3-lo-01",
+          "bio-s4-t1-10.3-lo-02",
+          "bio-s4-t1-10.3-lo-03",
+          "bio-s4-t1-10.3-lo-04",
+          "bio-s4-t1-10.3-lo-05",
+          "bio-s4-t1-10.3-lo-06",
+          "bio-s4-t1-10.3-lo-07",
+          "bio-s4-t1-10.3-lo-08",
+          "bio-s4-t1-10.3-lo-09",
+          "bio-s4-t1-10.3-lo-10",
+          "bio-s4-t1-10.3-lo-11",
+          "bio-s4-t1-10.3-lo-12",
+          "bio-s4-t1-10.3-lo-13"
+        ],
+        "suggested_activity_ids": [
+          "bio-s4-t1-10.3-act-01",
+          "bio-s4-t1-10.3-act-02",
+          "bio-s4-t1-10.3-act-03",
+          "bio-s4-t1-10.3-act-04",
+          "bio-s4-t1-10.3-act-05",
+          "bio-s4-t1-10.3-act-06",
+          "bio-s4-t1-10.3-act-07",
+          "bio-s4-t1-10.3-act-08",
+          "bio-s4-t1-10.3-act-09",
+          "bio-s4-t1-10.3-act-10"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t1-10.3-assess-01",
+          "bio-s4-t1-10.3-assess-02",
+          "bio-s4-t1-10.3-assess-03",
+          "bio-s4-t1-10.3-assess-04",
+          "bio-s4-t1-10.3-assess-05",
+          "bio-s4-t1-10.3-assess-06"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s4-t1-10.3-lo-01",
+          "bio-s4-t1-10.3-lo-02",
+          "bio-s4-t1-10.3-lo-03",
+          "bio-s4-t1-10.3-lo-04",
+          "bio-s4-t1-10.3-lo-05",
+          "bio-s4-t1-10.3-lo-06",
+          "bio-s4-t1-10.3-lo-07",
+          "bio-s4-t1-10.3-lo-08",
+          "bio-s4-t1-10.3-lo-09",
+          "bio-s4-t1-10.3-lo-10",
+          "bio-s4-t1-10.3-lo-11",
+          "bio-s4-t1-10.3-lo-12",
+          "bio-s4-t1-10.3-lo-13"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t1-10.3-assess-01",
+          "bio-s4-t1-10.3-assess-02",
+          "bio-s4-t1-10.3-assess-03",
+          "bio-s4-t1-10.3-assess-04",
+          "bio-s4-t1-10.3-assess-05",
+          "bio-s4-t1-10.3-assess-06"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s4-t1-10.3-lo-09",
+          "bio-s4-t1-10.3-lo-12",
+          "bio-s4-t1-10.3-assess-01",
+          "bio-s4-t1-10.3-assess-04",
+          "bio-s4-t1-10.3-assess-05"
+        ],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s4-t1-10.3",
+        "learning_outcome_ids": [
+          "bio-s4-t1-10.3-lo-01",
+          "bio-s4-t1-10.3-lo-02",
+          "bio-s4-t1-10.3-lo-03",
+          "bio-s4-t1-10.3-lo-04",
+          "bio-s4-t1-10.3-lo-05",
+          "bio-s4-t1-10.3-lo-06",
+          "bio-s4-t1-10.3-lo-07",
+          "bio-s4-t1-10.3-lo-08",
+          "bio-s4-t1-10.3-lo-09",
+          "bio-s4-t1-10.3-lo-10",
+          "bio-s4-t1-10.3-lo-11",
+          "bio-s4-t1-10.3-lo-12",
+          "bio-s4-t1-10.3-lo-13"
+        ],
+        "activity_ids": [
+          "bio-s4-t1-10.3-act-01",
+          "bio-s4-t1-10.3-act-02",
+          "bio-s4-t1-10.3-act-03",
+          "bio-s4-t1-10.3-act-04",
+          "bio-s4-t1-10.3-act-05",
+          "bio-s4-t1-10.3-act-06",
+          "bio-s4-t1-10.3-act-07",
+          "bio-s4-t1-10.3-act-08",
+          "bio-s4-t1-10.3-act-09",
+          "bio-s4-t1-10.3-act-10"
+        ],
+        "ict_support_ids": []
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s4",
+        "term_id": "bio-s4-t1",
+        "programme_planner_id": "bio-s4-t1-planner-sexual-reproduction-in-humans",
+        "learning_outcome_ids": [
+          "bio-s4-t1-10.3-lo-01",
+          "bio-s4-t1-10.3-lo-02",
+          "bio-s4-t1-10.3-lo-03",
+          "bio-s4-t1-10.3-lo-04",
+          "bio-s4-t1-10.3-lo-05",
+          "bio-s4-t1-10.3-lo-06",
+          "bio-s4-t1-10.3-lo-07",
+          "bio-s4-t1-10.3-lo-08",
+          "bio-s4-t1-10.3-lo-09",
+          "bio-s4-t1-10.3-lo-10",
+          "bio-s4-t1-10.3-lo-11",
+          "bio-s4-t1-10.3-lo-12",
+          "bio-s4-t1-10.3-lo-13"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s4-t2-11.1",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s4-t2-11.1-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s4-t2-11.1-lo-01",
+          "bio-s4-t2-11.1-lo-02",
+          "bio-s4-t2-11.1-lo-03",
+          "bio-s4-t2-11.1-lo-04"
+        ],
+        "suggested_activity_ids": [
+          "bio-s4-t2-11.1-act-01",
+          "bio-s4-t2-11.1-act-02",
+          "bio-s4-t2-11.1-act-03",
+          "bio-s4-t2-11.1-act-04"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t2-11.1-assess-01",
+          "bio-s4-t2-11.1-assess-02",
+          "bio-s4-t2-11.1-assess-03"
+        ],
+        "note_ids": [
+          "bio-s4-t2-11.1-note-01"
+        ],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s4-t2-11.1-lo-01",
+          "bio-s4-t2-11.1-lo-02",
+          "bio-s4-t2-11.1-lo-03",
+          "bio-s4-t2-11.1-lo-04"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t2-11.1-assess-01",
+          "bio-s4-t2-11.1-assess-02",
+          "bio-s4-t2-11.1-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s4-t2-11.1-note-01"
+        ],
+        "note_ids": [
+          "bio-s4-t2-11.1-note-01"
+        ]
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s4-t2-11.1",
+        "learning_outcome_ids": [
+          "bio-s4-t2-11.1-lo-01",
+          "bio-s4-t2-11.1-lo-02",
+          "bio-s4-t2-11.1-lo-03",
+          "bio-s4-t2-11.1-lo-04"
+        ],
+        "activity_ids": [
+          "bio-s4-t2-11.1-act-01",
+          "bio-s4-t2-11.1-act-02",
+          "bio-s4-t2-11.1-act-03",
+          "bio-s4-t2-11.1-act-04"
+        ],
+        "ict_support_ids": []
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s4",
+        "term_id": "bio-s4-t2",
+        "programme_planner_id": "bio-s4-t2-planner-inheritance",
+        "learning_outcome_ids": [
+          "bio-s4-t2-11.1-lo-01",
+          "bio-s4-t2-11.1-lo-02",
+          "bio-s4-t2-11.1-lo-03",
+          "bio-s4-t2-11.1-lo-04"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s4-t2-11.2",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s4-t2-11.2-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s4-t2-11.2-lo-01",
+          "bio-s4-t2-11.2-lo-02",
+          "bio-s4-t2-11.2-lo-03",
+          "bio-s4-t2-11.2-lo-04"
+        ],
+        "suggested_activity_ids": [
+          "bio-s4-t2-11.2-act-01",
+          "bio-s4-t2-11.2-act-02",
+          "bio-s4-t2-11.2-act-03"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t2-11.2-assess-01",
+          "bio-s4-t2-11.2-assess-02"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s4-t2-11.2-lo-01",
+          "bio-s4-t2-11.2-lo-02",
+          "bio-s4-t2-11.2-lo-03",
+          "bio-s4-t2-11.2-lo-04"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t2-11.2-assess-01",
+          "bio-s4-t2-11.2-assess-02"
+        ],
+        "restriction_bearing_entity_ids": [],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s4-t2-11.2",
+        "learning_outcome_ids": [
+          "bio-s4-t2-11.2-lo-01",
+          "bio-s4-t2-11.2-lo-02",
+          "bio-s4-t2-11.2-lo-03",
+          "bio-s4-t2-11.2-lo-04"
+        ],
+        "activity_ids": [
+          "bio-s4-t2-11.2-act-01",
+          "bio-s4-t2-11.2-act-02",
+          "bio-s4-t2-11.2-act-03"
+        ],
+        "ict_support_ids": []
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s4",
+        "term_id": "bio-s4-t2",
+        "programme_planner_id": "bio-s4-t2-planner-variation-and-selection",
+        "learning_outcome_ids": [
+          "bio-s4-t2-11.2-lo-01",
+          "bio-s4-t2-11.2-lo-02",
+          "bio-s4-t2-11.2-lo-03",
+          "bio-s4-t2-11.2-lo-04"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s4-t2-12.1",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s4-t2-12.1-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s4-t2-12.1-lo-01",
+          "bio-s4-t2-12.1-lo-02"
+        ],
+        "suggested_activity_ids": [
+          "bio-s4-t2-12.1-act-01",
+          "bio-s4-t2-12.1-act-02",
+          "bio-s4-t2-12.1-act-03",
+          "bio-s4-t2-12.1-act-04"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t2-12.1-assess-01",
+          "bio-s4-t2-12.1-assess-02",
+          "bio-s4-t2-12.1-assess-03"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s4-t2-12.1-lo-01",
+          "bio-s4-t2-12.1-lo-02"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t2-12.1-assess-01",
+          "bio-s4-t2-12.1-assess-02",
+          "bio-s4-t2-12.1-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s4-t2-12.1-act-01"
+        ],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s4-t2-12.1",
+        "learning_outcome_ids": [
+          "bio-s4-t2-12.1-lo-01",
+          "bio-s4-t2-12.1-lo-02"
+        ],
+        "activity_ids": [
+          "bio-s4-t2-12.1-act-01",
+          "bio-s4-t2-12.1-act-02",
+          "bio-s4-t2-12.1-act-03",
+          "bio-s4-t2-12.1-act-04"
+        ],
+        "ict_support_ids": []
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s4",
+        "term_id": "bio-s4-t2",
+        "programme_planner_id": "bio-s4-t2-planner-concept-of-ecology",
+        "learning_outcome_ids": [
+          "bio-s4-t2-12.1-lo-01",
+          "bio-s4-t2-12.1-lo-02"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s4-t2-12.2",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s4-t2-12.2-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s4-t2-12.2-lo-01",
+          "bio-s4-t2-12.2-lo-02"
+        ],
+        "suggested_activity_ids": [
+          "bio-s4-t2-12.2-act-01",
+          "bio-s4-t2-12.2-act-02",
+          "bio-s4-t2-12.2-act-03",
+          "bio-s4-t2-12.2-act-04"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t2-12.2-assess-01",
+          "bio-s4-t2-12.2-assess-02",
+          "bio-s4-t2-12.2-assess-03",
+          "bio-s4-t2-12.2-assess-04"
+        ],
+        "note_ids": [
+          "bio-s4-t2-12.2-note-01"
+        ],
+        "preamble_ids": [
+          "bio-s4-t2-12.2-ict-preamble"
+        ]
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s4-t2-12.2-lo-01",
+          "bio-s4-t2-12.2-lo-02"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t2-12.2-assess-01",
+          "bio-s4-t2-12.2-assess-02",
+          "bio-s4-t2-12.2-assess-03",
+          "bio-s4-t2-12.2-assess-04"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s4-t2-12.2-note-01"
+        ],
+        "note_ids": [
+          "bio-s4-t2-12.2-note-01"
+        ]
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s4-t2-12.2",
+        "learning_outcome_ids": [
+          "bio-s4-t2-12.2-lo-01",
+          "bio-s4-t2-12.2-lo-02"
+        ],
+        "activity_ids": [
+          "bio-s4-t2-12.2-act-01",
+          "bio-s4-t2-12.2-act-02",
+          "bio-s4-t2-12.2-act-03",
+          "bio-s4-t2-12.2-act-04"
+        ],
+        "ict_support_ids": [
+          "bio-s4-t2-12.2-ict-01",
+          "bio-s4-t2-12.2-ict-02"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s4",
+        "term_id": "bio-s4-t2",
+        "programme_planner_id": "bio-s4-t2-planner-food-chains-and-food-webs",
+        "learning_outcome_ids": [
+          "bio-s4-t2-12.2-lo-01",
+          "bio-s4-t2-12.2-lo-02"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s4-t3-12.3",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s4-t3-12.3-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s4-t3-12.3-lo-01",
+          "bio-s4-t3-12.3-lo-02",
+          "bio-s4-t3-12.3-lo-03",
+          "bio-s4-t3-12.3-lo-04",
+          "bio-s4-t3-12.3-lo-05"
+        ],
+        "suggested_activity_ids": [
+          "bio-s4-t3-12.3-act-01",
+          "bio-s4-t3-12.3-act-02",
+          "bio-s4-t3-12.3-act-03",
+          "bio-s4-t3-12.3-act-04",
+          "bio-s4-t3-12.3-act-05",
+          "bio-s4-t3-12.3-act-06"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t3-12.3-assess-01",
+          "bio-s4-t3-12.3-assess-02",
+          "bio-s4-t3-12.3-assess-03"
+        ],
+        "note_ids": [
+          "bio-s4-t3-12.3-note-01"
+        ],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s4-t3-12.3-lo-01",
+          "bio-s4-t3-12.3-lo-02",
+          "bio-s4-t3-12.3-lo-03",
+          "bio-s4-t3-12.3-lo-04",
+          "bio-s4-t3-12.3-lo-05"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t3-12.3-assess-01",
+          "bio-s4-t3-12.3-assess-02",
+          "bio-s4-t3-12.3-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s4-t3-12.3-act-02",
+          "bio-s4-t3-12.3-note-01"
+        ],
+        "note_ids": [
+          "bio-s4-t3-12.3-note-01"
+        ]
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s4-t3-12.3",
+        "learning_outcome_ids": [
+          "bio-s4-t3-12.3-lo-01",
+          "bio-s4-t3-12.3-lo-02",
+          "bio-s4-t3-12.3-lo-03",
+          "bio-s4-t3-12.3-lo-04",
+          "bio-s4-t3-12.3-lo-05"
+        ],
+        "activity_ids": [
+          "bio-s4-t3-12.3-act-01",
+          "bio-s4-t3-12.3-act-02",
+          "bio-s4-t3-12.3-act-03",
+          "bio-s4-t3-12.3-act-04",
+          "bio-s4-t3-12.3-act-05",
+          "bio-s4-t3-12.3-act-06"
+        ],
+        "ict_support_ids": []
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s4",
+        "term_id": "bio-s4-t3",
+        "programme_planner_id": "bio-s4-t3-planner-associations-in-biological-communities",
+        "learning_outcome_ids": [
+          "bio-s4-t3-12.3-lo-01",
+          "bio-s4-t3-12.3-lo-02",
+          "bio-s4-t3-12.3-lo-03",
+          "bio-s4-t3-12.3-lo-04",
+          "bio-s4-t3-12.3-lo-05"
+        ]
+      }
+    },
+    {
+      "topic_id": "bio-s4-t3-12.4",
+      "human_review_ids": [],
+      "lesson_generation_context": {
+        "competency_ids": [
+          "bio-s4-t3-12.4-competency"
+        ],
+        "learning_outcome_ids": [
+          "bio-s4-t3-12.4-lo-01",
+          "bio-s4-t3-12.4-lo-02",
+          "bio-s4-t3-12.4-lo-03",
+          "bio-s4-t3-12.4-lo-04"
+        ],
+        "suggested_activity_ids": [
+          "bio-s4-t3-12.4-act-01",
+          "bio-s4-t3-12.4-act-02",
+          "bio-s4-t3-12.4-act-03",
+          "bio-s4-t3-12.4-act-04",
+          "bio-s4-t3-12.4-act-05",
+          "bio-s4-t3-12.4-act-06"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t3-12.4-assess-01",
+          "bio-s4-t3-12.4-assess-02",
+          "bio-s4-t3-12.4-assess-03"
+        ],
+        "note_ids": [],
+        "preamble_ids": []
+      },
+      "assessment_generation_context": {
+        "learning_outcome_ids": [
+          "bio-s4-t3-12.4-lo-01",
+          "bio-s4-t3-12.4-lo-02",
+          "bio-s4-t3-12.4-lo-03",
+          "bio-s4-t3-12.4-lo-04"
+        ],
+        "assessment_strategy_ids": [
+          "bio-s4-t3-12.4-assess-01",
+          "bio-s4-t3-12.4-assess-02",
+          "bio-s4-t3-12.4-assess-03"
+        ],
+        "restriction_bearing_entity_ids": [
+          "bio-s4-t3-12.4-act-06"
+        ],
+        "note_ids": []
+      },
+      "resource_discovery_context": {
+        "topic_id": "bio-s4-t3-12.4",
+        "learning_outcome_ids": [
+          "bio-s4-t3-12.4-lo-01",
+          "bio-s4-t3-12.4-lo-02",
+          "bio-s4-t3-12.4-lo-03",
+          "bio-s4-t3-12.4-lo-04"
+        ],
+        "activity_ids": [
+          "bio-s4-t3-12.4-act-01",
+          "bio-s4-t3-12.4-act-02",
+          "bio-s4-t3-12.4-act-03",
+          "bio-s4-t3-12.4-act-04",
+          "bio-s4-t3-12.4-act-05",
+          "bio-s4-t3-12.4-act-06"
+        ],
+        "ict_support_ids": [
+          "bio-s4-t3-12.4-ict-01"
+        ]
+      },
+      "progress_tracking_context": {
+        "level_id": "bio-s4",
+        "term_id": "bio-s4-t3",
+        "programme_planner_id": "bio-s4-t3-planner-humans-and-the-natural-environment",
+        "learning_outcome_ids": [
+          "bio-s4-t3-12.4-lo-01",
+          "bio-s4-t3-12.4-lo-02",
+          "bio-s4-t3-12.4-lo-03",
+          "bio-s4-t3-12.4-lo-04"
+        ]
+      }
+    }
+  ]
+}

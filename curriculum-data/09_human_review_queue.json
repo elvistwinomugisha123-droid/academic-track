@@ -1,0 +1,755 @@
+{
+  "schema_version": "1.0.0",
+  "status": "open",
+  "items": [
+    {
+      "id": "review-001",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 21,
+        "page_printed": 19,
+        "pages_pdf": [
+          21
+        ],
+        "pages_printed": [
+          19
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "bio-s1-t2-1.3.3",
+      "uncertain_text": "Theme heading absent",
+      "reason_for_uncertainty": "Viruses has no theme heading on its detailed page. Planner term context is retained separately; no authoritative detail theme is invented.",
+      "proposed_extraction": null,
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-002",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 31,
+        "page_printed": 29,
+        "pages_pdf": [
+          31
+        ],
+        "pages_printed": [
+          29
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "bio-s2-t3-4.2",
+      "uncertain_text": "4. .2",
+      "reason_for_uncertainty": "Topic number contains a doubled separator in the source; canonical source code preserved, ID uses normalized 4.2.",
+      "proposed_extraction": "4.2",
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-003",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 20,
+        "page_printed": 18,
+        "pages_pdf": [
+          20
+        ],
+        "pages_printed": [
+          18
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "bio-s1-t2-1.3.2-lo-07",
+      "uncertain_text": "know examples of organisms belonging to the following phyla: Platyhelminthes, Nematoda, Annelida and Mollusca (No characteristics required)",
+      "reason_for_uncertainty": "Learning-outcome classification is missing or syntactically incomplete in the source. Do not fill from model knowledge.",
+      "proposed_extraction": null,
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-004",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 30,
+        "page_printed": 28,
+        "pages_pdf": [
+          30
+        ],
+        "pages_printed": [
+          28
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "bio-s2-t3-4.1-lo-02",
+      "uncertain_text": "investigate the different ways in which materials move into, though, and out of cells (s",
+      "reason_for_uncertainty": "Learning-outcome classification is missing or syntactically incomplete in the source. Do not fill from model knowledge.",
+      "proposed_extraction": null,
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-005",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 43,
+        "page_printed": 41,
+        "pages_pdf": [
+          43
+        ],
+        "pages_printed": [
+          41
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "bio-s4-t1-10.2-lo-05",
+      "uncertain_text": "understand the importance of dispersal",
+      "reason_for_uncertainty": "Learning-outcome classification is missing or syntactically incomplete in the source. Do not fill from model knowledge.",
+      "proposed_extraction": null,
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-006",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 14,
+        "page_printed": 12,
+        "pages_pdf": [
+          14,
+          20,
+          21
+        ],
+        "pages_printed": [
+          12,
+          18,
+          19
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "bio-s1-t2-planner-classification",
+      "uncertain_text": "Classification: 36; The Five Kingdoms of Living Organisms: 30; Viruses: 6",
+      "reason_for_uncertainty": "Planner umbrella title differs from detailed topics. The 30+6 mapping is a derived reconciliation, not an explicit source cross-reference.",
+      "proposed_extraction": [
+        "bio-s1-t2-1.3.2",
+        "bio-s1-t2-1.3.3"
+      ],
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-007",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 26,
+        "page_printed": 24,
+        "pages_pdf": [
+          26
+        ],
+        "pages_printed": [
+          24
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "bio-s2-t2-3.1-lo-08",
+      "uncertain_text": "(N, P, K, Mg, Ca, S, Mg)",
+      "reason_for_uncertainty": "Mg occurs twice; preserve the duplicate as printed and obtain authoritative clarification.",
+      "proposed_extraction": null,
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-008",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 26,
+        "page_printed": 24,
+        "pages_pdf": [
+          26
+        ],
+        "pages_printed": [
+          24
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "bio-s2-t2-3.1-note-01",
+      "uncertain_text": "Minerals are limited to Ca P Fe and I; vitamins are limited to B, C, D and K.",
+      "reason_for_uncertainty": "Scope of this mineral restriction is not qualified in the note; plant-nutrient outcome separately lists N, P, K, Mg, Ca, S, Mg. Retain both without resolving scope.",
+      "proposed_extraction": null,
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-009",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 27,
+        "page_printed": 25,
+        "pages_pdf": [
+          27,
+          28,
+          33,
+          36
+        ],
+        "pages_printed": [
+          25,
+          26,
+          31,
+          34
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "biology-classification-gs",
+      "uncertain_text": "gs",
+      "reason_for_uncertainty": "gs appears in outcomes but is not explicitly defined in the supplied classification legend. No expansion supplied.",
+      "proposed_extraction": null,
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-010",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 30,
+        "page_printed": 28,
+        "pages_pdf": [
+          30
+        ],
+        "pages_printed": [
+          28
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "bio-s2-t3-4.1-lo-02",
+      "uncertain_text": "raw unshelled eggs; adopted; though",
+      "reason_for_uncertainty": "Source uses \"raw unshelled eggs\" in activity, \"adopted\" in outcome c and \"though\" in outcome b. Preserve wording; verify intended terminology.",
+      "proposed_extraction": null,
+      "category": "source_wording",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-011",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 31,
+        "page_printed": 29,
+        "pages_pdf": [
+          31
+        ],
+        "pages_printed": [
+          29
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "bio-s2-t3-4.2",
+      "uncertain_text": "Learning outcomes h–k; suggested activities end at blood transfusion",
+      "reason_for_uncertainty": "No further activity text follows the transfusion activity before Senior 3 starts. Do not invent immune/lymphatic-system activities.",
+      "proposed_extraction": null,
+      "category": "source_completeness",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-012",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 20,
+        "page_printed": 18,
+        "pages_pdf": [
+          20
+        ],
+        "pages_printed": [
+          18
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "bio-s1-t2-1.3.2",
+      "uncertain_text": "No drawings required; findings (tables, drawings or more creative methods)",
+      "reason_for_uncertainty": "Outcomes restrict drawings for some groups while suggested activities offer drawings. Keep restrictions and activities intact; do not infer precedence.",
+      "proposed_extraction": null,
+      "category": "source_tension",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-013",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 22,
+        "page_printed": 20,
+        "pages_pdf": [
+          22
+        ],
+        "pages_printed": [
+          20
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "bio-s1-t3-1.4",
+      "uncertain_text": "No details of mouth parts required; head (mouth parts, antennae, eyes, hair)",
+      "reason_for_uncertainty": "Outcome limits mouth-part detail while the activity lists mouth parts among observed features. Do not infer extra content requirements.",
+      "proposed_extraction": null,
+      "category": "source_tension",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-014",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 25,
+        "page_printed": 23,
+        "pages_pdf": [
+          25
+        ],
+        "pages_printed": [
+          23
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "bio-s2-t1-2.2-act-01",
+      "uncertain_text": "conclusions from Topic 2",
+      "reason_for_uncertainty": "Unqualified topic reference cannot be resolved to a unique canonical topic without interpretation. No prerequisite edge created.",
+      "proposed_extraction": null,
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-015",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 12,
+        "page_printed": 10,
+        "pages_pdf": [
+          12,
+          19
+        ],
+        "pages_printed": [
+          10,
+          17
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "framework-cross-cutting-life-skills",
+      "uncertain_text": "Six named issues on page 10; five cross-cutting issues in overall model text on page 17",
+      "reason_for_uncertainty": "Framework list names six cross-cutting issues; overall-model narrative and diagram present five. Preserve both counts.",
+      "proposed_extraction": null,
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-016",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 13,
+        "page_printed": 11,
+        "pages_pdf": [
+          13,
+          14,
+          23
+        ],
+        "pages_printed": [
+          11,
+          12,
+          21
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "framework-subject-options",
+      "uncertain_text": "20 subjects; 21 entries in graduate-profile menu including General Science",
+      "reason_for_uncertainty": "Framework describes a 20-subject menu; graduate-profile panel enumerates 21 including General Science. Keep alternative status explicit; do not silently revise counts.",
+      "proposed_extraction": null,
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-017",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 14,
+        "page_printed": 12,
+        "pages_pdf": [
+          14
+        ],
+        "pages_printed": [
+          12
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "framework-subject-options",
+      "uncertain_text": "7 Compulsory plus 2 Electives",
+      "reason_for_uncertainty": "Menu prose allows minimum 8 and maximum 9 subjects, while table heading says 7 compulsory plus 2 electives. Table layout includes merged General Science cells; retain source section and consult original for option combinations.",
+      "proposed_extraction": null,
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-018",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 20,
+        "page_printed": 18,
+        "pages_pdf": [
+          20
+        ],
+        "pages_printed": [
+          18
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "framework-active-learning-strategies",
+      "uncertain_text": "IDEAS Concept mapping Brainstorming Inqui ry and curiosi ty Predict, observe, explain Open ended experiments RESEARCH Small group research Library assignments Analysis of hand d ata Collection of m aterial SKILLS & PROCESSES Investigative processes Practices Mastery learning Skills development Values clariﬁcation Process writing METHODS Debates Story-telling Small group discussion Class discussions Creative writing Quality questioning Projects PEOPLE Peer teaching Cooperative learning Interviews Visits and visitors PROBLEM SOLVING Brief design Model building Whole group extended Decision making process Testing solutions PRESENTATIONS Role play Drama and dan ce Talks and reports Demonstration Posters Story shells Simulation PERSONAL EXPERIENCE Learner s’ personal experiences Investigations Hands -on a ctivities Interactive learning Excursions, ﬁeld LEARNING MAY BE ACHIEVED THROUGH:",
+      "reason_for_uncertainty": "Diagram labels contain truncated or irregular text (e.g. \"Analysis of hand d ata\", \"Whole group extended\", \"Excursions, ﬁeld\"). Native text preserved; manual image verification required before interpreting these labels.",
+      "proposed_extraction": null,
+      "category": "extraction_uncertainty",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-019",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 19,
+        "page_printed": 17,
+        "pages_pdf": [
+          19
+        ],
+        "pages_printed": [
+          17
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "framework-overall-model",
+      "uncertain_text": "Diagram around VALUES",
+      "reason_for_uncertainty": "Diagram relationship labels are not fully represented in the native text layer. Narrative is retained; diagram-only labels/edges are not asserted.",
+      "proposed_extraction": null,
+      "category": "extraction_uncertainty",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-020",
+      "source": {
+        "document_id": "ncdc-framework-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Lower Secondary Curriculum: Curriculum Framework",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 23,
+        "page_printed": 21,
+        "pages_pdf": [
+          23
+        ],
+        "pages_printed": [
+          21
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "framework-graduate-profile-context",
+      "uncertain_text": "Gender quality; Life on land Peace and Justice; 16. Partnership for the goals",
+      "reason_for_uncertainty": "Source graduate-profile panel enumerates 16 SDG lines with apparent merged/incorrect labels. Retain printed wording; no replacement from external SDG knowledge.",
+      "proposed_extraction": null,
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-021",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 52,
+        "page_printed": 50,
+        "pages_pdf": [
+          52,
+          55
+        ],
+        "pages_printed": [
+          50,
+          53
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "biology-assessment_principle-21-01",
+      "uncertain_text": "There will be examinations or tests set at the end of every year; there will be no need for an end of year test",
+      "reason_for_uncertainty": "Biology guidance has differing statements about annual testing and topic-level records. Both source passages retained; no runtime testing rule resolves them.",
+      "proposed_extraction": null,
+      "category": "source_tension",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-022",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 56,
+        "page_printed": 54,
+        "pages_pdf": [
+          56
+        ],
+        "pages_printed": [
+          54
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "biology-glossary-0-01",
+      "uncertain_text": "Sample Assessment Activity; Suggested Learning Activity; An activity; ... pat of ...",
+      "reason_for_uncertainty": "Final glossary rows overlap or appear incomplete. Raw source blocks preserved without guessing definitions.",
+      "proposed_extraction": null,
+      "category": "extraction_uncertainty",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-023",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 27,
+        "page_printed": 25,
+        "pages_pdf": [
+          27
+        ],
+        "pages_printed": [
+          25
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "bio-s2-t2-3.2-lo-03",
+      "uncertain_text": "(s, gs)",
+      "reason_for_uncertainty": "gs not explicitly defined by supplied legend; preserve raw notation and leave normalized expansion unresolved.",
+      "proposed_extraction": null,
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-024",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 28,
+        "page_printed": 26,
+        "pages_pdf": [
+          28
+        ],
+        "pages_printed": [
+          26
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "bio-s2-t2-3.3-lo-02",
+      "uncertain_text": "(s, gs)",
+      "reason_for_uncertainty": "gs not explicitly defined by supplied legend; preserve raw notation and leave normalized expansion unresolved.",
+      "proposed_extraction": null,
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-025",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 33,
+        "page_printed": 31,
+        "pages_pdf": [
+          33
+        ],
+        "pages_printed": [
+          31
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "bio-s3-t1-5.2-lo-03",
+      "uncertain_text": "(s, gs)",
+      "reason_for_uncertainty": "gs not explicitly defined by supplied legend; preserve raw notation and leave normalized expansion unresolved.",
+      "proposed_extraction": null,
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    },
+    {
+      "id": "review-026",
+      "source": {
+        "document_id": "ncdc-biology-2019",
+        "authority": "National Curriculum Development Centre (NCDC)",
+        "document_title": "Biology Syllabus",
+        "publication_year": 2019,
+        "document_version": null,
+        "page_pdf": 36,
+        "page_printed": 34,
+        "pages_pdf": [
+          36
+        ],
+        "pages_printed": [
+          34
+        ],
+        "section_heading": "Human review",
+        "source_type": "official_curriculum",
+        "rights_notice_present": true
+      },
+      "affected_entity": "bio-s3-t2-7.2-lo-07",
+      "uncertain_text": "(u, v, gs)",
+      "reason_for_uncertainty": "gs not explicitly defined by supplied legend; preserve raw notation and leave normalized expansion unresolved.",
+      "proposed_extraction": null,
+      "category": "source_ambiguity",
+      "severity": "medium",
+      "status": "open"
+    }
+  ]
+}
