@@ -106,7 +106,7 @@ Source:
 Install:
 
 ```bash
-npx skills@latest add vercel-labs/agent-skills --skill react-best-practices
+npx skills@latest add vercel-labs/agent-skills --skill vercel-react-best-practices
 ```
 
 Use after meaningful React/Next.js work to review:
