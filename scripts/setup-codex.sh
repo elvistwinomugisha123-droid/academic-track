@@ -28,7 +28,7 @@ npx skills@latest add https://github.com/Leonxlnx/taste-skill --skill gpt-taste
 
 echo
 echo "4/6 Installing React best-practices skill..."
-npx skills@latest add vercel-labs/agent-skills --skill react-best-practices
+npx skills@latest add vercel-labs/agent-skills --skill vercel-react-best-practices
 
 echo
 echo "5/6 Installing web-design-guidelines skill..."
