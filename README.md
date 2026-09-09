@@ -1,74 +1,166 @@
 # Academic Track Engine
 
-Academic Track Engine (ATE) is a teacher-first academic operations system for secondary schools.
+Academic Track Engine (ATE) is a **teacher-first curriculum implementation and academic operations platform for secondary schools**, built by Bankai Technologies.
 
-This repository contains the initial product implementation, product specifications, design system guidance, curriculum authority data, and AI-assisted academic workflows for ATE.
+ATE connects:
+- curriculum and assessment authority;
+- school operational context;
+- teacher-confirmed classroom reality;
+- academic planning, assessment, resources and authorised action.
 
-## Start Here
+The repository is currently migrating the existing working prototype to the ATE v4 production architecture.
 
-Before implementing or modifying the product, read:
+## Start here
 
-1. `AGENTS.md` — repository operating rules for Codex and other coding agents.
-2. `PRODUCT.md` — authoritative product definition and scope.
-3. `DESIGN.md` — authoritative visual and interaction direction.
-4. `docs/DOMAIN_MODEL.md` — domain entities, states, and invariants.
-5. `docs/ARCHITECTURE.md` — current technical architecture and boundaries.
-6. `docs/PRODUCT_FLOWS.md` — user journeys and state transitions.
-7. `docs/CURRICULUM_DATA.md` — curriculum authority and provenance model.
-8. `docs/AI_SYSTEM.md` — AI responsibilities, constraints, and structured-output contracts.
-9. `docs/DECISIONS.md` — accepted product and engineering decisions.
-10. `docs/ACCEPTANCE_CRITERIA.md` — quality gates for the initial release.
-11. `docs/IMPLEMENTATION_PLAN.md` — recommended implementation sequence.
+Before implementing or modifying the product, read in this order:
 
-Visual references live in `reference-ui/`. They are advisory art direction only. Read `reference-ui/README.md` before using them.
+1. `PRD.md` — product specification of record.
+2. `TRD.md` — technical specification of record.
+3. `AGENTS.md` — Codex/agent operating contract.
+4. `DESIGN.md` — UI/UX specification of record.
+5. `CODEX_SETUP.md` — Codex skills, working method and first prompts.
+6. `docs/V4_MIGRATION_PLAN.md` — phased migration plan.
+7. `docs/DECISIONS.md` — historical accepted decisions that do not conflict with v4.
+8. other `docs/` files as historical/domain context.
 
-Structured curriculum files live in `curriculum-data/` when supplied. Those files are authoritative inputs for curriculum context; screenshots and generated UI copy are not.
+`PRODUCT.md`, older architecture/implementation documents and Biology-first prototype data predate v4. They may help explain the current codebase but they do **not** override `PRD.md` or `TRD.md`.
 
-## Initial Product Scope
+## Product scope
 
-The initial supported configuration focuses on:
+ATE is not Biology-only.
 
-- one school workspace;
-- Biology;
-- Senior 1 and Senior 2;
-- multiple parallel streams;
-- Teacher, Head of Department, Director of Studies, and Principal roles;
-- curriculum-grounded lesson preparation;
-- teacher-confirmed lesson outcomes;
-- multi-stream continuity;
-- curriculum-aware assessment generation;
-- academic exception and recovery workflows;
-- supporting resource discovery;
-- school-level academic visibility.
+The architecture is subject-agnostic and level-aware. Curriculum intelligence is activated only where the relevant curriculum/assessment source has been structured, verified and is legally/operationally eligible for use.
 
-The implementation must treat these values as configuration and domain data, not as hard-coded UI assumptions.
+The product supports the following core areas:
 
-## Core Product Principle
+- school workspace and secure role-based onboarding;
+- timetable and school-programme ingestion/verification;
+- Teaching Sections and current classroom position;
+- Scheme of Work;
+- Quick Lesson Readiness;
+- professional Formal Lesson Plans;
+- contextual Ask ATE;
+- lesson continuity and unfinished work;
+- curriculum-aware resource discovery;
+- Lower Secondary and Advanced Secondary assessment profiles;
+- Create Assessment;
+- Improve Existing Paper;
+- marking guides/rubrics/score sheets;
+- PDF/DOCX academic artifacts;
+- HOD department coordination;
+- DOS academic operations;
+- Head Teacher / Principal academic assurance;
+- reports generated from existing academic state;
+- narrow offline/PWA support for critical teacher workflows.
 
-ATE separates four categories of information:
+Current non-goals include learner accounts, learner marks database, AI grading, learner profiling, teacher rankings and generic school ERP functionality.
 
-1. **Curriculum authority** — what the official curriculum source states.
-2. **School operational truth** — timetable, assignments, school structure, resources, and approved academic configuration.
+## Core authority model
+
+ATE keeps four categories separate:
+
+1. **Curriculum authority** — what authorised curriculum/assessment sources state.
+2. **School operational truth** — timetable, assignments, school structure, programme and approved configuration.
 3. **Classroom reality** — teacher-confirmed facts about what actually happened.
-4. **AI recommendations** — generated drafts, adaptations, explanations, and resource recommendations.
+4. **AI reasoning** — drafts, explanations, adaptations and recommendations.
 
-These categories must never be conflated.
+AI is not the system of record.
 
-## Engineering Direction
+## Technology direction
 
-The current implementation favors a deliberately simple architecture:
+The v4 target stack is defined in `TRD.md`. Core choices include:
 
-- Next.js
-- TypeScript
-- Tailwind CSS
-- Radix UI / customized shadcn primitives
-- Zustand
-- Zod
-- React Hook Form
-- TanStack Table where appropriate
-- Motion for restrained interaction transitions
-- browser-side persistence for the initial release
-- server-side API routes for AI and external resource calls
-- structured curriculum data as deterministic input
+- TypeScript strict mode;
+- Next.js + React;
+- pnpm + Turborepo;
+- Tailwind CSS;
+- Radix UI + customised shadcn/ui;
+- Zustand for UI/draft state;
+- Zod;
+- PostgreSQL;
+- Supabase Auth/Storage/RLS;
+- Drizzle ORM;
+- pgvector only where semantic retrieval adds value;
+- ATE AI Gateway/provider abstraction;
+- Trigger.dev;
+- PWA/IndexedDB;
+- PDF + DOCX generation;
+- Vitest + Playwright;
+- Sentry;
+- Vercel + GitHub Actions.
 
-Do not introduce infrastructure for hypothetical future scale before a current requirement justifies it.
+ATE remains a modular monolith at this stage.
+
+## Codex setup
+
+Run:
+
+```bash
+bash scripts/setup-codex.sh
+```
+
+This installs or refreshes the recommended local Codex skills:
+
+- Impeccable;
+- Emil Kowalski `emil-design-eng`;
+- `gpt-taste`;
+- Vercel `react-best-practices`;
+- Vercel `web-design-guidelines`;
+- ATE-owned test-engineering skill;
+- ATE-owned UI-verification skill.
+
+See `CODEX_SETUP.md` for exact usage and the first baseline-audit prompt.
+
+## Curriculum/source documents
+
+**Do not commit protected source PDFs or the extracted protected production corpus to Git.**
+
+Use the local gitignored workspace:
+
+```text
+knowledge-sources/
+├── raw/
+├── derived/
+├── review/
+└── README.md
+```
+
+Place source PDFs in `knowledge-sources/raw/` locally. Codex/knowledge tooling can then inventory, manifest, extract and validate them into the local derived/review areas.
+
+The intended production path is:
+
+```text
+authorised original PDF
+  → private source storage
+  → source registry + rights/version metadata
+  → structured JSON/JSONL extraction
+  → validation/human review
+  → PostgreSQL knowledge layer
+  → rights-aware retrieval
+```
+
+The repository contains the **code and schemas for this pipeline**, not the protected production corpus.
+
+See `knowledge-sources/README.md` and `TRD.md`.
+
+## Migration
+
+Do not perform an uncontrolled rewrite of the current application.
+
+The upgrade sequence is defined in `docs/V4_MIGRATION_PLAN.md`. The first Codex task should be a baseline audit of the current working product before structural migration begins.
+
+## Quality bar
+
+A feature is not complete because it compiles.
+
+Relevant work must include:
+- strict type checking;
+- lint;
+- deterministic tests;
+- access/RLS tests where relevant;
+- Playwright for critical flows;
+- visual/responsive inspection for UI;
+- AI evaluation where AI behavior changes;
+- production build.
+
+The product should look and behave like credible institutional academic software, not an AI demo.

@@ -1,313 +1,386 @@
-# Codex Setup — Academic Track Engine
+# Codex Setup — Academic Track Engine v4
 
-This document defines the recommended Codex environment for building ATE.
+**Status:** Repository setup guide  
+**Purpose:** Make Codex work from one consistent product/technical truth and use the right design, engineering and testing skills.
 
-## 1. Design Skills
+## 1. Repository authority
 
-Install the following project-local skills.
+Codex must use this order:
 
-### Impeccable
+1. `PRD.md` — what the product must do.
+2. `TRD.md` — how the production system is engineered.
+3. `AGENTS.md` — operating rules for coding agents.
+4. `DESIGN.md` — UI/UX specification.
+5. `docs/V4_MIGRATION_PLAN.md` — upgrade sequence.
+6. `docs/DECISIONS.md` and other historical docs only where they do not conflict with v4.
 
-Repository:
-`https://github.com/pbakaus/impeccable`
+`PRODUCT.md`, the old architecture docs and Biology-first prototype fixtures are historical references, not v4 authority.
 
-Recommended installation:
+## 2. Codex philosophy for this repository
+
+ATE is an existing working prototype being upgraded in place.
+
+Codex must:
+- inspect before rewriting;
+- preserve working behavior that still satisfies v4;
+- add tests around valuable behavior before structural migration;
+- implement deterministic domain rules before AI;
+- treat UI quality as product correctness;
+- keep commits narrow and reviewable;
+- leave the app runnable at phase boundaries.
+
+Do not ask Codex to “build the whole product” in one prompt.
+
+## 3. Required design and engineering skills
+
+Skills are execution aids. They do not outrank repository truth.
+
+### 3.1 Impeccable
+
+Source:
+`pbakaus/impeccable`
+
+Verified installation:
 
 ```bash
-npx impeccable install
+npx impeccable install --providers=codex --scope=project
 ```
 
-Choose Codex and project-local scope when prompted.
+After installation, Codex may require approval of the project hook through `/hooks`.
 
-For Codex, approve the installed project hook via `/hooks` if prompted.
+Use Impeccable for:
+- `/impeccable shape`;
+- `/impeccable critique`;
+- `/impeccable audit`;
+- `/impeccable harden`;
+- `/impeccable adapt`;
+- `/impeccable polish`.
 
-After installation, initialize product context only after `PRODUCT.md` and `DESIGN.md` are present and reviewed. Do not allow generated initialization output to overwrite authoritative project files without review.
+**Important:** do not run `/impeccable init` if it would overwrite authoritative `PRD.md`, `PRODUCT.md` or `DESIGN.md`. ATE already has product/design truth.
 
-Impeccable is used primarily for:
-- design critique;
-- audit;
-- polish;
-- distillation;
-- anti-pattern detection;
-- consistency review.
+### 3.2 Emil Kowalski — Design Engineering
 
-### Emil Kowalski — Design Engineering
-
-Repository:
-`https://github.com/emilkowalski/skills`
+Source:
+`emilkowalski/skills`
 
 Install:
 
 ```bash
-npx skills@latest add emilkowalski/skills
+npx skills@latest add emilkowalski/skills --skill emil-design-eng
 ```
 
-Ensure `emil-design-eng` is available.
-
-Use primarily for:
+Primary use:
 - interaction craft;
-- motion decisions;
+- motion judgement;
+- easing/duration;
 - component behavior;
 - subtle interface quality;
-- animation/easing judgment.
+- avoiding unnecessary animation.
 
-### Taste — GPT/Codex Variant
+Optional companion skills from the same repository may be installed later when a task specifically needs them, such as `review-animations` or `pick-ui-library`.
 
-Repository:
-`https://github.com/Leonxlnx/taste-skill`
+### 3.3 Taste — Codex/GPT variant
 
-Install the stricter GPT/Codex variant:
+Source:
+`Leonxlnx/taste-skill`
+
+Install the Codex-focused variant:
 
 ```bash
-npx skills add https://github.com/Leonxlnx/taste-skill --skill gpt-taste
+npx skills@latest add https://github.com/Leonxlnx/taste-skill --skill gpt-taste
 ```
 
-Use primarily for:
-- anti-slop frontend decisions;
-- visual composition;
-- layout variance;
+Use for:
+- anti-slop layout decisions;
+- stronger visual composition;
+- typography/spacing discipline;
 - avoiding generic AI dashboard aesthetics.
 
-## 2. Skill Precedence
+Do not let Taste force high-variance/flashy design where `DESIGN.md` requires restraint.
 
-Skills are execution aids.
+### 3.4 Vercel React best practices
 
-They do not outrank repository product truth.
+Source:
+`vercel-labs/agent-skills`
 
-Precedence:
+Install:
 
-1. `docs/DECISIONS.md`
-2. `PRODUCT.md`
-3. `docs/DOMAIN_MODEL.md`
-4. `docs/ARCHITECTURE.md`
-5. `curriculum-data/` for curriculum facts
-6. `DESIGN.md`
-7. `docs/PRODUCT_FLOWS.md`
-8. design skills
-9. visual reference images
-
-## 3. Repository-Local Installation
-
-Prefer project-local skills so the repository is reproducible.
-
-Expected structure after installation may include:
-
-```text
-.agents/
-  skills/
-    impeccable/
-    emil-design-eng/
-    gpt-taste/
-
-.codex/
-  hooks.json
+```bash
+npx skills@latest add vercel-labs/agent-skills --skill react-best-practices
 ```
 
-Exact generated structure can vary by installer version. Do not manually duplicate skills if installers already created them.
+Use after meaningful React/Next.js work to review:
+- waterfalls;
+- bundle cost;
+- server/client boundaries;
+- rerenders;
+- rendering performance;
+- component structure.
 
-## 4. Recommended Codex Working Method
+### 3.5 Vercel Web Design Guidelines
 
-### Phase A — Establish repository understanding
+Install:
 
-Prompt Codex to:
-
-1. read `AGENTS.md`;
-2. read `PRODUCT.md`;
-3. read `DESIGN.md`;
-4. read all current docs in `docs/`;
-5. inspect `reference-ui/README.md`;
-6. inspect the structured curriculum directory;
-7. summarize constraints before coding.
-
-Do not ask Codex to build the whole product in the first prompt.
-
-### Phase B — Build design system foundation
-
-Before product screens:
-
-1. create design tokens;
-2. create base application shell;
-3. create ATE domain components;
-4. create a `/design-system` route;
-5. render typography, controls, statuses, provenance, lesson components, exception components, and responsive shells;
-6. run design critique;
-7. refine.
-
-Suggested skills:
-- `gpt-taste`
-- `emil-design-eng`
-- Impeccable critique/audit
-
-### Phase C — Build domain/state foundation
-
-Before AI:
-
-1. implement typed domain models;
-2. load configuration data;
-3. load curriculum data;
-4. implement deterministic state transitions;
-5. implement derived role views;
-6. test propagation.
-
-### Phase D — Build teacher core loop
-
-Recommended order:
-
-1. Teacher Home
-2. Lesson Readiness
-3. Record Lesson Outcome
-4. next-lesson continuity update
-5. multi-stream adaptation
-6. Ask ATE panel
-
-### Phase E — Assessment
-
-1. assessment mode selector;
-2. scope engine;
-3. deterministic eligibility;
-4. structured AI generation;
-5. teacher editing;
-6. PDF export;
-7. marking guide;
-8. Common Stream Test.
-
-### Phase F — Institutional views
-
-1. HOD department state;
-2. DOS academic exceptions;
-3. recovery decision;
-4. Principal academic health.
-
-### Phase G — Setup and resource workflows
-
-1. timetable upload / verification;
-2. teacher assignment confirmation;
-3. resource recommendation surfaces;
-4. optional external provider integration.
-
-### Phase H — Final product polish
-
-Use Impeccable:
-- audit
-- critique
-- distill
-- polish
-
-Then perform manual visual inspection.
-
-## 5. First Codex Prompt
-
-Use a prompt similar to:
-
-```text
-Read AGENTS.md and all authoritative repository documents it references.
-
-Do not implement features yet.
-
-Your first task is to establish the frontend foundation for Academic Track Engine.
-
-1. Inspect PRODUCT.md, DESIGN.md, docs/DOMAIN_MODEL.md, docs/ARCHITECTURE.md,
-   docs/PRODUCT_FLOWS.md, and reference-ui/README.md.
-2. Inspect the visual references only as art direction.
-3. Use the installed gpt-taste and emil-design-eng skills for design judgment.
-4. Create the application's design token system, typography, responsive shells,
-   and reusable ATE domain components.
-5. Create a /design-system route that demonstrates the visual language across
-   teacher-mobile and leadership-desktop contexts.
-6. Do not hard-code school, teacher, subject, level, stream, timetable, or
-   curriculum values into presentational components.
-7. Do not build page-specific visual styles that bypass the design system.
-8. Do not add backend infrastructure.
-9. Do not implement AI yet.
-10. Run typecheck, lint, and visually inspect the design-system route.
-
-Before editing code, summarize the product/design constraints you are applying
-and propose the component/tokens architecture.
+```bash
+npx skills@latest add vercel-labs/agent-skills --skill web-design-guidelines
 ```
 
-## 6. Second Codex Prompt
+Use for:
+- accessibility;
+- keyboard/focus;
+- forms;
+- touch interaction;
+- reduced motion;
+- typography;
+- navigation/state;
+- responsive UX;
+- performance-related UI issues.
 
-After the design system is approved:
+### 3.6 ATE Test Engineering skill
 
-```text
-Read AGENTS.md again and preserve the existing design system.
+ATE has a repository-owned testing skill at:
 
-Implement the typed domain/state foundation described in:
-- PRODUCT.md
-- docs/DOMAIN_MODEL.md
-- docs/PRODUCT_FLOWS.md
-- docs/CURRICULUM_DATA.md
+`codex-skills/ate-test-engineering/SKILL.md`
 
-Requirements:
-- all current school/subject/stream values come from configuration;
-- implement TeachingSection as a first-class domain entity;
-- implement scheduled lesson state;
-- implement lesson outcomes including UNCONFIRMED;
-- implement deterministic state propagation;
-- derive teacher, HOD, DOS, and Principal role views from shared state;
-- no AI calls yet;
-- no fake metrics;
-- no teacher ranking;
-- tests for state transitions are required.
+The setup script copies it into the project-local agent skills directory.
 
-Do not build UI pages beyond what is necessary to validate the domain state.
+It enforces the ATE-specific test matrix:
+- Vitest domain tests;
+- integration tests;
+- RLS/access tests;
+- Playwright flows;
+- responsive/browser verification;
+- AI eval regression;
+- no “build passed therefore done” behavior.
+
+### 3.7 ATE UI Verification skill
+
+ATE has a repository-owned UI verification skill at:
+
+`codex-skills/ate-ui-verification/SKILL.md`
+
+It forces:
+- real mobile/desktop width checks;
+- loading/empty/error/offline states;
+- accessibility checks;
+- screenshot/visual regression review;
+- design-system consistency.
+
+## 4. One-command project setup
+
+From the repository root run:
+
+```bash
+bash scripts/setup-codex.sh
 ```
 
-## 7. Third Codex Prompt
+The script installs/refreshes the recommended project-local skills and copies ATE-owned skills into the local agent skills directory.
 
-Then build the teacher vertical slice:
+Third-party skill payloads stay local/ignored. Their install commands and sources remain reproducible in this repository.
+
+## 5. Testing toolchain
+
+ATE’s engineering quality stack is:
+
+- **Vitest** — deterministic domain/unit/integration tests;
+- **Playwright** — browser/E2E and screenshot verification;
+- **PostgreSQL/Supabase test environment** — RLS/tenant isolation;
+- **AI eval harness** — golden cases for lesson, assessment, retrieval and resources;
+- **TypeScript strict mode** — compile-time correctness;
+- **ESLint** — static quality;
+- **Vercel preview deployments** — product review;
+- **Sentry** — production error/performance monitoring.
+
+The test skill tells Codex which layer is required for a change.
+
+## 6. UI skill precedence
+
+For UI work use:
+
+1. `PRD.md` — user need and product behavior;
+2. `DESIGN.md` — visual/interaction truth;
+3. existing ATE design-system components;
+4. `gpt-taste` — composition/anti-slop;
+5. `emil-design-eng` — interaction/motion;
+6. Impeccable — shape/critique/audit/polish;
+7. `web-design-guidelines` — accessibility and web UX checks;
+8. `react-best-practices` — React/Next performance review.
+
+No external skill may redefine product scope.
+
+## 7. First Codex task — baseline audit
+
+Do not start by adding features.
+
+Use:
 
 ```text
-Implement the Teacher core flow using the established design system and domain state.
+Read AGENTS.md, PRD.md, TRD.md, DESIGN.md and docs/V4_MIGRATION_PLAN.md.
 
-Required:
-- Teacher Home;
-- next lesson;
-- previous confirmed outcome;
-- current curriculum context;
-- Lesson Readiness;
-- Record Outcome;
-- state propagation into the next lesson;
-- multi-stream continuity;
-- mobile-first quality.
+Do not implement product features yet.
 
-Use reference-ui teacher images only as visual direction.
-Use gpt-taste and emil-design-eng.
-Do not introduce page-specific arbitrary styling.
-Run Impeccable critique after implementation and resolve material findings.
+Audit the existing repository against ATE v4 and create docs/V4_BASELINE_AUDIT.md.
+
+The audit must identify:
+1. current working routes and workflows;
+2. current state/persistence model;
+3. direct AI-provider coupling;
+4. hard-coded school/subject/stream/demo facts;
+5. current curriculum-data imports;
+6. current assessment and PDF/export paths;
+7. UI/design-system assets worth preserving;
+8. missing production infrastructure;
+9. test coverage and gaps;
+10. a migration map: preserve / refactor / replace / remove.
+
+Run typecheck, lint, tests and build before editing.
+Do not perform the migration in the audit task.
 ```
 
-## 8. General Codex Instruction Pattern
+## 8. Second Codex task — quality foundation
 
-Every implementation prompt should specify:
+After the audit is reviewed:
 
-- authoritative docs to read;
+```text
+Read the v4 authority documents again and the approved V4_BASELINE_AUDIT.md.
+
+Create the quality foundation required for safe migration:
+- add/repair Playwright configuration;
+- protect current critical flows with smoke tests;
+- add responsive screenshot baselines for teacher mobile and leadership desktop;
+- establish test/eval directory conventions from TRD.md;
+- do not change product behavior except where required to make deterministic tests possible.
+
+Use the ATE Test Engineering and ATE UI Verification skills.
+Run all quality gates and report exact results.
+```
+
+## 9. Third Codex task — production data foundation
+
+Then begin the first production migration:
+
+```text
+Implement the production persistence/identity foundation defined in TRD.md and docs/V4_MIGRATION_PLAN.md.
+
+Scope:
+- Supabase/PostgreSQL integration;
+- Drizzle schema/migrations;
+- school workspace;
+- memberships and additive roles;
+- TeachingSection as first-class entity;
+- RLS/tenant isolation;
+- repository interfaces;
+- preserve current prototype behavior behind migration seams where practical.
+
+Do not migrate lesson AI or assessment AI in the same change.
+Access tests are mandatory.
+```
+
+## 10. Subsequent phase order
+
+Follow this order unless an explicit repository decision changes it:
+
+1. baseline + regression safety;
+2. design-system reconciliation;
+3. production persistence/auth/RLS;
+4. school onboarding + timetable/programme;
+5. rights-aware knowledge layer;
+6. AI Gateway + Context Assembler;
+7. Lesson Readiness + Formal Lesson Plan;
+8. contextual Ask ATE;
+9. Assessment Engine + Improve Existing Paper;
+10. Resource Discovery;
+11. HOD/DOS/HT role surfaces and reporting;
+12. PWA/offline;
+13. hardening, evals, security and pilot readiness.
+
+## 11. Prompt pattern for implementation tasks
+
+Every serious Codex prompt should state:
+
+- authoritative files to read;
 - exact user problem;
-- exact state/domain requirements;
+- exact scope;
+- state/domain rules;
 - explicit non-goals;
+- migration constraints;
 - validation required;
-- which reference image(s) are advisory;
-- which design skills should be used.
+- design skills to use if UI is involved;
+- acceptance condition.
 
-Avoid prompts like:
-> "Build the dashboard."
+Bad:
+> Build the HOD dashboard.
 
-Prefer:
-> "Implement the DOS Academic Exceptions surface from the existing domain state. The DOS sees only cases requiring operational intervention or active monitoring. Use the established exception components. Do not expose teacher rankings. Validate desktop at 1280 and 1440 widths."
+Better:
+> Implement HOD Department Pulse from the shared Teaching Section state. Show only meaningful coordination issues, common-assessment readiness and department actions. Do not add teacher rankings or new teacher reporting fields. Use existing design-system components, validate at 1280/1440/1600, run Playwright and Impeccable critique.
 
-## 9. Commit Discipline
+## 12. Skill usage by task
 
-Recommended commit sequence:
+| Task | Required/recommended skills |
+|---|---|
+| New/reworked UI | gpt-taste + emil-design-eng + Impeccable |
+| UI audit | Impeccable audit + web-design-guidelines |
+| Motion | emil-design-eng; optionally review-animations |
+| React refactor | react-best-practices |
+| E2E/testing | ate-test-engineering |
+| Visual verification | ate-ui-verification + Impeccable adapt |
+| Accessibility | web-design-guidelines + ate-ui-verification |
+| Final UI polish | Impeccable polish + gpt-taste |
+| Domain rules | ate-test-engineering |
+| AI workflow | ate-test-engineering + workflow evals |
 
-- `chore: initialize ATE frontend foundation`
-- `feat: add ATE design system`
-- `feat: add academic domain model`
-- `feat: add teacher lesson workflow`
-- `feat: add assessment workflow`
-- `feat: add HOD department operations`
-- `feat: add DOS exception workflow`
-- `feat: add principal academic health`
-- `feat: add curriculum resource discovery`
-- `chore: audit and polish initial product`
+## 13. Commit discipline
 
-Do not mix structural refactors, product behavior, and visual rewrites in one uncontrolled commit.
+Prefer commits such as:
+
+- `docs: establish ATE v4 source of truth`
+- `test: baseline current teacher workflows`
+- `feat: add production school identity model`
+- `feat: add timetable onboarding foundation`
+- `feat: add rights-aware curriculum retrieval`
+- `refactor: route AI workflows through ATE gateway`
+- `feat: add formal lesson plan artifact`
+- `feat: add assessment blueprint engine`
+- `feat: add existing-paper audit`
+- `feat: add department coordination view`
+- `chore: harden pilot release`
+
+Do not combine a database migration, broad UI rewrite and prompt rewrite into one uncontrolled commit.
+
+## 14. Curriculum/PDF working rule
+
+Do not commit a folder of protected PDFs to Git.
+
+The repository contains a gitignored local working area:
+
+```text
+knowledge-sources/
+├── raw/
+├── derived/
+├── review/
+└── README.md
+```
+
+You place source PDFs in `knowledge-sources/raw/` locally.
+
+Codex then:
+1. inventories sources;
+2. creates source manifests/checksums;
+3. extracts canonical structured JSON/JSONL into `derived/`;
+4. generates validation/review output;
+5. does not treat extraction as verified automatically;
+6. later imports rights-authorised content into the production knowledge database.
+
+The whole source/derived corpus stays outside normal Git commits unless a specific item is demonstrably safe and deliberately approved.
+
+## 15. Completion rule for Codex
+
+Codex may call a task complete only when:
+- product behavior matches PRD;
+- architecture matches TRD;
+- relevant tests pass;
+- UI has been visually inspected where applicable;
+- no new security/rights breach was introduced;
+- no unnecessary teacher burden was added;
+- the app remains runnable;
+- known limitations are explicitly reported.

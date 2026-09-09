@@ -1,7 +1,31 @@
 node_modules
 .next
 *.tsbuildinfo
+
+# Environment
 .env.local
 .env.*.local
+
+# Project-local agent skills/hook payloads are reproducibly installed by scripts/setup-codex.sh
 .agents/
+
+# Local visual references may be large/private
 reference-ui/*.png
+
+# Protected/private source working area. Keep README only.
+knowledge-sources/raw/
+knowledge-sources/derived/
+knowledge-sources/review/
+
+# Local generated curriculum workbench outputs
+knowledge-workbench/
+
+# Supabase local/dev state
+.supabase/
+
+# Playwright outputs
+playwright-report/
+test-results/
+
+# Local coverage
+coverage/

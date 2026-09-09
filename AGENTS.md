@@ -1,325 +1,364 @@
-# AGENTS.md — Academic Track Engine
+# AGENTS.md — Academic Track Engine v4
 
-This file is the repository operating guide for Codex and other coding agents.
+This file is the repository operating contract for Codex and other coding agents.
 
-ATE is not a generic dashboard, chatbot, school ERP, or AI wrapper. It is a teacher-first academic operations product. Product correctness, institutional trust, curriculum provenance, and interface quality are first-class requirements.
+ATE is a teacher-first curriculum implementation and academic operations product for secondary schools. It is not a generic school ERP, LMS, chatbot, AI wrapper, marks platform, or teacher-surveillance system.
 
-## 1. Mandatory Reading Order
+The existing repository contains a working prototype. v4 is an **in-place production upgrade**, not permission to discard working behavior and rebuild arbitrary screens.
 
-Before substantive work, read the files relevant to the task.
+## 1. Mandatory source-of-truth order
 
-For most product work:
+Before substantive work, read the relevant documents in this order:
 
-1. `PRODUCT.md`
-2. `DESIGN.md`
-3. `docs/DOMAIN_MODEL.md`
-4. `docs/PRODUCT_FLOWS.md`
-5. `docs/ARCHITECTURE.md`
-6. `docs/DECISIONS.md`
+1. `PRD.md` — product truth: what ATE is and how it must behave.
+2. `TRD.md` — technical truth: architecture, stack, security and engineering boundaries.
+3. `DESIGN.md` — visual and interaction direction, except where superseded by PRD/TRD.
+4. `docs/V4_MIGRATION_PLAN.md` — how to move the current prototype toward v4.
+5. `docs/DECISIONS.md` — accepted historical decisions that do not conflict with v4.
+6. Other files in `docs/` — historical/domain context only; reconcile against PRD/TRD before using.
+7. Existing code — current implementation, never authority over explicit v4 requirements.
 
-For curriculum-related work:
+`PRODUCT.md`, the old architecture documents, and the existing Biology-oriented curriculum fixtures predate v4. They are useful historical references but **must not override PRD.md or TRD.md**.
 
-1. `docs/CURRICULUM_DATA.md`
-2. `curriculum-data/`
-3. `PRODUCT.md`
+If two sources conflict, stop and follow the higher-precedence source. Do not silently create a second product model in code.
 
-For AI-related work:
+## 2. Product invariants
 
-1. `docs/AI_SYSTEM.md`
-2. `docs/CURRICULUM_DATA.md`
-3. `docs/DOMAIN_MODEL.md`
+### 2.1 Teacher-first
+The teacher is the primary daily user. ATE must reduce repeated academic work. Do not add data entry merely to feed leadership dashboards.
 
-For UI work:
+### 2.2 Authority separation
+Keep these categories distinct:
 
-1. `DESIGN.md`
-2. `reference-ui/README.md`
-3. the specific relevant image(s) in `reference-ui/`
-4. the installed UI/design skills
+- curriculum/assessment authority;
+- verified school operational facts;
+- teacher-confirmed classroom reality;
+- AI reasoning and recommendations.
 
-For release readiness:
+AI may retrieve, draft, explain, adapt, compare and propose. It must not silently establish curriculum truth, school facts, lesson occurrence, official marks, timetable changes, or consequential academic decisions.
 
-1. `docs/ACCEPTANCE_CRITERIA.md`
-2. `docs/IMPLEMENTATION_PLAN.md`
+### 2.3 Teaching Section is first-class
+The primary operational unit is:
 
-Do not proceed from screenshots alone.
+> teacher × subject × level/class × stream × academic period
 
-## 2. Source-of-Truth Precedence
+Parallel streams are independently stateful.
 
-When sources disagree, use this order:
+### 2.4 Classroom reality belongs to the teacher
+A scheduled lesson does not prove teaching occurred. Missing outcome data means `UNCONFIRMED`, never absent, failed or missed by inference.
 
-1. accepted decisions in `docs/DECISIONS.md`;
-2. product requirements in `PRODUCT.md`;
-3. domain invariants in `docs/DOMAIN_MODEL.md`;
-4. architecture boundaries in `docs/ARCHITECTURE.md`;
-5. structured curriculum data in `curriculum-data/` for curriculum facts;
-6. `DESIGN.md` for visual and interaction behavior;
-7. `docs/PRODUCT_FLOWS.md`;
-8. visual references in `reference-ui/`.
+### 2.5 Rules before AI
+Use deterministic code for deterministic facts, including:
 
-Reference images are never a source of product facts.
+- timetable conflicts;
+- role permissions;
+- common-test scope intersections;
+- taught-scope eligibility;
+- version state;
+- whether an outcome is unconfirmed;
+- whether an issue has crossed an explicit escalation condition.
 
-## 3. Product Invariants
+AI may explain or draft around those results.
 
-The following are non-negotiable unless an explicit decision updates them.
+### 2.6 Retrieval before generation
+Curriculum-specific generation must use retrieved, rights-eligible, versioned context. Model memory is never the curriculum source of truth.
 
-### 3.1 Curriculum authority
+### 2.7 Human authority
+AI output is draft/advisory until an authorised user explicitly applies, confirms or finalises it.
 
-Official curriculum data establishes curriculum intent.
+### 2.8 Non-surveillance
+Never add:
 
-AI may retrieve, summarize, transform, and propose around curriculum data. AI must not silently modify or invent curriculum authority.
-
-### 3.2 School operational truth
-
-School structure, timetable, teacher assignment, academic calendar, resource inventory, and approved configuration are operational facts.
-
-AI may extract or propose these values, but an authorized human confirms them before they become operational truth.
-
-### 3.3 Classroom reality
-
-Teachers establish what actually happened in their lessons.
-
-Missing data means `UNCONFIRMED`. It does not mean absent, missed, failed, or incomplete.
-
-### 3.4 AI authority boundary
-
-AI output is advisory unless a human explicitly confirms an action.
-
-AI may generate lesson drafts, assessment drafts, explanations, adaptations, recovery suggestions, and resource recommendations.
-
-AI must not silently:
-- mark a lesson complete;
-- record teacher absence;
-- change curriculum state;
-- approve a recovery plan;
-- change a timetable;
-- establish a school fact;
-- create a final assessment without teacher review.
-
-### 3.5 Lowest-authority resolution
-
-Facts originate at the lowest legitimate authority.
-
-Decisions should be handled by the lowest role capable of resolving them.
-
-Information escalates only when higher authority is required.
-
-### 3.6 Non-surveillance
-
-ATE supports academic coordination, not teacher ranking.
-
-Do not add:
-- teacher leaderboards;
+- teacher rankings;
+- coverage leaderboards;
 - AI-use rankings;
-- "fastest teacher" metrics;
-- punitive coverage comparisons;
 - teacher speed indices;
-- hidden performance scoring.
+- punitive activity metrics;
+- hidden teacher-quality scores.
 
-### 3.7 Teacher burden
+### 2.9 Graceful degradation
+Core school state and previously saved artifacts must remain usable when AI is unavailable. Teacher outcome capture must not depend on an AI call.
 
-Do not add data entry solely to make a leadership dashboard look richer.
+## 3. Current locked product scope
 
-Prefer teacher actions that directly help the teacher and incidentally create useful institutional visibility.
+The v4 product includes:
 
-## 4. Engineering Rules
+- secure school workspaces and additive user roles;
+- timetable/programme onboarding and teacher invitations;
+- teacher confirmation of assigned Teaching Sections and current curriculum position;
+- Scheme of Work planning;
+- quick Lesson Readiness;
+- professional Formal Lesson Plans;
+- contextual Ask ATE that can propose artifact patches;
+- teacher-confirmed lesson outcomes and continuity;
+- curriculum-aware Resource Discovery;
+- curriculum/regime-aware Assessment Engine;
+- Improve Existing Paper;
+- marking guides, analytic rubrics, bases of assessment, indicators/descriptors and score sheets;
+- HOD Department Pulse and common-assessment coordination;
+- DOS academic operations and recovery decisions;
+- Head Teacher/Principal academic assurance;
+- AI-generated reports from already-recorded facts;
+- PDF/DOCX artifact export;
+- narrow offline/PWA support for critical teacher workflows.
 
-### 4.1 TypeScript
+Current scope explicitly excludes learner accounts, parent portal, learner marks database, AI marking, learner profiling, teacher ranking and generic ERP features unless PRD is deliberately changed.
 
-Use TypeScript strict mode.
+## 4. Engineering architecture
 
-Avoid `any` unless there is a documented boundary where it is unavoidable.
+ATE v4 is a **TypeScript modular monolith** with strict logical boundaries:
 
-Domain types must be explicit.
+- Academic Knowledge;
+- Academic Operations;
+- Academic Intelligence;
+- Documents/Artifacts;
+- Product Experience;
+- Platform/Security.
 
-### 4.2 Separation of concerns
+Do not introduce microservices, Kubernetes, Kafka, a separate graph database, a separate vector database, a Python backend, or speculative infrastructure without an explicit architecture decision.
 
-Keep these layers separate:
+Target stack and repository structure are defined by `TRD.md`.
 
-- presentation;
-- application state;
-- deterministic domain logic;
-- curriculum data access;
-- AI orchestration;
-- external resource providers.
+## 5. Migration discipline
 
-Do not put business rules inside React render branches.
+The current application is valuable evidence. Upgrade it deliberately.
 
-### 4.3 No hard-coded product facts in presentation components
+Before modifying a feature:
 
-The current school, subject, levels, streams, teacher names, dates, period length, timetable, topics, and assessment data are configuration/domain data.
+1. inspect its current behavior;
+2. identify the v4 requirement;
+3. identify reusable code/state;
+4. write or update tests around behavior worth preserving;
+5. migrate behind typed boundaries;
+6. remove obsolete paths only after their replacement works.
 
-Incorrect:
+Do not perform a large uncontrolled rewrite.
 
-```tsx
-<h2>S2 East Biology</h2>
-```
+Do not rename/move the entire repository purely to match an ideal folder tree. Introduce the target module structure incrementally unless a planned migration step explicitly calls for a structural move.
 
-Correct:
+## 6. Curriculum and protected content
 
-```tsx
-<h2>{section.level} {section.stream} {section.subjectName}</h2>
-```
+The repository must contain the **machinery for curriculum intelligence**, not a growing production library of protected source documents.
 
-The current narrow scope is intentional. The implementation must remain structurally configurable without building premature enterprise abstractions.
+Do not commit new raw NCDC/UNEB/school-private files to Git.
 
-### 4.4 Deterministic rules before AI
+Do not commit production secrets, school-private documents, raw timetables, private exports or private user data.
 
-Use deterministic software when the rule is deterministic.
+The existing `curriculum-data/` directory is legacy development material. Treat it as migration-sensitive:
+- do not expand it with additional protected text;
+- do not assume it is licensed for production;
+- preserve provenance;
+- migrate authorised production content to the rights-aware private storage + knowledge database architecture in TRD.
 
-Examples:
-- whether a timetable conflicts;
-- whether a learning outcome is confirmed taught;
-- whether a common test scope is the intersection of selected streams;
-- whether a record is unconfirmed;
-- whether a user has permission;
-- whether an issue should be visible at a role level.
+Curriculum retrieval must respect source version, rights state and provenance.
 
-AI can explain or draft around these facts. It should not calculate institutional truth when deterministic code can.
+## 7. AI implementation rules
 
-### 4.5 Structured AI output
+All AI calls flow through the ATE AI Gateway/provider abstraction.
 
-AI application calls must return validated structured output.
+Feature modules must not instantiate provider SDK clients directly.
 
-Use Zod schemas at boundaries.
+For structured workflows:
+- define Zod input/output contracts;
+- retrieve minimum required context;
+- record prompt/workflow version;
+- validate model output;
+- run deterministic/domain quality checks;
+- expose provenance/why information where relevant;
+- require human confirmation before state-changing application.
 
-Do not render raw prose blobs for structured product artifacts such as:
-- lesson readiness;
-- assessments;
-- marking guides;
-- recovery recommendations;
-- resource recommendation cards.
+Ask ATE may return a message plus a proposed artifact patch. The patch is not written until the user explicitly applies it.
 
-### 4.6 State propagation
+AI agents do not directly write official academic state.
 
-Teacher actions must update shared academic state through domain functions.
+## 8. Assessment rules
 
-Do not independently hard-code Teacher, HOD, DOS, and Principal views.
+Assessment is a first-class subsystem, not a one-prompt question generator.
 
-The same domain state should derive all role-appropriate views.
+Generation order is broadly:
 
-### 4.7 Dependencies
+1. resolve level/assessment regime;
+2. resolve subject/profile;
+3. resolve purpose;
+4. resolve eligible curriculum/taught scope;
+5. build blueprint;
+6. generate scenarios/items;
+7. build marking/scoring instrument;
+8. run quality evaluation;
+9. present teacher-editable artifact.
 
-Do not add a dependency because it is convenient.
+Lower Secondary and Advanced Secondary must use different assessment profiles where the authoritative material differs.
 
-Before adding one, establish:
-- the current requirement;
-- why existing dependencies are insufficient;
-- bundle/runtime impact;
-- maintenance cost.
+The teacher does the marking. Do not add learner mark-upload, AI grading or learner result profiling unless PRD is changed.
 
-### 4.8 Infrastructure
+## 9. Lesson planning rules
 
-Do not introduce Postgres, Redis, FastAPI, microservices, queues, container orchestration, vector databases, or production authentication unless a current product requirement explicitly requires them.
+Keep Lesson Readiness and Formal Lesson Plan distinct.
 
-Preserve migration paths through clean interfaces, not speculative infrastructure.
+Formal plans are structured artifacts, not prose blobs. They must support:
+- curriculum anchor;
+- prior learning/continuity;
+- teacher preparation;
+- classroom conditions;
+- pedagogy;
+- resources/safety where relevant;
+- timed lesson phases;
+- teacher and learner activity;
+- formative evidence;
+- genuine skills/values/cross-cutting opportunities;
+- differentiation/inclusion;
+- misconceptions;
+- contingencies;
+- follow-up;
+- references/provenance.
 
-## 5. UI Rules
+Do not mechanically populate curriculum buzzwords that the activity does not actually support.
 
-For significant UI work, use the installed design skills deliberately.
+## 10. UI/UX is a correctness requirement
 
-Expected repository-local design tooling includes:
+ATE must look like credible institutional software, not generated SaaS.
 
-- Impeccable
-- Emil Kowalski's `emil-design-eng`
-- `gpt-taste`
+For significant UI work:
+- use the installed `gpt-taste` and `emil-design-eng` skills;
+- use Impeccable when available for critique/polish;
+- product documents outrank design skills;
+- preserve the established design system rather than creating page-specific styles.
 
-The product documents outrank the skills.
+Teacher experience:
+- mobile-first;
+- 360–430 px primary validation widths;
+- next class/action dominant;
+- low density;
+- thumb-friendly controls;
+- fast outcome logging.
 
-Use skills to improve execution, not to redefine product behavior.
+HOD/DOS:
+- desktop-friendly, responsive, exception-oriented.
 
-### 5.1 Visual references
+Head Teacher:
+- restrained, assurance-oriented, low noise.
 
-Read `reference-ui/README.md`.
-
-Images communicate:
-- visual hierarchy;
-- density;
-- relative layout;
-- mobile vs desktop intent;
-- interaction concepts;
-- product character.
-
-Images do not define:
-- business rules;
-- school facts;
-- metrics;
-- dates;
-- names;
-- curriculum;
-- states;
-- data counts;
-- navigation labels that conflict with product docs.
-
-### 5.2 Anti-slop expectation
-
-Avoid generic AI-generated interface habits:
-- card-in-card everywhere;
-- gradients for decoration;
-- excessive rounded containers;
-- every metric as a large tile;
-- giant page titles;
-- purple "AI" branding;
-- unnecessary pills;
+Avoid:
+- neon AI visuals;
+- decorative gradients/glow;
+- card-in-card layouts everywhere;
+- giant KPI tiles;
+- generic chatbot shells;
 - meaningless charts;
-- excessive icon boxes;
-- marketing copy inside operational screens;
-- gratuitous motion.
+- gratuitous pills/icons;
+- excessive motion;
+- dense teacher dashboards.
 
-### 5.3 Visual inspection is mandatory
+A compile-successful interface is not automatically acceptable.
 
-Do not assume compilation means the UI is good.
+## 11. State and data rules
 
-For UI tasks:
-- inspect desktop rendering;
-- inspect teacher mobile rendering;
-- check spacing and hierarchy;
-- check overflow;
-- check long content;
-- check loading states;
-- check empty states;
-- check error states;
-- check keyboard/focus behavior for interactive primitives.
+- PostgreSQL becomes the production system of record.
+- Supabase Auth/Storage/RLS are infrastructure boundaries defined in TRD.
+- Zustand is UI/draft state, not the database.
+- Every school-owned record must be tenant scoped.
+- Authorisation is enforced server/database-side, not only by hidden navigation.
+- Significant mutable institutional facts require versioning/auditability.
+- The Digital Twin is computed from current verified facts; do not create one giant mutable twin blob.
 
-## 6. Testing and Validation
+## 12. Files, documents and artifacts
 
-Before reporting a task complete:
+Major artifacts are structured and versioned.
 
-1. run type checking;
-2. run linting;
-3. run relevant tests;
-4. verify the affected flow manually;
-5. verify responsive behavior where applicable;
-6. inspect for hard-coded product facts;
-7. inspect for state divergence between roles;
-8. verify AI schema validation if AI output changed;
-9. verify error/fallback behavior if external calls changed;
-10. confirm product invariants remain intact.
+The same canonical artifact content should power:
+- the UI;
+- PDF rendering;
+- DOCX rendering.
 
-Do not call work complete with known validation failures.
+Do not maintain three divergent textual copies.
 
-## 7. Change Discipline
+School templates are private files with a confirmed mapping to canonical artifact fields.
 
-If a requested change conflicts with an accepted decision or invariant:
+External web/video resources normally store metadata and URLs, not copied content.
 
-- stop;
-- identify the conflict;
-- explain the consequence;
-- update the decision deliberately before implementing the new direction.
+## 13. Testing requirements
 
-Do not silently create a second product model in code.
+Before reporting substantive work complete, run the checks relevant to the change:
 
-## 8. Definition of Professional Completion
+- typecheck;
+- lint;
+- unit/domain tests;
+- integration tests where data/security boundaries changed;
+- access/RLS tests where permissions changed;
+- Playwright for critical product flows;
+- visual/responsive inspection for UI;
+- AI schema/eval checks where an AI workflow changed;
+- build.
+
+For UI work validate at least:
+- teacher mobile;
+- desktop leadership;
+- loading;
+- empty;
+- error;
+- offline/degraded state where relevant;
+- long-content/overflow behavior;
+- keyboard/focus behavior for interactive primitives.
+
+Do not report completion with known failing quality gates.
+
+## 14. Evaluation and regression protection
+
+Important AI workflows require golden cases/evals.
+
+At minimum preserve representative evaluation cases for:
+- Lower Secondary lesson planning;
+- Advanced Secondary lesson planning;
+- Lower Secondary Physics assessment;
+- Advanced Secondary Physics assessment;
+- retrieval/provenance;
+- existing-paper audit;
+- resource recommendations.
+
+A prompt/model change that degrades these cases is a regression.
+
+## 15. Security rules
+
+Never:
+- expose service-role keys to the browser;
+- log secrets or full protected documents unnecessarily;
+- trust client-supplied school/role scope;
+- create public buckets for school/curriculum private content;
+- send unnecessary teacher/school identifiers to external AI providers;
+- let invitation links grant self-selected privileges.
+
+Security-sensitive changes require explicit tests.
+
+## 16. Commit and change discipline
+
+Prefer small, reviewable commits.
+
+Do not combine:
+- broad structural refactor;
+- new product behavior;
+- major design rewrite;
+- database migration;
+- AI prompt rewrite
+
+in one uncontrolled change.
+
+For large phases, leave the application runnable after each phase.
+
+## 17. Definition of professional completion
 
 A change is professionally complete when it is:
 
-- functionally correct;
-- domain-consistent;
-- curriculum-safe;
-- state-consistent;
+- consistent with PRD;
+- consistent with TRD;
+- domain-correct;
+- secure for its boundary;
+- typed and validated;
 - visually coherent;
-- responsive where required;
-- typed;
-- validated;
-- maintainable;
-- free of obvious hard-coded assumptions;
-- honest about AI and provenance boundaries.
+- responsive;
+- accessible enough for the interaction;
+- test-covered at the appropriate level;
+- honest about provenance and AI authority;
+- free of obvious hard-coded school/demo assumptions;
+- not adding unnecessary teacher burden.
+
+If unsure whether a feature is useful, ask: **does this reduce work or preserve context for the educator, or does it merely create more data for ATE?**
