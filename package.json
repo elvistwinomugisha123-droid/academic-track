@@ -8,13 +8,17 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:knowledge:import": "tsx knowledge-tools/import/import-academic-knowledge.ts",
+    "db:knowledge:import:production": "tsx knowledge-tools/import/import-academic-knowledge.ts --production-authorised"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",
     "@react-pdf/renderer": "^4.3.0",
+    "drizzle-orm": "^0.45.2",
     "lucide-react": "^0.468.0",
     "next": "^15.5.25",
+    "postgres": "^3.4.9",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.54.0",
@@ -22,12 +26,15 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@types/node": "^22.10.5",
     "@types/react": "^19.0.3",
     "@types/react-dom": "^19.0.2",
     "eslint": "^8.57.0",
     "eslint-config-next": "^15.5.0",
     "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "drizzle-kit": "^0.31.7",
+    "tsx": "^4.21.0"
   }
 }
