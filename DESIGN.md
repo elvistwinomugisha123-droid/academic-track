@@ -1,575 +1,555 @@
 # Academic Track Engine — Product Design System
 
-## 1. Design Objective
+**Document:** DESIGN.md  
+**Version:** 4.0  
+**Status:** UI/UX specification of record  
+**Date:** 9 September 2026
 
-ATE should look and behave like serious, modern academic operations software.
+> ATE is institutional academic software for real Ugandan secondary-school workflows. UI quality is not decoration. Poor UX increases teacher burden, weakens state quality and damages trust.
 
-The interface should communicate:
+## 1. Design objective
+
+ATE should communicate:
+
 - competence;
 - calm;
 - trust;
-- clarity;
 - precision;
 - institutional maturity;
 - teacher empathy;
 - restrained technical sophistication.
 
-ATE should not visually advertise "AI" as the product.
+ATE should feel like credible academic infrastructure that happens to use AI.
 
-AI should appear as a capability inside a coherent academic workflow.
+It must not feel like:
+- a generic SaaS admin template;
+- a futuristic AI demo;
+- ChatGPT wrapped in school terminology;
+- a dashboard full of vanity metrics;
+- a gamified school app;
+- a crypto/fintech interface.
 
-## 2. Design Character
+## 2. Experience principles
 
-ATE should feel:
+### 2.1 Reduce cognitive load
+Every screen should have one obvious primary job.
 
-- calm;
-- deliberate;
-- contemporary;
-- professional;
-- institutional;
-- operational;
-- teacher-friendly;
-- low-friction;
-- trustworthy.
+### 2.2 Role-adaptive, not role-fragmented
+Teacher, HOD, DOS and Head Teacher use one coherent product. Leadership roles add capability; they do not create separate visual universes.
 
-ATE should not feel:
+### 2.3 Teacher-mobile first
+Teacher workflows must be designed for normal Android phones and intermittent connectivity.
 
-- futuristic;
-- gamified;
-- playful;
-- crypto-like;
-- consumer-social;
-- like a generic admin template;
-- like a generated SaaS landing page;
-- like ChatGPT wrapped in school colors;
-- like a dashboard full of vanity metrics.
+Primary validation widths:
+- 360 px;
+- 390 px;
+- 430 px.
 
-## 3. Surface Strategy
+### 2.4 Leadership-desktop first
+HOD, DOS and Head Teacher workflows may be denser, but must stay quiet and exception-oriented.
 
-There are two primary interface modes.
+Primary validation widths:
+- 1280 px;
+- 1440 px;
+- 1600 px.
 
-### 3.1 Teacher Workspace
+### 2.5 Context before controls
+Show the teacher the class, current point and previous state before presenting AI actions.
 
-Mobile-first.
+### 2.6 Evidence before assertion
+Where trust matters, show provenance, source or “Why this?” rather than decorative confidence signals.
 
-The teacher workspace should optimize for:
-- next action;
-- low information density;
-- quick scanning;
-- short interactions;
-- thumb-friendly controls;
-- minimal navigation burden.
+### 2.7 Offline-aware
+Do not design core teacher screens as though every interaction has perfect internet.
 
-The teacher should not be presented with management analytics.
+## 3. Core visual character
 
-### 3.2 Academic Leadership Workspace
+Use:
+- restrained institutional colour;
+- strong typography;
+- generous but efficient spacing;
+- subtle borders/surfaces;
+- precise alignment;
+- clear hierarchy;
+- limited elevation;
+- purposeful motion.
 
-Desktop-first.
+Avoid:
+- purple-to-blue AI gradients;
+- glow;
+- glassmorphism;
+- giant rounded cards;
+- decorative icon tiles;
+- nested cards;
+- excessive pills;
+- fake dashboards;
+- random charting;
+- unnecessary shadows;
+- oversized headings;
+- bounce/elastic motion;
+- marketing copy inside operational screens.
 
-HOD, DOS, and Principal surfaces may share an application shell but must not share identical information hierarchy.
+## 4. Information hierarchy
 
-HOD:
-- department coordination.
-
-DOS:
-- academic operations and exceptions.
-
-Principal:
-- institutional health and decisions.
-
-## 4. Visual Hierarchy
-
-Use hierarchy in this order:
+Prefer hierarchy in this order:
 
 1. typography;
 2. spacing;
 3. alignment;
 4. grouping;
-5. border/surface contrast;
-6. color;
+5. surface/border contrast;
+6. colour;
 7. iconography;
 8. motion.
 
-Do not reach for cards, colors, or animations before the information hierarchy is correct.
+Do not use a card or bright colour where spacing and type can solve the problem.
 
-## 5. Layout System
+## 5. Design system architecture
 
-### Desktop
-Recommended content max width:
-- operational workspaces: fluid within shell;
-- dense tables: full available width;
-- readable text panels: constrained.
+ATE should have a real design-system package or module containing:
 
-Typical desktop shell:
-- left navigation or stable top-level navigation;
-- persistent school/workspace identity;
-- role identity;
-- content area;
-- optional right contextual panel where justified.
+```text
+design-system/
+├── tokens/
+├── primitives/
+├── components/
+├── patterns/
+├── layouts/
+├── accessibility/
+└── examples/
+```
 
-### Mobile
-Teacher mobile should use:
-- single-column primary flow;
-- bottom navigation where useful;
-- persistent but compact school/identity context;
-- large tap targets;
-- no horizontal table layouts.
+The design system must sit above Radix/shadcn. shadcn is a primitive source, not ATE’s visual identity.
 
-## 6. Spacing System
+## 6. Tokens
 
-Use an 8-point-derived spacing system.
+### 6.1 Spacing
+Use an 8-point-derived scale:
 
-Primary values:
-- 4px
-- 8px
-- 12px
-- 16px
-- 24px
-- 32px
-- 40px
-- 48px
-- 64px
+- 4;
+- 8;
+- 12;
+- 16;
+- 24;
+- 32;
+- 40;
+- 48;
+- 64.
 
-Prefer semantic layout tokens over arbitrary values.
+Avoid arbitrary one-off spacing without a documented reason.
 
-Avoid:
-- `mt-[13px]`;
-- `gap-[7px]`;
-- one-off pixel tuning without a clear visual reason.
+### 6.2 Radius
+Use restrained rounding:
+- controls: ~8 px;
+- standard panels: 10–12 px;
+- larger contextual surfaces: 14–16 px only when justified.
+
+### 6.3 Elevation
+ATE is mostly flat. Prefer borders, subtle surfaces and whitespace.
+
+Shadows are reserved for:
+- dialogs;
+- sheets;
+- popovers;
+- floating contextual surfaces.
+
+### 6.4 Semantic colour
+Define CSS variables for:
+- app background;
+- surface;
+- subtle surface;
+- primary text;
+- secondary text;
+- muted text;
+- border;
+- brand accent;
+- success;
+- information;
+- warning;
+- danger;
+- focus.
+
+Do not hard-code role colours or arbitrary “AI purple.”
 
 ## 7. Typography
 
-Use one high-quality sans-serif family.
+Use one strong sans-serif system, preferably Geist unless implementation constraints justify another.
 
-Preferred:
-- Geist
-- Inter only if Geist is unavailable or implementation constraints justify it
+Suggested scale:
 
-Use a strict scale.
-
-Suggested:
-
-| Token | Size / Line-height | Use |
+| Token | Size / line-height | Use |
 |---|---:|---|
-| display | 32 / 40 | rare top-level hero-level operational title |
 | h1 | 28 / 36 | page title |
 | h2 | 20 / 28 | major section |
-| h3 | 16 / 24 | card/panel heading |
-| body | 14 / 20 | default UI text |
-| body-sm | 13 / 18 | supporting content |
-| meta | 12 / 16 | metadata, source labels |
+| h3 | 16 / 24 | panel heading |
+| body | 14 / 20 | default UI |
+| body-sm | 13 / 18 | supporting text |
+| meta | 12 / 16 | metadata/provenance |
 
-Weights:
-- 400 regular
-- 500 medium
-- 600 semibold
+Use 400/500/600 weights primarily.
 
-Avoid bold text as a substitute for hierarchy.
+Avoid using bold everywhere as fake hierarchy.
 
-## 8. Color System
+## 8. Application shell
 
-Use semantic tokens.
+### Teacher shell
+Mobile-first:
+- compact identity/workspace context;
+- single-column content;
+- bottom navigation where it materially reduces navigation burden;
+- no horizontal desktop tables;
+- thumb-friendly primary actions.
 
-Recommended direction:
+### Leadership shell
+Desktop-first:
+- stable side/top navigation;
+- clear school and role context;
+- fluid operational content width;
+- right contextual panel only when it improves decision-making.
 
-### Foundation
-- background: cool off-white / very light blue-grey
-- surface: white
-- text primary: deep navy
-- text secondary: desaturated slate
-- border: subtle cool grey
+## 9. Teacher Home
 
-### Brand / operational accent
-Use restrained institutional green.
+Teacher Home answers, in order:
 
-### Semantic states
-- success: green
-- information: blue
-- attention: amber
-- danger: red
-- AI-specific distinction: optional restrained violet only when actual provenance distinction benefits the user
+1. What is my next lesson?
+2. Where did this class stop?
+3. What needs preparation?
+4. What else do I teach today?
+5. Is any lesson outcome still unconfirmed?
 
-Do not use a purple-to-blue AI gradient.
+The next lesson should visually dominate.
 
-Do not assign arbitrary colors to roles unless there is a product need.
+Good primary actions:
+- Prepare Lesson;
+- Record Outcome;
+- Create Assessment;
+- Ask ATE.
 
-## 9. CSS Token Direction
+Do not make Teacher Home a KPI dashboard.
 
-Implement semantic CSS variables.
+## 10. Lesson planning surfaces
 
-Example naming:
+### 10.1 Quick Readiness
+Fast, scannable, operational.
 
-```css
---ate-bg;
---ate-surface;
---ate-surface-subtle;
---ate-text;
---ate-text-secondary;
---ate-text-muted;
---ate-border;
---ate-border-subtle;
+Show:
+- Teaching Section;
+- current topic/outcome;
+- previous state;
+- unfinished work;
+- sequence;
+- required resources;
+- formative check;
+- source/provenance;
+- clear path to Formal Lesson Plan.
 
---ate-brand;
---ate-brand-subtle;
+### 10.2 Formal Lesson Plan
+This is a professional working artifact, not an AI response.
 
---ate-success;
---ate-success-subtle;
---ate-info;
---ate-info-subtle;
---ate-warning;
---ate-warning-subtle;
---ate-danger;
---ate-danger-subtle;
+Use structured sections and an editor that supports:
+- curriculum anchor;
+- prior learning;
+- preparation notes;
+- classroom context;
+- pedagogy;
+- timed lesson phases;
+- teacher/learner activity;
+- formative evidence;
+- differentiation;
+- misconceptions;
+- contingencies;
+- follow-up;
+- references.
 
---ate-radius-sm;
---ate-radius-md;
---ate-radius-lg;
-```
+Do not display:
+> “Certainly! Here is your lesson plan...”
 
-Components should consume semantic tokens, not hard-coded color utilities.
+### 10.3 Artifact editing
+Ask ATE should appear as a contextual companion to the artifact, not replace the artifact with chat.
 
-## 10. Radius
+When AI proposes a change, show:
+- what changed;
+- why;
+- Apply / Dismiss.
 
-Use restrained rounding.
+## 11. Lesson outcome recording
 
-Suggested:
-- small controls: 8px
-- standard controls/panels: 10–12px
-- larger contextual surfaces: 14–16px only where justified
+This must be one of the fastest workflows in the product.
 
-Avoid universal oversized rounded rectangles.
+Primary choices:
+- Delivered as planned;
+- Partially delivered;
+- Missed / cancelled;
+- Changed from plan.
 
-## 11. Elevation
+If partial:
+- reveal lesson phases/unfinished point;
+- optional short note.
 
-ATE should be mostly flat.
+Detailed reflection is optional.
 
-Prefer:
-- borders;
-- subtle background contrast;
-- grouping;
-- whitespace.
+Never require arbitrary percentages.
 
-Use shadows sparingly.
+## 12. Assessment experience
 
-Dialogs, floating sheets, and elevated overlays may use stronger elevation.
+Assessment creation should visually communicate:
 
-Do not put `shadow-lg` or `shadow-xl` on routine cards.
+- assessment purpose/mode;
+- selected class/streams;
+- duration/marks;
+- confirmed eligible scope;
+- excluded content and reason;
+- blueprint;
+- generated items;
+- marking material;
+- teacher review/finalisation status.
 
-## 12. Card Discipline
+### Improve Existing Paper
+The audit should be issue-oriented.
 
-Do not make every piece of information a card.
+Each issue should clearly show:
+- what ATE found;
+- evidence/reason;
+- severity or impact;
+- Keep / Rewrite / Replace.
 
-Use cards for meaningful bounded objects:
-- next lesson;
-- active academic exception;
-- generated assessment artifact;
-- critical decision panel.
+Do not silently “fix everything.”
 
-Use plain rows/dividers for:
-- today's lessons;
-- Teaching Section lists;
-- metadata;
-- simple status lists.
+## 13. Resource discovery
 
-Avoid nested cards unless hierarchy genuinely requires it.
+Recommendations should be compact and useful.
 
-## 13. Navigation
+A resource card may show:
+- title;
+- provider/source;
+- type;
+- duration where relevant;
+- why it fits this lesson;
+- verification state;
+- Open / Save / Attach.
 
-Navigation labels should be task/domain language, not generic admin labels.
+Do not create an approval bureaucracy in the normal teacher flow.
 
-Teacher examples:
-- Home
-- Classes
-- Assessments
-- Resources
-- More
+## 14. HOD experience
 
-HOD examples:
-- Department
-- Teaching Sections
-- Assessments
-- Resources
+Primary question:
+> **What needs coordination in my department?**
 
-DOS examples:
-- Academic Operations
-- Timetable
-- Teaching Sections
-- Academic Exceptions
-- Recovery
-- People
+Show:
+- meaningful Teaching Section differences;
+- common-assessment readiness;
+- unresolved department issues;
+- reusable resources/knowledge;
+- generated department brief.
 
-Principal examples:
-- Academic Health
-- Departments
-- Reports
-- School Profile
+Do not show:
+- teacher leaderboard;
+- “fastest coverage”;
+- AI-use activity rankings.
 
-Actual navigation must follow product requirements and available scope, not screenshot text.
+## 15. DOS experience
 
-## 14. ATE Domain Components
+Primary question:
+> **What requires academic-operational intervention?**
 
-Build reusable domain components rather than page-specific markup.
+Show:
+- timetable/programme;
+- Teaching Sections;
+- exceptions;
+- recovery options;
+- constraints;
+- decisions requiring DOS authority.
 
-Expected examples:
+Normal self-recovering classroom differences should not dominate the interface.
 
-- `TeachingSectionIdentity`
-- `NextLessonPanel`
-- `LessonStateBadge`
-- `LessonReadinessSection`
-- `CurriculumSourceBadge`
-- `ProvenanceRow`
-- `AcademicExceptionPanel`
-- `AssessmentScopeSummary`
-- `AssessmentQuestionCard`
-- `CommonScopeMatrix`
-- `RecoveryDecisionPanel`
-- `TeachingProgressRow`
-- `ResourceRecommendationCard`
-- `RoleContextHeader`
-- `UnconfirmedState`
-- `ActionRequiredBanner`
+## 16. Head Teacher / Principal experience
 
-These should sit above generic Radix/shadcn primitives.
+Primary question:
+> **Is the academic system broadly healthy, and where is senior authority required?**
 
-## 15. Source and Provenance Language
+Show:
+- institutional exceptions;
+- department health;
+- systemic resource/scheduling patterns;
+- pending senior decisions;
+- concise academic brief.
 
-ATE has four major provenance categories:
+Do not expose routine teacher-level detail by default.
 
-### Curriculum / NCDC
-Official curriculum source.
+## 17. Provenance system
+
+Use consistent labels for:
+
+### Curriculum authority
+Official curriculum/assessment source.
 
 ### School
-School-provided or school-approved operational information.
+School-provided or verified operational fact.
+
+### Teacher-confirmed
+Classroom reality established by the teacher/authorised educator.
 
 ### ATE
-System-generated interpretation or recommendation.
+Generated interpretation/recommendation.
 
 ### External
 Third-party resource.
 
-Provide a consistent visual system for these categories.
+Do not visually imply endorsement that does not exist.
 
-Do not imply NCDC endorsement of ATE or external resources.
+## 18. Status language
 
-## 16. Status Language
+Prefer explicit operational language:
+- Confirmed;
+- Unconfirmed;
+- Partially Delivered;
+- Missed / Cancelled;
+- Changed from Plan;
+- Needs Review;
+- Can Recover Normally;
+- Requires HOD Coordination;
+- Requires DOS Decision;
+- Institutional Attention.
 
-Use specific operational language.
+Avoid judgemental language such as:
+- poor teacher;
+- weak performance;
+- slow teacher;
+- failing department.
 
-Prefer:
-- Confirmed
-- Unconfirmed
-- Partially Delivered
-- Missed / Cancelled
-- Changed from Plan
-- Needs Review
-- Requires DOS Decision
-- Can Be Absorbed
-- Recovery Required
+## 19. Loading and AI progress
 
-Avoid vague labels:
-- Bad
-- Poor
-- Weak
-- Failing
-- Behind Teacher
-- Low Performer
+Fast local operations should feel immediate.
 
-## 17. Empty States
+Long AI tasks may show concise truthful stages such as:
+- Preparing context;
+- Drafting;
+- Checking alignment;
+- Finalising artifact.
 
-Empty states should explain state, not sell the product.
+Do not simulate fake AI theatre.
+
+Users should be able to navigate away from background work where technically appropriate.
+
+## 20. Empty states
+
+Explain state; do not celebrate it.
 
 Good:
-> No academic exceptions require DOS action.
+> No academic exceptions currently require DOS action.
 
 Bad:
-> Great job! You're all caught up!
+> Great job! You’re all caught up!
 
-Tone should remain professional and calm.
+## 21. Error states
 
-## 18. Loading States
+Errors must answer:
+- what failed;
+- what remains safe;
+- what the user can do next.
 
-Use loading behavior appropriate to task duration.
+If AI fails, preserve the underlying artifact/context.
 
-Fast local operations:
-- immediate optimistic or short pending state.
+If sync fails, clearly show pending local state.
 
-AI generation:
-- show meaningful task state:
-  - "Preparing lesson context"
-  - "Generating draft"
-  - "Validating structure"
+## 22. Accessibility
 
-Do not use fake long AI theatrics.
+Minimum expectations:
+- semantic HTML;
+- visible focus;
+- keyboard-operable controls;
+- labelled inputs;
+- sufficient contrast;
+- reduced-motion support;
+- touch targets suitable for phones;
+- error messages associated with fields;
+- no colour-only status meaning.
 
-## 19. Motion
+## 23. Motion
 
 Motion is functional.
 
 Use it to:
+- reveal context;
 - preserve continuity;
-- explain state transitions;
-- reveal a contextual panel;
-- confirm propagation;
-- reduce abrupt layout changes.
+- show artifact/state changes;
+- confirm an applied patch;
+- smooth layout transitions.
 
-Do not use motion to decorate:
-- metric cards;
-- every page load;
-- every icon;
-- basic navigation.
+Avoid decorative motion.
 
-Prefer transitions over keyframes for dynamic interactive UI when appropriate.
+Follow Emil Kowalski guidance for easing, timing and motion restraint, but repository product requirements always outrank skills.
 
-Respect reduced-motion settings.
+## 24. Responsive rules
 
-## 20. AI Interaction
+Teacher:
+- no desktop table squeezed onto mobile;
+- preserve primary action above the fold where reasonable;
+- no tiny text;
+- no side-by-side forms that collapse badly;
+- long lesson/assessment content must remain readable.
 
-Do not make AI the visual center of the product.
+Leadership:
+- dense information may use tables;
+- preserve filters/actions;
+- avoid horizontal overflow at common laptop widths.
 
-`Ask ATE` should normally be:
-- a contextual side sheet/panel;
-- aware of the current lesson/assessment context;
-- visually subordinate to the underlying academic artifact.
+## 25. Visual regression surfaces
 
-Avoid:
-- blank full-screen chat as default;
-- generic assistant greetings;
-- glowing AI orb;
-- excessive sparkle icons;
-- "magic" language.
+Protect at least:
+- Teacher Home mobile;
+- Quick Readiness mobile;
+- Formal Lesson Plan mobile + desktop;
+- Outcome Recording mobile;
+- Assessment Builder desktop + mobile review;
+- Onboarding/timetable verification;
+- HOD Department Pulse;
+- DOS Academic Operations;
+- Head Teacher Academic Assurance.
 
-## 21. Teacher Home Design Standard
+## 26. Design review workflow
 
-Teacher Home should answer, in order:
+For significant UI work:
 
-1. What is my next lesson?
-2. Where did this class stop?
-3. What do I need to prepare?
-4. What else do I teach today?
-5. Is anything waiting for confirmation?
+1. read `PRD.md`, `DESIGN.md` and relevant flow/domain docs;
+2. use `gpt-taste` for composition/anti-slop judgement;
+3. use `emil-design-eng` for interaction/motion quality;
+4. use Impeccable for critique/audit/polish;
+5. use React/web-design review skills for accessibility/performance;
+6. test real target widths;
+7. run browser/E2E checks;
+8. visually inspect before completion.
 
-The next lesson should visually dominate.
+## 27. Visual reference policy
 
-Quick actions should remain obvious but secondary.
+Reference screenshots/images are art direction only.
 
-## 22. Lesson Readiness Design Standard
+They may inform:
+- hierarchy;
+- density;
+- layout;
+- interaction intent;
+- visual character.
 
-Lesson Readiness should show:
-- class context;
-- topic;
-- previous state;
-- structured lesson sections;
-- source/provenance;
-- primary actions.
+They do not define:
+- product logic;
+- curriculum facts;
+- metrics;
+- names;
+- dates;
+- school data;
+- navigation that conflicts with PRD.
 
-It should read like a teacher tool, not an AI response.
+## 28. Final design test
 
-No:
-> Certainly! Here's a lesson plan...
+Before a surface is considered complete, ask:
 
-## 23. Outcome Recording Design Standard
-
-The outcome screen must be extremely low-friction.
-
-Primary choices should be obvious and touch-friendly.
-
-If `PARTIALLY_DELIVERED` is selected, reveal structured lesson segments.
-
-Detailed notes remain optional.
-
-## 24. Assessment Builder Design Standard
-
-Assessment builder should visually communicate:
-- assessment mode;
-- selected class/streams;
-- duration;
-- total marks;
-- scope eligibility;
-- excluded material;
-- teacher-review boundary.
-
-The scope guard should be obvious before generation.
-
-## 25. Leadership Design Standard
-
-Leadership screens must be exception-oriented.
-
-Do not use a wall of metrics.
-
-Show:
-- what is normal;
-- what requires attention;
-- why;
-- what action is available;
-- what remains uncertain.
-
-The highest-resolution teacher data should not be shown by default at Principal level.
-
-## 26. Responsive Quality Bar
-
-Teacher flows must be tested at realistic Android phone widths.
-
-At minimum inspect:
-- 360px
-- 390px
-- 430px
-
-Leadership flows should be inspected at:
-- 1280px
-- 1440px
-- 1600px
-
-Do not merely rely on Tailwind breakpoints without visual inspection.
-
-## 27. Anti-Slop Rules
-
-Avoid:
-
-- decorative gradients;
-- floating glassmorphism panels;
-- every section as a rounded card;
-- giant icon tiles above headings;
-- generic metric dashboards;
-- oversized titles;
-- overly muted low-contrast text;
-- random accent colors;
-- arbitrary pill badges;
-- decorative AI purple;
-- unnecessary charts;
-- fake analytics;
-- excessive border radii;
-- excessive drop shadows;
-- bounce/elastic motion in institutional workflows;
-- marketing slogans in operational UI;
-- random copy invented from reference screenshots.
-
-## 28. Visual Reference Policy
-
-Images in `reference-ui/` provide art direction only.
-
-Do not:
-- pixel-copy them;
-- hard-code text from them;
-- infer product facts from them;
-- replicate errors in them.
-
-When an image conflicts with:
-- `PRODUCT.md`;
-- domain data;
-- curriculum data;
-- accepted decisions;
-
-the authoritative repository source wins.
-
-## 29. Final Design Test
-
-Before a UI surface is considered complete, ask:
-
-- Does the most important action dominate?
-- Is the interface quieter than it needs to be, rather than louder?
-- Did we use layout before cards?
-- Is source/provenance visible where trust matters?
-- Is teacher burden minimized?
+- Does the primary action dominate?
+- Does this reduce teacher work?
+- Is the interface quieter than it needs to be rather than louder?
+- Did we use typography/layout before cards?
+- Is provenance visible where trust matters?
 - Does the role see only the resolution it needs?
-- Would this still look credible if all AI labels were removed?
-- Does it look like one product rather than generated pages?
+- Is mobile genuinely usable, not merely responsive?
+- Is the design still credible if every AI label is removed?
+- Does this look like one product rather than a set of generated pages?
