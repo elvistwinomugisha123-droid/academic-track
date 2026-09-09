@@ -1,3 +1,5 @@
+> **ATE v4 notice — 9 September 2026:** This file predates the v4 product/technical split. It is retained as historical implementation context. Where it conflicts with `PRD.md`, `TRD.md`, `AGENTS.md`, `DESIGN.md` or `docs/V4_MIGRATION_PLAN.md`, the v4 documents take precedence.
+
 # Architecture — Academic Track Engine
 
 ## 1. Architecture Goal
