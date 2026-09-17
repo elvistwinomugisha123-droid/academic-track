@@ -1,5 +1,7 @@
 # Product & Architecture Decisions — Academic Track Engine
 
+> **HISTORICAL PROTOTYPE DECISIONS:** Decisions in this file require review against `AGENTS.md` and `docs/ATE_V1_PRODUCT_SPEC.md`. They do not override the September 2026 ATE v1 rebuild contract.
+
 This file records accepted decisions.
 
 New implementation should follow these unless a later decision explicitly supersedes them.

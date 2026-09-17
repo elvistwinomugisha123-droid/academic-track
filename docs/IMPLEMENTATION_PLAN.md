@@ -2,6 +2,8 @@
 
 # Implementation Plan — Academic Track Engine
 
+> **HISTORICAL PROTOTYPE PLAN:** This file is retained for context only. The current rebuild sequence is defined in `docs/ATE_V1_PRODUCT_SPEC.md` and the approved Step 2 execution plan.
+
 ## 1. Strategy
 
 Build one coherent vertical academic system.

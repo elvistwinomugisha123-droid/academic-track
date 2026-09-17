@@ -2,28 +2,27 @@
 
 Academic Track Engine (ATE) is a **teacher-first curriculum implementation and academic operations platform for secondary schools**, built by Bankai Technologies.
 
+> **Current authority:** This repository is on the September 2026 ATE v1 production rebuild. Read `AGENTS.md` and `docs/ATE_V1_PRODUCT_SPEC.md` first. The prototype-era documents below are historical context only.
+
 ATE connects:
 - curriculum and assessment authority;
 - school operational context;
 - teacher-confirmed classroom reality;
 - academic planning, assessment, resources and authorised action.
 
-The repository is currently migrating the existing working prototype to the ATE v4 production architecture.
+The repository is currently establishing the ATE v1 production application foundation. Authentication, tenancy, RLS and product vertical slices follow in later rebuild steps.
 
 ## Start here
 
 Before implementing or modifying the product, read in this order:
 
-1. `PRD.md` — product specification of record.
-2. `TRD.md` — technical specification of record.
-3. `AGENTS.md` — Codex/agent operating contract.
-4. `DESIGN.md` — UI/UX specification of record.
-5. `CODEX_SETUP.md` — Codex skills, working method and first prompts.
-6. `docs/V4_MIGRATION_PLAN.md` — phased migration plan.
-7. `docs/DECISIONS.md` — historical accepted decisions that do not conflict with v4.
-8. other `docs/` files as historical/domain context.
+1. `AGENTS.md` — Codex/agent operating contract.
+2. `docs/ATE_V1_PRODUCT_SPEC.md` — current product and implementation authority.
+3. approved current ADRs/decision records.
+4. `CODEX_SETUP.md` — working method and skills.
+5. other `docs/` files as historical/domain context unless explicitly marked current.
 
-`PRODUCT.md`, older architecture/implementation documents and Biology-first prototype data predate v4. They may help explain the current codebase but they do **not** override `PRD.md` or `TRD.md`.
+`PRD.md`, `TRD.md`, `DESIGN.md`, `PRODUCT.md`, `docs/V4_MIGRATION_PLAN.md`, and older architecture/implementation documents are historical prototype context. They do **not** override `AGENTS.md` or `docs/ATE_V1_PRODUCT_SPEC.md`.
 
 ## Product scope
 

@@ -1,4 +1,6 @@
 import { PGlite } from "@electric-sql/pglite";
+import { existsSync } from "node:fs";
+import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { applyAcademicKnowledgeMigration } from "./db/migration";
 import type { KnowledgeSqlClient } from "./db/client";
@@ -6,6 +8,8 @@ import { importAcademicKnowledge } from "./importer";
 import { retrieveExactKnowledge } from "./retrieval";
 import { assembleAssessmentContext, assembleLessonContext } from "@/intelligence/context-assembler";
 import { fixtureState as seedState } from "@/test/fixtures/academic-state";
+
+const corpusAvailable = existsSync(path.resolve(process.cwd(), "knowledge-sources", "derived", "manifests", "source-registry.json"));
 
 function pgliteClient(database: PGlite): KnowledgeSqlClient {
   return {
@@ -17,7 +21,7 @@ function pgliteClient(database: PGlite): KnowledgeSqlClient {
   };
 }
 
-describe("Academic Knowledge PostgreSQL foundation", () => {
+describe.skipIf(!corpusAvailable)("Academic Knowledge PostgreSQL foundation", () => {
   let client: KnowledgeSqlClient;
 
   let developmentReport: Awaited<ReturnType<typeof importAcademicKnowledge>>;

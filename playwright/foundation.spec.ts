@@ -10,7 +10,15 @@ test("foundation entry is truthful and navigable", async ({ page }) => {
 });
 
 test("foundation has no horizontal overflow at teacher width", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/design-system");
-  await expect(page.locator("body")).toHaveJSProperty("scrollWidth", 390);
+  for (const width of [360, 390, 430, 768, 1280, 1440, 1600]) {
+    await page.setViewportSize({ width, height: width < 800 ? 900 : 1000 });
+    await page.goto("/design-system");
+    await expect(page.locator("body")).toHaveJSProperty("scrollWidth", width);
+  }
+});
+
+test("foundation exposes a keyboard skip link", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: /skip to content/i })).toBeFocused();
 });

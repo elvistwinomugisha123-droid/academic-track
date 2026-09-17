@@ -1,4 +1,4 @@
-# Codex Setup — Academic Track Engine v4
+# Codex Setup — Academic Track Engine v1
 
 **Status:** Repository setup guide  
 **Purpose:** Make Codex work from one consistent product/technical truth and use the right design, engineering and testing skills.
@@ -7,14 +7,12 @@
 
 Codex must use this order:
 
-1. `PRD.md` — what the product must do.
-2. `TRD.md` — how the production system is engineered.
-3. `AGENTS.md` — operating rules for coding agents.
-4. `DESIGN.md` — UI/UX specification.
-5. `docs/V4_MIGRATION_PLAN.md` — upgrade sequence.
-6. `docs/DECISIONS.md` and other historical docs only where they do not conflict with v4.
+1. `AGENTS.md` — operating rules and current rebuild contract.
+2. `docs/ATE_V1_PRODUCT_SPEC.md` — current product and implementation authority.
+3. Approved current ADRs/decision records.
+4. Other documents only where they do not conflict with the v1 authority.
 
-`PRODUCT.md`, the old architecture docs and Biology-first prototype fixtures are historical references, not v4 authority.
+`PRD.md`, `TRD.md`, `DESIGN.md`, `PRODUCT.md`, `docs/V4_MIGRATION_PLAN.md`, old architecture docs and Biology-first prototype fixtures are historical references, not v1 authority.
 
 ## 2. Codex philosophy for this repository
 
