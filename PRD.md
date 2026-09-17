@@ -543,3 +543,6 @@ The strongest proof is coherent state:
 - assessment scope reflects confirmed classroom state;
 - leadership receives only the resolution it needs;
 - AI remains explainable and subordinate to educator authority.
+# HISTORICAL PROTOTYPE DOCUMENT — NOT CURRENT PRODUCT AUTHORITY
+#
+# For the September 2026 ATE v1 rebuild, use AGENTS.md and docs/ATE_V1_PRODUCT_SPEC.md.

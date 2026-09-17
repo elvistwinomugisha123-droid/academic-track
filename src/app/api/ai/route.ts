@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { askAnthropicATE, generateAnthropicAssessment, generateAnthropicLessonReadiness } from "@/ai/anthropic-provider";
-import { fixtureAIProvider, fixtureAssessmentProvider, fixtureAskATEProvider, type AskATERequest, type AssessmentDraftRequest, type LessonReadinessRequest } from "@/ai/contracts";
+import { type AskATERequest, type AssessmentDraftRequest, type LessonReadinessRequest } from "@/ai/contracts";
 
 const EnvelopeSchema = z.discriminatedUnion("workflow", [
   z.object({ workflow: z.literal("LESSON_READINESS"), request: z.unknown() }),
@@ -20,15 +20,6 @@ export async function POST(httpRequest: Request) {
     return NextResponse.json({ provider: "anthropic", fallbackUsed: false, ...result });
   } catch (error) {
     const apiError = error instanceof Error ? error.message : "Unknown Anthropic error";
-    if (envelope.workflow === "LESSON_READINESS") {
-      const output = await fixtureAIProvider.generateLessonReadiness(envelope.request as LessonReadinessRequest);
-      return NextResponse.json({ provider: "fixture", fallbackUsed: true, output, model: null, latencyMs: null, usage: null, zodValidated: true, apiError });
-    }
-    if (envelope.workflow === "ASSESSMENT_DRAFT") {
-      const output = await fixtureAssessmentProvider.generateAssessment(envelope.request as AssessmentDraftRequest);
-      return NextResponse.json({ provider: "fixture", fallbackUsed: true, output, model: null, latencyMs: null, usage: null, zodValidated: true, apiError });
-    }
-    const output = await fixtureAskATEProvider.ask(envelope.request as AskATERequest);
-    return NextResponse.json({ provider: "fixture", fallbackUsed: true, output, model: null, latencyMs: null, usage: null, zodValidated: true, apiError });
+    return NextResponse.json({ provider: "anthropic", fallbackUsed: false, apiError: "The AI provider is unavailable. No academic state was changed." }, { status: 503 });
   }
 }

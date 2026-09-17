@@ -683,3 +683,6 @@ The strongest evidence of product quality is coherent state:
 - the DOS receives an exception only when appropriate;
 - the Principal sees only institutionally significant consequences;
 - assessment scope reflects actual confirmed teaching state.
+# HISTORICAL PROTOTYPE DOCUMENT — NOT CURRENT PRODUCT AUTHORITY
+#
+# For the September 2026 ATE v1 rebuild, use AGENTS.md and docs/ATE_V1_PRODUCT_SPEC.md.

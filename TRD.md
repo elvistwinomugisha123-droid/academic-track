@@ -855,3 +855,6 @@ ATE v4 is technically ready for controlled production use when:
 - leadership views derive from the same academic state;
 - critical teacher mobile flow works under intermittent connectivity;
 - CI/security/eval gates are operational.
+# HISTORICAL PROTOTYPE DOCUMENT — NOT CURRENT ARCHITECTURE AUTHORITY
+#
+# For the September 2026 ATE v1 rebuild, use AGENTS.md and docs/ATE_V1_PRODUCT_SPEC.md.

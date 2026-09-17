@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCurriculumContext } from "./context-builders";
 import { getCurriculumLearningOutcome, getCurriculumTopic } from "./repository";
-import { seedState } from "@/data/seed";
+import { fixtureState as seedState } from "@/test/fixtures/academic-state";
 
 describe("Astra curriculum repository", () => {
   it("resolves Senior 1 Introduction to Biology with canonical IDs", () => {

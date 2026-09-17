@@ -553,3 +553,6 @@ Before a surface is considered complete, ask:
 - Is mobile genuinely usable, not merely responsive?
 - Is the design still credible if every AI label is removed?
 - Does this look like one product rather than a set of generated pages?
+# HISTORICAL PROTOTYPE DESIGN DOCUMENT — NOT CURRENT DESIGN AUTHORITY
+#
+# For the September 2026 ATE v1 rebuild, use AGENTS.md and docs/ATE_V1_PRODUCT_SPEC.md.

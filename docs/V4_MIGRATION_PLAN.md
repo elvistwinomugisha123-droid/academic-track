@@ -304,3 +304,6 @@ The v4 migration is complete when:
 - leadership views derive from the same academic state;
 - critical teacher flow works on mobile and tolerates intermittent connectivity;
 - old prototype-only paths have been removed or explicitly retained for a documented reason.
+# HISTORICAL PROTOTYPE MIGRATION DOCUMENT — NOT CURRENT REBUILD PLAN
+#
+# For the September 2026 ATE v1 rebuild, use AGENTS.md and docs/ATE_V1_PRODUCT_SPEC.md.

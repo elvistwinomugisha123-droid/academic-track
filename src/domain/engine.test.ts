@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { deriveHODView, deriveDOSExceptions, derivePrincipalSummary, eligibleOutcomes, recordLessonOutcome, roleSummary } from "./engine";
-import { seedState } from "@/data/seed";
+import { fixtureState as seedState } from "@/test/fixtures/academic-state";
 import { getCurriculumTopic } from "@/curriculum/repository";
 
 describe("academic state engine", () => {

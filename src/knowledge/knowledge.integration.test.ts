@@ -5,7 +5,7 @@ import type { KnowledgeSqlClient } from "./db/client";
 import { importAcademicKnowledge } from "./importer";
 import { retrieveExactKnowledge } from "./retrieval";
 import { assembleAssessmentContext, assembleLessonContext } from "@/intelligence/context-assembler";
-import { seedState } from "@/data/seed";
+import { fixtureState as seedState } from "@/test/fixtures/academic-state";
 
 function pgliteClient(database: PGlite): KnowledgeSqlClient {
   return {
@@ -108,7 +108,7 @@ describe("Academic Knowledge PostgreSQL foundation", () => {
   it("assembles teacher lesson context from section facts and provenance-bearing curriculum", async () => {
     const current = await client.query<{ canonical_id: string }>("SELECT canonical_id FROM knowledge_records WHERE education_level = 'lower-secondary' AND subject = 'biology' AND record_type = 'topic' ORDER BY canonical_id LIMIT 1");
     const state = structuredClone(seedState);
-    state.outcomes.push({ id: "previous-outcome", scheduledLessonId: "lesson-1", sectionId: "s1-east-biology", recordedBy: "person-teacher", type: "PARTIALLY_DELIVERED", addressedLearningOutcomeIds: [], partiallyAddressedLearningOutcomeIds: [], note: "Continue practical observation.", recordedAt: "2026-09-08T09:00:00.000Z" });
+    state.outcomes.push({ id: "previous-outcome", scheduledLessonId: "lesson-1", sectionId: "s1-east-biology", recordedBy: "fixture-teacher", type: "PARTIALLY_DELIVERED", addressedLearningOutcomeIds: [], partiallyAddressedLearningOutcomeIds: [], note: "Continue practical observation.", recordedAt: "2026-09-08T09:00:00.000Z" });
     const context = await assembleLessonContext(client, { state, sectionId: "s1-east-biology", currentKnowledgeId: current.rows[0].canonical_id, use: "DEVELOPMENT_VIEW" });
     expect(context.section).toMatchObject({ subject: "Biology", currentOutcomeStatus: "UNCONFIRMED" });
     expect(context.previousOutcome).toMatchObject({ id: "previous-outcome", type: "PARTIALLY_DELIVERED" });
