@@ -40,6 +40,22 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      - name: Isolated Supabase security integration tests
+        env:
+          TEST_SUPABASE_URL: ${{ secrets.TEST_SUPABASE_URL }}
+          TEST_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.TEST_SUPABASE_PUBLISHABLE_KEY }}
+          TEST_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.TEST_SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -z "$TEST_SUPABASE_URL" ] && [ -z "$TEST_SUPABASE_PUBLISHABLE_KEY" ] && [ -z "$TEST_SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "Isolated Supabase security integration tests not run: TEST Supabase project is not configured."
+            exit 0
+          fi
+          if [ -z "$TEST_SUPABASE_URL" ] || [ -z "$TEST_SUPABASE_PUBLISHABLE_KEY" ] || [ -z "$TEST_SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "TEST Supabase configuration is incomplete; refusing to skip security integration tests."
+            exit 1
+          fi
+          npm run test:security:integration
+
       - name: Build
         run: npm run build
 
