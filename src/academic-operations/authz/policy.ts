@@ -15,3 +15,7 @@ export function canReadSchoolWideAcademicOperations(role: AcademicOperationsRole
 export function canTeacherSeeAssignedSection(actorMembershipId: string, sectionTeacherMembershipId: string): boolean {
   return actorMembershipId === sectionTeacherMembershipId;
 }
+
+export function canConfirmTeachingSection(role: AcademicOperationsRole, actorMembershipId: string, sectionTeacherMembershipId: string): boolean {
+  return role === "TEACHER" && canTeacherSeeAssignedSection(actorMembershipId, sectionTeacherMembershipId);
+}
