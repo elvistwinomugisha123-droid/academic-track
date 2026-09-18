@@ -9,6 +9,7 @@
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:security:integration": "vitest run src/security/security.integration.test.ts",
     "test:e2e": "playwright test",
     "db:knowledge:import": "tsx knowledge-tools/import/import-academic-knowledge.ts",
     "db:knowledge:import:production": "tsx knowledge-tools/import/import-academic-knowledge.ts --production-authorised"
@@ -16,6 +17,8 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",
     "@react-pdf/renderer": "^4.3.0",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.116.0",
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^0.468.0",
     "next": "^15.5.25",
@@ -29,6 +32,7 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
+    "@playwright/test": "^1.52.0",
     "@types/node": "^22.10.5",
     "@types/react": "^19.0.3",
     "@types/react-dom": "^19.0.2",
@@ -37,8 +41,7 @@
     "tsx": "^4.21.0",
     "typescript": "^5.7.2",
     "vite": "^7.3.6",
-    "vitest": "^5.0.1",
-    "@playwright/test": "^1.52.0"
+    "vitest": "^5.0.1"
   },
   "overrides": {
     "postcss": "^8.5.23"
