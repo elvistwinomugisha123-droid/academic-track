@@ -1,0 +1,557 @@
+-- Step 6B: central Academic Knowledge governance.
+-- This migration is intentionally additive. It does not seed curriculum data,
+-- grant rights, verify records, or activate a curriculum release.
+
+create schema if not exists private;
+
+alter table public.knowledge_sources
+  add column source_schema_version text not null default 'ate-source-v1',
+  add column effective_from date,
+  add column effective_to date,
+  add column formal_artifact_allowed boolean not null default false,
+  add column export_allowed boolean not null default false,
+  add column verified_by uuid,
+  add column verified_at timestamptz,
+  add column verification_reason text;
+
+alter table public.knowledge_source_spans
+  add column content_sha256 text,
+  add column extractor_version text not null default 'unknown',
+  add column schema_version text not null default 'ate-source-span-v1',
+  add column verified_by uuid,
+  add column verified_at timestamptz,
+  add column verification_reason text;
+
+alter table public.knowledge_records
+  add column record_key text,
+  add column content_sha256 text,
+  add column payload_schema_version text not null default 'ate-knowledge-record-v1',
+  add column verified_by uuid,
+  add column verified_at timestamptz,
+  add column verification_reason text;
+
+alter table public.knowledge_relationships
+  add column verified_by uuid,
+  add column verified_at timestamptz,
+  add column verification_reason text;
+
+alter table public.knowledge_import_runs
+  add column importer_version text not null default 'ate-knowledge-importer-1.0.0',
+  add column schema_version text not null default 'ate-knowledge-v1',
+  add column manifest_id text,
+  add column transaction_status text not null default 'COMMITTED' check (transaction_status in ('STARTED', 'COMMITTED', 'ROLLED_BACK', 'FAILED')),
+  add column completed_report_sha256 text;
+
+alter table public.knowledge_sources
+  add constraint knowledge_sources_effective_dates_ck check (effective_to is null or (effective_from is not null and effective_to >= effective_from)),
+  add constraint knowledge_sources_checksum_format_ck check (checksum_sha256 ~* '^[0-9a-f]{64}$'),
+  add constraint knowledge_sources_content_version_ck check (source_schema_version <> '');
+
+alter table public.knowledge_source_spans
+  add constraint knowledge_source_spans_checksum_format_ck check (content_sha256 is null or content_sha256 ~* '^[0-9a-f]{64}$'),
+  add constraint knowledge_source_spans_source_span_unique unique (source_id, span_id);
+
+alter table public.knowledge_records
+  add constraint knowledge_records_checksum_format_ck check (content_sha256 is null or content_sha256 ~* '^[0-9a-f]{64}$'),
+  add constraint knowledge_records_record_key_ck check (record_key is null or record_key <> ''),
+  add constraint knowledge_records_payload_version_ck check (payload_schema_version <> '');
+
+alter table public.knowledge_relationships
+  add constraint knowledge_relationships_source_span_unique unique (source_id, span_id, relationship_id);
+
+-- NOT VALID preserves any historical rows while enforcing the invariant for
+-- new writes. Activation separately reports any legacy violations.
+alter table public.knowledge_records
+  add constraint knowledge_records_source_span_fk
+  foreign key (source_id, span_id) references public.knowledge_source_spans (source_id, span_id) not valid;
+
+alter table public.knowledge_relationships
+  add constraint knowledge_relationships_from_fk
+  foreign key (from_canonical_id) references public.knowledge_records (canonical_id) not valid,
+  add constraint knowledge_relationships_source_span_fk
+  foreign key (source_id, span_id) references public.knowledge_source_spans (source_id, span_id) not valid;
+
+create table public.knowledge_record_taxonomy (
+  record_type text primary key,
+  domain text not null check (domain in ('CURRICULUM_STRUCTURE', 'CURRICULUM_INTENT', 'ASSESSMENT_KNOWLEDGE', 'SOURCE_INTERPRETATION', 'LEGACY_CANDIDATE')),
+  authority_eligible boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+insert into public.knowledge_record_taxonomy (record_type, domain, authority_eligible) values
+  ('subject_profile', 'CURRICULUM_STRUCTURE', true),
+  ('programme_planner', 'CURRICULUM_STRUCTURE', true),
+  ('level_unit', 'CURRICULUM_STRUCTURE', true),
+  ('term_unit', 'CURRICULUM_STRUCTURE', true),
+  ('theme', 'CURRICULUM_STRUCTURE', true),
+  ('topic', 'CURRICULUM_STRUCTURE', true),
+  ('subtopic', 'CURRICULUM_STRUCTURE', true),
+  ('curriculum_framework', 'CURRICULUM_STRUCTURE', true),
+  ('competency', 'CURRICULUM_INTENT', true),
+  ('learning_outcome', 'CURRICULUM_INTENT', true),
+  ('learning_experience', 'CURRICULUM_INTENT', true),
+  ('activity', 'CURRICULUM_INTENT', true),
+  ('skill', 'CURRICULUM_INTENT', true),
+  ('generic_skill', 'CURRICULUM_INTENT', true),
+  ('value', 'CURRICULUM_INTENT', true),
+  ('cross_cutting_issue', 'CURRICULUM_INTENT', true),
+  ('resource', 'CURRICULUM_INTENT', true),
+  ('ict_support', 'CURRICULUM_INTENT', true),
+  ('practical_requirement', 'CURRICULUM_INTENT', true),
+  ('time_allocation', 'CURRICULUM_INTENT', true),
+  ('assessment_profile', 'ASSESSMENT_KNOWLEDGE', true),
+  ('assessment_framework', 'ASSESSMENT_KNOWLEDGE', true),
+  ('assessment_objective', 'ASSESSMENT_KNOWLEDGE', true),
+  ('assessment_guidance', 'ASSESSMENT_KNOWLEDGE', true),
+  ('assessment_strategy', 'ASSESSMENT_KNOWLEDGE', true),
+  ('construct', 'ASSESSMENT_KNOWLEDGE', true),
+  ('ability', 'ASSESSMENT_KNOWLEDGE', true),
+  ('indicator', 'ASSESSMENT_KNOWLEDGE', true),
+  ('assessment_rule', 'ASSESSMENT_KNOWLEDGE', true),
+  ('paper_structure', 'ASSESSMENT_KNOWLEDGE', true),
+  ('scoring_rule', 'ASSESSMENT_KNOWLEDGE', true),
+  ('rubric_rule', 'ASSESSMENT_KNOWLEDGE', true),
+  ('performance_descriptor', 'ASSESSMENT_KNOWLEDGE', true),
+  ('source_note', 'SOURCE_INTERPRETATION', false),
+  ('source_definition', 'SOURCE_INTERPRETATION', false),
+  ('review_note', 'SOURCE_INTERPRETATION', false)
+on conflict (record_type) do nothing;
+
+-- Preserve pre-existing rows without allowing unknown types to become
+-- production authority. New rows must be explicitly registered above or by a
+-- reviewed taxonomy change.
+insert into public.knowledge_record_taxonomy (record_type, domain, authority_eligible)
+select distinct record_type, 'LEGACY_CANDIDATE', false
+from public.knowledge_records
+where record_type is not null
+on conflict (record_type) do nothing;
+
+alter table public.knowledge_records
+  add constraint knowledge_records_record_type_fk
+  foreign key (record_type) references public.knowledge_record_taxonomy (record_type) not valid;
+
+create unique index knowledge_records_source_record_key_unique on public.knowledge_records (source_id, record_key) where record_key is not null;
+
+create table public.knowledge_curriculum_subjects (
+  id uuid primary key default gen_random_uuid(),
+  subject_key text not null unique,
+  title text not null,
+  education_level text not null check (education_level in ('lower-secondary', 'advanced-secondary', 'cross-level')),
+  programme_track text,
+  status text not null default 'DRAFT' check (status in ('DRAFT', 'ACTIVE', 'RETIRED')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (id, education_level)
+);
+
+create table public.knowledge_curriculum_releases (
+  id uuid primary key default gen_random_uuid(),
+  release_key text not null unique,
+  authority text not null,
+  display_name text not null,
+  education_level text not null check (education_level in ('lower-secondary', 'advanced-secondary', 'cross-level')),
+  version_label text not null,
+  effective_from date not null,
+  effective_to date,
+  status text not null default 'DRAFT' check (status in ('DRAFT', 'REVIEW', 'ACTIVE', 'SUPERSEDED', 'RETIRED')),
+  supersedes_release_id uuid references public.knowledge_curriculum_releases(id),
+  manifest_checksum_sha256 text not null check (manifest_checksum_sha256 ~* '^[0-9a-f]{64}$'),
+  created_at timestamptz not null default now(),
+  created_by uuid,
+  activated_at timestamptz,
+  activated_by uuid,
+  unique (id, education_level),
+  check (effective_to is null or effective_to >= effective_from)
+);
+
+create table public.knowledge_subject_profiles (
+  id uuid primary key default gen_random_uuid(),
+  release_id uuid not null,
+  governed_subject_id uuid not null,
+  profile_key text not null,
+  display_title text not null,
+  education_level text not null check (education_level in ('lower-secondary', 'advanced-secondary', 'cross-level')),
+  programme_track text,
+  status text not null default 'DRAFT' check (status in ('DRAFT', 'ACTIVE', 'RETIRED')),
+  display_order integer not null default 0,
+  requires_assessment_profile boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (release_id, profile_key),
+  unique (id, release_id),
+  foreign key (release_id, education_level) references public.knowledge_curriculum_releases(id, education_level),
+  foreign key (governed_subject_id, education_level) references public.knowledge_curriculum_subjects(id, education_level)
+);
+
+create table public.knowledge_release_sources (
+  id uuid primary key default gen_random_uuid(),
+  release_id uuid not null references public.knowledge_curriculum_releases(id),
+  subject_profile_id uuid,
+  source_id text not null references public.knowledge_sources(source_id),
+  source_role text not null check (source_role in ('FRAMEWORK', 'SUBJECT_SYLLABUS', 'ASSESSMENT_FRAMEWORK', 'SUBJECT_ASSESSMENT_GUIDELINE', 'SUPPORTING_REFERENCE')),
+  is_required boolean not null default true,
+  precedence_order integer not null default 0,
+  status text not null default 'DRAFT' check (status in ('DRAFT', 'APPROVED', 'RETIRED')),
+  created_at timestamptz not null default now(),
+  approved_at timestamptz,
+  approved_by uuid,
+  unique (release_id, subject_profile_id, source_id, source_role),
+  foreign key (subject_profile_id, release_id) references public.knowledge_subject_profiles(id, release_id)
+);
+
+create table public.knowledge_profile_records (
+  id uuid primary key default gen_random_uuid(),
+  release_id uuid not null,
+  subject_profile_id uuid not null,
+  canonical_id text not null references public.knowledge_records(canonical_id),
+  membership_role text not null default 'CURRICULUM' check (membership_role in ('CURRICULUM', 'ASSESSMENT', 'SUPPORTING')),
+  ordering_key text,
+  status text not null default 'DRAFT' check (status in ('DRAFT', 'APPROVED', 'RETIRED')),
+  effective_from date,
+  effective_to date,
+  created_at timestamptz not null default now(),
+  unique (subject_profile_id, canonical_id),
+  foreign key (subject_profile_id, release_id) references public.knowledge_subject_profiles(id, release_id),
+  check (effective_to is null or effective_from is null or effective_to >= effective_from)
+);
+
+create table public.knowledge_assessment_profiles (
+  id uuid primary key default gen_random_uuid(),
+  release_id uuid not null references public.knowledge_curriculum_releases(id),
+  subject_profile_id uuid,
+  assessment_key text not null,
+  display_title text not null,
+  purpose text not null,
+  regime text not null,
+  composition_mode text not null default 'FRAMEWORK_THEN_SUBJECT' check (composition_mode in ('FRAMEWORK_THEN_SUBJECT', 'SOURCE_PRECEDENCE')),
+  applicable_source_roles text[] not null default array['ASSESSMENT_FRAMEWORK']::text[],
+  status text not null default 'DRAFT' check (status in ('DRAFT', 'ACTIVE', 'RETIRED')),
+  created_at timestamptz not null default now(),
+  unique (release_id, assessment_key),
+  foreign key (subject_profile_id, release_id) references public.knowledge_subject_profiles(id, release_id)
+);
+
+create table public.knowledge_conflicts (
+  id uuid primary key default gen_random_uuid(),
+  release_id uuid not null references public.knowledge_curriculum_releases(id),
+  subject_profile_id uuid,
+  category text not null,
+  status text not null default 'OPEN' check (status in ('OPEN', 'RESOLVED', 'ACCEPTED_OVERRIDE')),
+  summary text not null,
+  resolution_text text,
+  resolved_by uuid,
+  resolved_at timestamptz,
+  created_at timestamptz not null default now(),
+  foreign key (subject_profile_id, release_id) references public.knowledge_subject_profiles(id, release_id),
+  check ((status = 'OPEN' and resolved_by is null and resolved_at is null) or (status <> 'OPEN' and resolved_by is not null and resolved_at is not null)),
+  check (status = 'OPEN' or resolution_text is not null)
+);
+
+create table public.knowledge_conflict_items (
+  id uuid primary key default gen_random_uuid(),
+  conflict_id uuid not null references public.knowledge_conflicts(id) on delete cascade,
+  item_type text not null check (item_type in ('RECORD', 'SOURCE', 'SPAN')),
+  canonical_id text references public.knowledge_records(canonical_id),
+  source_id text references public.knowledge_sources(source_id),
+  span_id text references public.knowledge_source_spans(span_id),
+  item_role text not null check (item_role in ('CLAIM_A', 'CLAIM_B', 'CONTEXT')),
+  notes text,
+  created_at timestamptz not null default now(),
+  check (((canonical_id is not null)::integer + (source_id is not null)::integer + (span_id is not null)::integer) = 1),
+  check ((item_type = 'RECORD' and canonical_id is not null) or (item_type = 'SOURCE' and source_id is not null) or (item_type = 'SPAN' and span_id is not null))
+);
+
+create table public.knowledge_verification_decisions (
+  decision_id uuid primary key default gen_random_uuid(),
+  entity_type text not null check (entity_type in ('SOURCE', 'SPAN', 'RECORD', 'RELATIONSHIP')),
+  entity_id text not null,
+  resulting_status text not null check (resulting_status in ('UNVERIFIED', 'REVIEW_REQUIRED', 'VERIFIED')),
+  actor_user_id uuid not null,
+  decided_at timestamptz not null default now(),
+  reason text not null,
+  evidence_reference text,
+  source_version_context text
+);
+
+create table public.knowledge_rights_decisions (
+  decision_id uuid primary key default gen_random_uuid(),
+  source_id text not null references public.knowledge_sources(source_id),
+  source_checksum_sha256 text not null check (source_checksum_sha256 ~* '^[0-9a-f]{64}$'),
+  rights_status text not null check (rights_status in ('CLEARED', 'REVIEW_REQUIRED', 'RESTRICTED', 'UNKNOWN')),
+  production_use_status text not null check (production_use_status in ('PERMITTED', 'PERMISSION_PENDING', 'BLOCKED')),
+  external_ai_allowed boolean not null default false,
+  formal_artifact_allowed boolean not null default false,
+  export_allowed boolean not null default false,
+  attribution_required boolean not null default true,
+  decision_source text not null,
+  evidence_reference text,
+  actor_user_id uuid not null,
+  decided_at timestamptz not null default now(),
+  review_expires_at date,
+  notes text
+);
+
+create table public.knowledge_record_identity_mappings (
+  mapping_id uuid primary key default gen_random_uuid(),
+  source_id text not null references public.knowledge_sources(source_id),
+  source_checksum_sha256 text not null check (source_checksum_sha256 ~* '^[0-9a-f]{64}$'),
+  candidate_id text not null,
+  canonical_id text not null references public.knowledge_records(canonical_id),
+  created_at timestamptz not null default now(),
+  unique (source_id, source_checksum_sha256, candidate_id)
+);
+
+create index knowledge_subject_profiles_release_idx on public.knowledge_subject_profiles (release_id, status, display_order);
+create index knowledge_release_sources_lookup_idx on public.knowledge_release_sources (release_id, subject_profile_id, source_id, status);
+create unique index knowledge_release_sources_release_unique on public.knowledge_release_sources (release_id, source_id, source_role) where subject_profile_id is null;
+create index knowledge_profile_records_lookup_idx on public.knowledge_profile_records (subject_profile_id, status, ordering_key, canonical_id);
+create index knowledge_assessment_profiles_lookup_idx on public.knowledge_assessment_profiles (release_id, subject_profile_id, status);
+create index knowledge_conflicts_scope_idx on public.knowledge_conflicts (release_id, subject_profile_id, status);
+create index knowledge_verification_decisions_entity_idx on public.knowledge_verification_decisions (entity_type, entity_id, decided_at desc);
+create index knowledge_rights_decisions_source_idx on public.knowledge_rights_decisions (source_id, decided_at desc);
+
+create or replace function private.prevent_knowledge_decision_mutation()
+returns trigger language plpgsql set search_path = public, pg_temp as $$
+begin
+  raise exception 'knowledge governance decision history is append-only';
+end;
+$$;
+
+create trigger knowledge_verification_decisions_append_only
+before update or delete on public.knowledge_verification_decisions
+for each row execute function private.prevent_knowledge_decision_mutation();
+
+create trigger knowledge_rights_decisions_append_only
+before update or delete on public.knowledge_rights_decisions
+for each row execute function private.prevent_knowledge_decision_mutation();
+
+create or replace function private.prevent_unaudited_knowledge_verification()
+returns trigger language plpgsql set search_path = public, pg_temp as $$
+begin
+  if new.verification_status = 'VERIFIED' and coalesce(current_setting('ate.knowledge_verification_decision', true), '') <> 'true' then
+    raise exception 'VERIFIED knowledge status requires an append-only verification decision';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger knowledge_sources_verification_guard
+before insert or update of verification_status on public.knowledge_sources
+for each row execute function private.prevent_unaudited_knowledge_verification();
+
+create trigger knowledge_source_spans_verification_guard
+before insert or update of verification_status on public.knowledge_source_spans
+for each row execute function private.prevent_unaudited_knowledge_verification();
+
+create trigger knowledge_records_verification_guard
+before insert or update of verification_status on public.knowledge_records
+for each row execute function private.prevent_unaudited_knowledge_verification();
+
+create trigger knowledge_relationships_verification_guard
+before insert or update of verification_status on public.knowledge_relationships
+for each row execute function private.prevent_unaudited_knowledge_verification();
+
+create or replace function private.prevent_unaudited_knowledge_rights()
+returns trigger language plpgsql set search_path = public, pg_temp as $$
+begin
+  if (
+    new.rights_status = 'CLEARED'
+    or new.production_use_status = 'PERMITTED'
+    or new.external_ai_allowed
+    or new.formal_artifact_allowed
+    or new.export_allowed
+  ) and coalesce(current_setting('ate.knowledge_rights_decision', true), '') <> 'true' then
+    raise exception 'CLEARED/PERMITTED knowledge rights require an append-only rights decision';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger knowledge_sources_rights_guard
+before insert or update of rights_status, production_use_status, external_ai_allowed, formal_artifact_allowed, export_allowed on public.knowledge_sources
+for each row execute function private.prevent_unaudited_knowledge_rights();
+
+create or replace function private.enforce_knowledge_release_lifecycle()
+returns trigger language plpgsql set search_path = public, pg_temp as $$
+declare command_name text := coalesce(current_setting('ate.knowledge_governance_command', true), '');
+begin
+  if tg_op = 'INSERT' and new.status <> 'DRAFT' then
+    raise exception 'central knowledge releases/profiles/subjects must be created as DRAFT';
+  end if;
+  if tg_op = 'UPDATE' and old.status = 'ACTIVE' and new.status in ('ACTIVE', 'SUPERSEDED') and (to_jsonb(new) - 'status' - 'activated_at' - 'activated_by' - 'updated_at') is distinct from (to_jsonb(old) - 'status' - 'activated_at' - 'activated_by' - 'updated_at') then
+    raise exception 'active central knowledge meaning is immutable; create a new release/profile';
+  end if;
+  if tg_op = 'UPDATE' and new.status is distinct from old.status then
+    if new.status = 'REVIEW' and old.status = 'DRAFT' and command_name = 'SUBMIT_RELEASE_REVIEW' then
+      return new;
+    end if;
+    if new.status = 'ACTIVE' and old.status in ('DRAFT', 'REVIEW') and command_name = 'ACTIVATE_RELEASE' then
+      return new;
+    end if;
+    if new.status = 'SUPERSEDED' and old.status = 'ACTIVE' and command_name = 'SUPERSEDE_RELEASE' then
+      return new;
+    end if;
+    if new.status = 'RETIRED' and old.status in ('DRAFT', 'REVIEW', 'SUPERSEDED') and command_name = 'RETIRE_RELEASE' then
+      return new;
+    end if;
+    raise exception 'unauthorised central knowledge lifecycle transition';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger knowledge_release_lifecycle_guard
+before insert or update on public.knowledge_curriculum_releases
+for each row execute function private.enforce_knowledge_release_lifecycle();
+
+create trigger knowledge_profile_lifecycle_guard
+before insert or update on public.knowledge_subject_profiles
+for each row execute function private.enforce_knowledge_release_lifecycle();
+
+create trigger knowledge_subject_lifecycle_guard
+before insert or update on public.knowledge_curriculum_subjects
+for each row execute function private.enforce_knowledge_release_lifecycle();
+
+create trigger knowledge_assessment_profile_lifecycle_guard
+before insert or update on public.knowledge_assessment_profiles
+for each row execute function private.enforce_knowledge_release_lifecycle();
+
+create or replace function private.prevent_active_knowledge_membership_edit()
+returns trigger language plpgsql set search_path = public, pg_temp as $$
+begin
+  if exists (select 1 from public.knowledge_curriculum_releases where id = coalesce(new.release_id, old.release_id) and status = 'ACTIVE') then
+    raise exception 'active release membership is immutable; create a new release';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger knowledge_release_sources_active_guard
+before update or delete on public.knowledge_release_sources
+for each row execute function private.prevent_active_knowledge_membership_edit();
+
+create trigger knowledge_profile_records_active_guard
+before update or delete on public.knowledge_profile_records
+for each row execute function private.prevent_active_knowledge_membership_edit();
+
+create or replace function public.record_knowledge_verification_decision(
+  p_entity_type text,
+  p_entity_id text,
+  p_resulting_status text,
+  p_actor_user_id uuid,
+  p_reason text,
+  p_evidence_reference text default null,
+  p_source_version_context text default null
+) returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
+declare decision_id uuid;
+begin
+  if p_entity_type not in ('SOURCE', 'SPAN', 'RECORD', 'RELATIONSHIP') then raise exception 'invalid knowledge verification entity type'; end if;
+  if p_resulting_status not in ('UNVERIFIED', 'REVIEW_REQUIRED', 'VERIFIED') then raise exception 'invalid knowledge verification status'; end if;
+  if p_actor_user_id is null or nullif(trim(p_reason), '') is null then raise exception 'verification actor and reason are required'; end if;
+
+  perform set_config('ate.knowledge_verification_decision', 'true', true);
+  insert into public.knowledge_verification_decisions (entity_type, entity_id, resulting_status, actor_user_id, reason, evidence_reference, source_version_context)
+  values (p_entity_type, p_entity_id, p_resulting_status, p_actor_user_id, p_reason, p_evidence_reference, p_source_version_context)
+  returning knowledge_verification_decisions.decision_id into decision_id;
+
+  if p_entity_type = 'SOURCE' then
+    update public.knowledge_sources set verification_status = p_resulting_status, verified_by = p_actor_user_id, verified_at = now(), verification_reason = p_reason where source_id = p_entity_id;
+  elsif p_entity_type = 'SPAN' then
+    update public.knowledge_source_spans set verification_status = p_resulting_status, verified_by = p_actor_user_id, verified_at = now(), verification_reason = p_reason where span_id = p_entity_id;
+  elsif p_entity_type = 'RECORD' then
+    update public.knowledge_records set verification_status = p_resulting_status, verified_by = p_actor_user_id, verified_at = now(), verification_reason = p_reason where canonical_id = p_entity_id;
+  else
+    update public.knowledge_relationships set verification_status = p_resulting_status, verified_by = p_actor_user_id, verified_at = now(), verification_reason = p_reason where relationship_id = p_entity_id;
+  end if;
+
+  if not found then raise exception 'knowledge verification entity not found'; end if;
+  return decision_id;
+end;
+$$;
+
+create or replace function public.record_knowledge_rights_decision(
+  p_source_id text,
+  p_rights_status text,
+  p_production_use_status text,
+  p_external_ai_allowed boolean,
+  p_formal_artifact_allowed boolean,
+  p_export_allowed boolean,
+  p_attribution_required boolean,
+  p_decision_source text,
+  p_actor_user_id uuid,
+  p_evidence_reference text default null,
+  p_review_expires_at date default null,
+  p_notes text default null
+) returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
+declare decision_id uuid; checksum text;
+begin
+  if p_rights_status not in ('CLEARED', 'REVIEW_REQUIRED', 'RESTRICTED', 'UNKNOWN') then raise exception 'invalid knowledge rights status'; end if;
+  if p_production_use_status not in ('PERMITTED', 'PERMISSION_PENDING', 'BLOCKED') then raise exception 'invalid knowledge production-use status'; end if;
+  if p_actor_user_id is null or nullif(trim(p_decision_source), '') is null then raise exception 'rights decision source and actor are required'; end if;
+  select checksum_sha256 into checksum from public.knowledge_sources where source_id = p_source_id;
+  if checksum is null then raise exception 'knowledge rights source not found'; end if;
+
+  perform set_config('ate.knowledge_rights_decision', 'true', true);
+  insert into public.knowledge_rights_decisions (source_id, source_checksum_sha256, rights_status, production_use_status, external_ai_allowed, formal_artifact_allowed, export_allowed, attribution_required, decision_source, evidence_reference, actor_user_id, review_expires_at, notes)
+  values (p_source_id, checksum, p_rights_status, p_production_use_status, p_external_ai_allowed, p_formal_artifact_allowed, p_export_allowed, p_attribution_required, p_decision_source, p_evidence_reference, p_actor_user_id, p_review_expires_at, p_notes)
+  returning knowledge_rights_decisions.decision_id into decision_id;
+
+  update public.knowledge_sources
+  set rights_status = p_rights_status,
+      production_use_status = p_production_use_status,
+      external_ai_allowed = p_external_ai_allowed,
+      formal_artifact_allowed = p_formal_artifact_allowed,
+      export_allowed = p_export_allowed,
+      attribution_required = p_attribution_required
+  where source_id = p_source_id;
+  return decision_id;
+end;
+$$;
+
+-- Central knowledge is server-only. There are no browser policies by design.
+alter table public.knowledge_sources enable row level security;
+alter table public.knowledge_source_spans enable row level security;
+alter table public.knowledge_records enable row level security;
+alter table public.knowledge_relationships enable row level security;
+alter table public.knowledge_legacy_id_mappings enable row level security;
+alter table public.knowledge_import_runs enable row level security;
+alter table public.knowledge_record_taxonomy enable row level security;
+alter table public.knowledge_curriculum_subjects enable row level security;
+alter table public.knowledge_curriculum_releases enable row level security;
+alter table public.knowledge_subject_profiles enable row level security;
+alter table public.knowledge_release_sources enable row level security;
+alter table public.knowledge_profile_records enable row level security;
+alter table public.knowledge_assessment_profiles enable row level security;
+alter table public.knowledge_conflicts enable row level security;
+alter table public.knowledge_conflict_items enable row level security;
+alter table public.knowledge_verification_decisions enable row level security;
+alter table public.knowledge_rights_decisions enable row level security;
+alter table public.knowledge_record_identity_mappings enable row level security;
+
+revoke all privileges on table public.knowledge_sources, public.knowledge_source_spans, public.knowledge_records, public.knowledge_relationships, public.knowledge_legacy_id_mappings, public.knowledge_import_runs, public.knowledge_record_taxonomy, public.knowledge_curriculum_subjects, public.knowledge_curriculum_releases, public.knowledge_subject_profiles, public.knowledge_release_sources, public.knowledge_profile_records, public.knowledge_assessment_profiles, public.knowledge_conflicts, public.knowledge_conflict_items, public.knowledge_verification_decisions, public.knowledge_rights_decisions, public.knowledge_record_identity_mappings from public;
+
+do $$
+declare role_name text;
+begin
+  foreach role_name in array array['anon', 'authenticated'] loop
+    if exists (select 1 from pg_roles where rolname = role_name) then
+      execute format('revoke all privileges on table public.knowledge_sources, public.knowledge_source_spans, public.knowledge_records, public.knowledge_relationships, public.knowledge_legacy_id_mappings, public.knowledge_import_runs, public.knowledge_record_taxonomy, public.knowledge_curriculum_subjects, public.knowledge_curriculum_releases, public.knowledge_subject_profiles, public.knowledge_release_sources, public.knowledge_profile_records, public.knowledge_assessment_profiles, public.knowledge_conflicts, public.knowledge_conflict_items, public.knowledge_verification_decisions, public.knowledge_rights_decisions, public.knowledge_record_identity_mappings from %I', role_name);
+    end if;
+  end loop;
+end;
+$$;
+
+revoke all on function public.record_knowledge_verification_decision(text, text, text, uuid, text, text, text) from public;
+revoke all on function public.record_knowledge_rights_decision(text, text, text, boolean, boolean, boolean, boolean, text, uuid, text, date, text) from public;
+
+do $$
+declare role_name text;
+begin
+  foreach role_name in array array['anon', 'authenticated'] loop
+    if exists (select 1 from pg_roles where rolname = role_name) then
+      execute format('revoke all on function public.record_knowledge_verification_decision(text, text, text, uuid, text, text, text) from %I', role_name);
+      execute format('revoke all on function public.record_knowledge_rights_decision(text, text, text, boolean, boolean, boolean, boolean, text, uuid, text, date, text) from %I', role_name);
+    end if;
+  end loop;
+end;
+$$;

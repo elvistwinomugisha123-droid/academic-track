@@ -1,38 +1,59 @@
 import "server-only";
 import { sourcePermitsUse } from "./rights";
 import type { KnowledgeSqlClient } from "./db/client";
-import type { ExactRetrievalRequest, KnowledgeRightsError, RetrievedKnowledgeRecord } from "./types";
-import { KnowledgeRightsError as RightsError } from "./types";
+import type { ExactRetrievalRequest, KnowledgeGovernanceError, KnowledgeProvenance, RetrievedKnowledgeRecord } from "./types";
+import { KnowledgeGovernanceError as GovernanceError, KnowledgeRightsError } from "./types";
 
-type RetrievalRow = {
-  canonical_id: string; record_type: string; education_level: RetrievedKnowledgeRecord["educationLevel"]; subject: string | null;
-  source_wording: string; normalized: Record<string, unknown>; verification_status: RetrievedKnowledgeRecord["verificationStatus"];
-  source_id: string; title: string; authority: string; source_version: string | null; page_start: number; page_end: number; span_id: string; locator: string;
-  extraction_confidence: RetrievedKnowledgeRecord["provenance"]["extractionConfidence"]; rights_status: RetrievedKnowledgeRecord["provenance"]["rightsStatus"];
-  production_use_status: RetrievedKnowledgeRecord["provenance"]["productionUseStatus"]; attribution_required: boolean; external_ai_allowed: boolean;
-};
+type LegacyRow = { canonical_id: string; record_type: string; education_level: RetrievedKnowledgeRecord["educationLevel"]; subject: string | null; source_wording: string; normalized: Record<string, unknown>; verification_status: RetrievedKnowledgeRecord["verificationStatus"]; source_id: string; title: string; authority: string; source_version: string | null; checksum_sha256: string; page_start: number; page_end: number; span_id: string; locator: string; extraction_confidence: RetrievedKnowledgeRecord["provenance"]["extractionConfidence"]; rights_status: RetrievedKnowledgeRecord["provenance"]["rightsStatus"]; production_use_status: RetrievedKnowledgeRecord["provenance"]["productionUseStatus"]; attribution_required: boolean; external_ai_allowed: boolean; formal_artifact_allowed: boolean; export_allowed: boolean; source_content_sha256: string | null; record_content_sha256: string | null };
+type GovernedRow = LegacyRow & { release_id: string; release_key: string; release_status: "DRAFT" | "REVIEW" | "ACTIVE" | "SUPERSEDED" | "RETIRED"; release_effective_from: string; release_effective_to: string | null; profile_id: string; profile_key: string; profile_status: "DRAFT" | "ACTIVE" | "RETIRED"; membership_status: "DRAFT" | "APPROVED" | "RETIRED"; source_set_status: string | null; source_verification_status: string; span_verification_status: string; open_conflict: boolean; authority_eligible: boolean; profile_education_level: string; subject_profile_subject_id: string; subject_education_level: string };
+
+function mapRow(row: LegacyRow): RetrievedKnowledgeRecord {
+  const provenance: KnowledgeProvenance = { sourceId: row.source_id, sourceTitle: row.title, authority: row.authority, sourceVersion: row.source_version, pageStart: row.page_start, pageEnd: row.page_end, spanId: row.span_id, locator: row.locator, extractionConfidence: row.extraction_confidence, sourceContentSha256: row.source_content_sha256, recordContentSha256: row.record_content_sha256, rightsStatus: row.rights_status, productionUseStatus: row.production_use_status, attributionRequired: row.attribution_required, formalArtifactAllowed: row.formal_artifact_allowed, exportAllowed: row.export_allowed };
+  return { canonicalId: row.canonical_id, recordType: row.record_type, educationLevel: row.education_level, subject: row.subject, sourceWording: row.source_wording, normalized: row.normalized, verificationStatus: row.verification_status, provenance };
+}
+
+async function retrieveDevelopment(client: KnowledgeSqlClient, request: ExactRetrievalRequest): Promise<RetrievedKnowledgeRecord[]> {
+  if (!request.canonicalId && !request.legacyId && (!request.subject || !request.educationLevel)) throw new Error("Exact retrieval requires a canonical/legacy ID or both subject and educationLevel.");
+  const parameters: unknown[] = []; const clauses: string[] = [];
+  const bind = (value: unknown) => { parameters.push(value); return `$${parameters.length}`; };
+  if (request.canonicalId) clauses.push(`r.canonical_id = ${bind(request.canonicalId)}`);
+  if (request.legacyId) clauses.push(`r.canonical_id = (SELECT canonical_id FROM knowledge_legacy_id_mappings WHERE legacy_id = ${bind(request.legacyId)})`);
+  if (request.subject) clauses.push(`r.subject = ${bind(request.subject)}`);
+  if (request.educationLevel) clauses.push(`r.education_level = ${bind(request.educationLevel)}`);
+  if (request.recordTypes?.length) clauses.push(`r.record_type IN (${request.recordTypes.map(bind).join(",")})`);
+  const result = await client.query<LegacyRow>(`SELECT r.canonical_id, r.record_type, r.education_level, r.subject, r.source_wording, r.normalized, r.verification_status, s.source_id, s.title, s.authority, s.source_version, s.checksum_sha256, sp.page_start, sp.page_end, sp.span_id, sp.locator, sp.extraction_confidence, s.rights_status, s.production_use_status, s.attribution_required, s.external_ai_allowed, s.formal_artifact_allowed, s.export_allowed, sp.content_sha256 AS source_content_sha256, r.content_sha256 AS record_content_sha256 FROM knowledge_records r JOIN knowledge_sources s ON s.source_id=r.source_id JOIN knowledge_source_spans sp ON sp.span_id=r.span_id WHERE ${clauses.join(" AND ")} ORDER BY r.canonical_id LIMIT ${bind(Math.min(Math.max(request.limit ?? 20, 1), 100))}`, parameters);
+  if (!result.rows.length) throw new KnowledgeRightsError("KNOWLEDGE_NOT_FOUND", "No exact curriculum knowledge matched the request.");
+  const rows = result.rows.filter((row) => sourcePermitsUse({ rightsStatus: row.rights_status, productionUseStatus: row.production_use_status, externalAiAllowed: row.external_ai_allowed, formalArtifactAllowed: row.formal_artifact_allowed, exportAllowed: row.export_allowed }, request.use));
+  if (!rows.length) throw new KnowledgeRightsError("KNOWLEDGE_RIGHTS_DENIED", "The matched curriculum source is not authorised for the requested use.");
+  return rows.map(mapRow);
+}
+
+function governedRequestIsComplete(request: ExactRetrievalRequest): boolean { return Boolean(request.releaseId && request.subjectProfileId && request.effectiveOn && request.recordTypes?.length); }
 
 export async function retrieveExactKnowledge(client: KnowledgeSqlClient, request: ExactRetrievalRequest): Promise<RetrievedKnowledgeRecord[]> {
-  if (!request.canonicalId && !request.legacyId && (!request.subject || !request.educationLevel)) {
-    throw new Error("Exact retrieval requires a canonical/legacy ID or both subject and educationLevel.");
+  if (request.use === "DEVELOPMENT_VIEW" && !request.releaseId && !request.subjectProfileId && !request.effectiveOn) return retrieveDevelopment(client, request);
+  if (!governedRequestIsComplete(request)) throw new GovernanceError("PROFILE_MISMATCH", "Governed retrieval requires releaseId, subjectProfileId, effectiveOn, and at least one record type.");
+  const parameters: unknown[] = [request.releaseId, request.subjectProfileId, request.effectiveOn]; const clauses = ["rel.id=$1", "p.id=$2", "rel.status IN ('ACTIVE','SUPERSEDED')", "rel.effective_from <= $3::date", "(rel.effective_to IS NULL OR rel.effective_to >= $3::date)", "p.status='ACTIVE'", "pr.status='APPROVED'", "rs.status='APPROVED'", "r.record_type = ANY($4::text[])"]; parameters.push(request.recordTypes);
+  if (request.canonicalId) { parameters.push(request.canonicalId); clauses.push(`r.canonical_id=$${parameters.length}`); }
+  if (request.legacyId) { parameters.push(request.legacyId); clauses.push(`r.canonical_id=(SELECT canonical_id FROM knowledge_legacy_id_mappings WHERE legacy_id=$${parameters.length})`); }
+  if (request.subject) { parameters.push(request.subject); clauses.push(`r.subject=$${parameters.length}`); }
+  if (request.educationLevel) { parameters.push(request.educationLevel); clauses.push(`r.education_level=$${parameters.length}`); }
+  const result = await client.query<GovernedRow>(`SELECT r.canonical_id, r.record_type, r.education_level, r.subject, r.source_wording, r.normalized, r.verification_status, s.source_id, s.title, s.authority, s.source_version, s.checksum_sha256, sp.page_start, sp.page_end, sp.span_id, sp.locator, sp.extraction_confidence, s.rights_status, s.production_use_status, s.attribution_required, s.external_ai_allowed, s.formal_artifact_allowed, s.export_allowed, sp.content_sha256 AS source_content_sha256, r.content_sha256 AS record_content_sha256, rel.id AS release_id, rel.release_key, rel.status AS release_status, rel.effective_from AS release_effective_from, rel.effective_to AS release_effective_to, p.id AS profile_id, p.profile_key, p.status AS profile_status, pr.status AS membership_status, rs.status AS source_set_status, s.verification_status AS source_verification_status, sp.verification_status AS span_verification_status, coalesce(rt.authority_eligible,false) AS authority_eligible, EXISTS (SELECT 1 FROM knowledge_conflicts c LEFT JOIN knowledge_conflict_items ci ON ci.conflict_id=c.id WHERE c.release_id=rel.id AND c.status='OPEN' AND (c.subject_profile_id IS NULL OR c.subject_profile_id=p.id) AND (ci.canonical_id=r.canonical_id OR ci.source_id=s.source_id OR ci.span_id=sp.span_id)) AS open_conflict, p.education_level AS profile_education_level, p.governed_subject_id AS subject_profile_subject_id, cs.education_level AS subject_education_level FROM knowledge_records r JOIN knowledge_sources s ON s.source_id=r.source_id JOIN knowledge_source_spans sp ON sp.source_id=r.source_id AND sp.span_id=r.span_id JOIN knowledge_profile_records pr ON pr.canonical_id=r.canonical_id AND pr.release_id=$1 AND pr.subject_profile_id=$2 JOIN knowledge_subject_profiles p ON p.id=pr.subject_profile_id AND p.release_id=pr.release_id JOIN knowledge_curriculum_releases rel ON rel.id=p.release_id JOIN knowledge_curriculum_subjects cs ON cs.id=p.governed_subject_id JOIN knowledge_record_taxonomy rt ON rt.record_type=r.record_type JOIN knowledge_release_sources rs ON rs.release_id=rel.id AND rs.source_id=s.source_id AND (rs.subject_profile_id IS NULL OR rs.subject_profile_id=p.id) WHERE ${clauses.join(" AND ")} ORDER BY coalesce(pr.ordering_key,''), r.canonical_id`, parameters);
+  if (!result.rows.length) {
+    const profile = await client.query<{ id: string }>("SELECT id FROM knowledge_subject_profiles WHERE id=$1 AND release_id=$2", [request.subjectProfileId, request.releaseId]);
+    if (!profile.rows.length) throw new GovernanceError("PROFILE_MISMATCH", "The requested subject profile is not part of the requested release.");
+    if (request.canonicalId || request.legacyId) throw new GovernanceError("SUBJECT_PROFILE_MISMATCH", "The selected record is not a member of the requested subject profile.");
+    throw new GovernanceError("NOT_FOUND", "No record belongs to the requested active curriculum profile.");
   }
-  const parameters: unknown[] = []; const identityClauses: string[] = []; const filterClauses: string[] = [];
-  const bind = (value: unknown) => { parameters.push(value); return `$${parameters.length}`; };
-  if (request.canonicalId) identityClauses.push(`r.canonical_id = ${bind(request.canonicalId)}`);
-  if (request.legacyId) identityClauses.push(`r.canonical_id = (SELECT canonical_id FROM knowledge_legacy_id_mappings WHERE legacy_id = ${bind(request.legacyId)})`);
-  if (request.subject) filterClauses.push(`r.subject = ${bind(request.subject)}`);
-  if (request.educationLevel) filterClauses.push(`r.education_level = ${bind(request.educationLevel)}`);
-  if (request.recordTypes?.length) filterClauses.push(`r.record_type IN (${request.recordTypes.map((type) => bind(type)).join(",")})`);
-  const where = [...(identityClauses.length ? [`(${identityClauses.join(" OR ")})`] : []), ...filterClauses].join(" AND ");
-  const result = await client.query<RetrievalRow>(`SELECT r.canonical_id, r.record_type, r.education_level, r.subject, r.source_wording, r.normalized, r.verification_status, s.source_id, s.title, s.authority, s.source_version, sp.page_start, sp.page_end, sp.span_id, sp.locator, sp.extraction_confidence, s.rights_status, s.production_use_status, s.attribution_required, s.external_ai_allowed
-    FROM knowledge_records r JOIN knowledge_sources s ON s.source_id = r.source_id JOIN knowledge_source_spans sp ON sp.span_id = r.span_id
-    WHERE ${where} ORDER BY r.canonical_id LIMIT ${bind(Math.min(Math.max(request.limit ?? 20, 1), 100))}`, parameters);
-  if (!result.rows.length) throw new RightsError("KNOWLEDGE_NOT_FOUND", "No exact curriculum knowledge matched the request.");
-  const permitted = result.rows.filter((row) => sourcePermitsUse({ rightsStatus: row.rights_status, productionUseStatus: row.production_use_status, externalAiAllowed: row.external_ai_allowed }, request.use));
-  if (!permitted.length) throw new RightsError("KNOWLEDGE_RIGHTS_DENIED", "The matched curriculum source is not authorised for the requested use.");
-  return permitted.map((row) => ({
-    canonicalId: row.canonical_id, recordType: row.record_type, educationLevel: row.education_level, subject: row.subject,
-    sourceWording: row.source_wording, normalized: row.normalized, verificationStatus: row.verification_status,
-    provenance: { sourceId: row.source_id, sourceTitle: row.title, authority: row.authority, sourceVersion: row.source_version, pageStart: row.page_start, pageEnd: row.page_end, spanId: row.span_id, locator: row.locator, extractionConfidence: row.extraction_confidence, rightsStatus: row.rights_status, productionUseStatus: row.production_use_status, attributionRequired: row.attribution_required },
-  }));
+  for (const row of result.rows) {
+    if (row.release_status === "SUPERSEDED") throw new GovernanceError("RELEASE_SUPERSEDED", "The requested release is superseded for new use.");
+    if (row.release_status !== "ACTIVE" || row.profile_status !== "ACTIVE" || row.source_set_status !== "APPROVED") throw new GovernanceError("SOURCE_INACTIVE", "The requested release, profile, or source set is not active.");
+    if (row.profile_education_level !== row.education_level || (row.subject_education_level !== row.profile_education_level && row.subject_education_level !== "cross-level")) throw new GovernanceError("SUBJECT_PROFILE_MISMATCH", "The record education level is incompatible with the requested subject profile.");
+    if (row.verification_status !== "VERIFIED" || row.source_verification_status !== "VERIFIED" || row.span_verification_status !== "VERIFIED" || !row.authority_eligible) throw new GovernanceError("NOT_VERIFIED", "The complete record, span, source, and taxonomy path is not verified for production authority.");
+    if (row.open_conflict) throw new GovernanceError("CONFLICT_UNRESOLVED", "An open conflict affects the requested curriculum knowledge.");
+    if (!sourcePermitsUse({ rightsStatus: row.rights_status, productionUseStatus: row.production_use_status, externalAiAllowed: row.external_ai_allowed, formalArtifactAllowed: row.formal_artifact_allowed, exportAllowed: row.export_allowed }, request.use)) throw new GovernanceError("RIGHTS_DENIED", "The source is not rights-eligible for the requested use.");
+    if (!row.source_content_sha256 || !row.record_content_sha256 || !row.locator || row.page_start < 1 || row.page_end < row.page_start) throw new GovernanceError("PROVENANCE_BROKEN", "The requested record cannot resolve to complete source provenance.");
+  }
+  const records = result.rows.map((row) => { const record = mapRow(row); record.governance = { releaseId: row.release_id, releaseKey: row.release_key, subjectProfileId: row.profile_id, subjectProfileKey: row.profile_key, effectiveOn: request.effectiveOn!, releaseStatus: row.release_status, profileStatus: row.profile_status, membershipStatus: row.membership_status, conflictFree: !row.open_conflict }; return record; });
+  return records.slice(0, Math.min(Math.max(request.limit ?? 20, 1), 100));
 }

@@ -1,88 +1,22 @@
-import { boolean, index, integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, date, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export const knowledgeSources = pgTable("knowledge_sources", {
-  sourceId: text("source_id").primaryKey(),
-  authority: text("authority").notNull(),
-  title: text("title").notNull(),
-  documentType: text("document_type").notNull(),
-  educationLevel: text("education_level").notNull(),
-  subject: text("subject"),
-  publicationYear: integer("publication_year"),
-  effectiveYear: integer("effective_year"),
-  sourceVersion: text("source_version"),
-  checksumSha256: text("checksum_sha256").notNull(),
-  rightsStatus: text("rights_status").notNull(),
-  productionUseStatus: text("production_use_status").notNull(),
-  externalAiAllowed: boolean("external_ai_allowed").notNull().default(false),
-  attributionRequired: boolean("attribution_required").notNull().default(true),
-  processingStatus: text("processing_status").notNull(),
-  verificationStatus: text("verification_status").notNull(),
-  sourcePath: text("source_path").notNull(),
-  importedAt: timestamp("imported_at", { withTimezone: true }).notNull().defaultNow(),
-}, (table) => [
-  index("knowledge_sources_subject_level_idx").on(table.subject, table.educationLevel),
-  index("knowledge_sources_rights_idx").on(table.rightsStatus, table.productionUseStatus),
-]);
-
-export const knowledgeSourceSpans = pgTable("knowledge_source_spans", {
-  spanId: text("span_id").primaryKey(),
-  sourceId: text("source_id").notNull().references(() => knowledgeSources.sourceId),
-  pageStart: integer("page_start").notNull(),
-  pageEnd: integer("page_end").notNull(),
-  locator: text("locator").notNull(),
-  sourceText: text("source_text").notNull(),
-  extractionConfidence: text("extraction_confidence").notNull(),
-  verificationStatus: text("verification_status").notNull(),
-}, (table) => [index("knowledge_source_spans_source_page_idx").on(table.sourceId, table.pageStart)]);
-
-export const knowledgeRecords = pgTable("knowledge_records", {
-  canonicalId: text("canonical_id").primaryKey(),
-  sourceId: text("source_id").notNull().references(() => knowledgeSources.sourceId),
-  spanId: text("span_id").notNull().references(() => knowledgeSourceSpans.spanId),
-  recordType: text("record_type").notNull(),
-  educationLevel: text("education_level").notNull(),
-  subject: text("subject"),
-  sourceWording: text("source_wording").notNull(),
-  sourceLanguage: text("source_language").notNull().default("en"),
-  normalized: jsonb("normalized").$type<Record<string, unknown>>().notNull(),
-  extracted: jsonb("extracted").$type<Record<string, unknown>>().notNull(),
-  verificationStatus: text("verification_status").notNull(),
-  importedAt: timestamp("imported_at", { withTimezone: true }).notNull().defaultNow(),
-}, (table) => [
-  index("knowledge_records_exact_lookup_idx").on(table.educationLevel, table.subject, table.recordType),
-  index("knowledge_records_source_idx").on(table.sourceId),
-]);
-
-export const knowledgeRelationships = pgTable("knowledge_relationships", {
-  relationshipId: text("relationship_id").primaryKey(),
-  relationshipType: text("relationship_type").notNull(),
-  fromCanonicalId: text("from_canonical_id").notNull(),
-  toCanonicalId: text("to_canonical_id").notNull().references(() => knowledgeRecords.canonicalId),
-  sourceId: text("source_id").notNull().references(() => knowledgeSources.sourceId),
-  spanId: text("span_id").notNull().references(() => knowledgeSourceSpans.spanId),
-  verificationStatus: text("verification_status").notNull(),
-}, (table) => [
-  index("knowledge_relationships_from_idx").on(table.fromCanonicalId),
-  index("knowledge_relationships_to_idx").on(table.toCanonicalId),
-]);
-
-export const knowledgeLegacyIdMappings = pgTable("knowledge_legacy_id_mappings", {
-  legacyId: text("legacy_id").primaryKey(),
-  canonicalId: text("canonical_id").notNull().references(() => knowledgeRecords.canonicalId),
-  mappingReason: text("mapping_reason").notNull(),
-  verificationStatus: text("verification_status").notNull(),
-  sourceId: text("source_id").references(() => knowledgeSources.sourceId),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
-
-export const knowledgeImportRuns = pgTable("knowledge_import_runs", {
-  importRunId: text("import_run_id").primaryKey(),
-  mode: text("mode").notNull(),
-  datasetChecksumSha256: text("dataset_checksum_sha256").notNull(),
-  sourceCount: integer("source_count").notNull(),
-  importedCount: integer("imported_count").notNull(),
-  rejectedCount: integer("rejected_count").notNull(),
-  startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
-  completedAt: timestamp("completed_at", { withTimezone: true }).notNull(),
-  report: jsonb("report").$type<Record<string, unknown>>().notNull(),
-});
+  sourceId: text("source_id").primaryKey(), authority: text("authority").notNull(), title: text("title").notNull(), documentType: text("document_type").notNull(), educationLevel: text("education_level").notNull(), subject: text("subject"), publicationYear: integer("publication_year"), effectiveYear: integer("effective_year"), sourceVersion: text("source_version"), checksumSha256: text("checksum_sha256").notNull(), rightsStatus: text("rights_status").notNull(), productionUseStatus: text("production_use_status").notNull(), externalAiAllowed: boolean("external_ai_allowed").notNull().default(false), attributionRequired: boolean("attribution_required").notNull().default(true), processingStatus: text("processing_status").notNull(), verificationStatus: text("verification_status").notNull(), sourcePath: text("source_path").notNull(), importedAt: timestamp("imported_at", { withTimezone: true }).notNull().defaultNow(), sourceSchemaVersion: text("source_schema_version").notNull().default("ate-source-v1"), effectiveFrom: date("effective_from"), effectiveTo: date("effective_to"), formalArtifactAllowed: boolean("formal_artifact_allowed").notNull().default(false), exportAllowed: boolean("export_allowed").notNull().default(false), verifiedBy: uuid("verified_by"), verifiedAt: timestamp("verified_at", { withTimezone: true }), verificationReason: text("verification_reason"),
+}, (table) => [index("knowledge_sources_subject_level_idx").on(table.subject, table.educationLevel), index("knowledge_sources_rights_idx").on(table.rightsStatus, table.productionUseStatus)]);
+export const knowledgeSourceSpans = pgTable("knowledge_source_spans", { spanId: text("span_id").primaryKey(), sourceId: text("source_id").notNull().references(() => knowledgeSources.sourceId), pageStart: integer("page_start").notNull(), pageEnd: integer("page_end").notNull(), locator: text("locator").notNull(), sourceText: text("source_text").notNull(), extractionConfidence: text("extraction_confidence").notNull(), verificationStatus: text("verification_status").notNull(), contentSha256: text("content_sha256"), extractorVersion: text("extractor_version").notNull().default("unknown"), schemaVersion: text("schema_version").notNull().default("ate-source-span-v1"), verifiedBy: uuid("verified_by"), verifiedAt: timestamp("verified_at", { withTimezone: true }), verificationReason: text("verification_reason") }, (table) => [index("knowledge_source_spans_source_page_idx").on(table.sourceId, table.pageStart), uniqueIndex("knowledge_source_spans_source_span_unique").on(table.sourceId, table.spanId)]);
+export const knowledgeRecords = pgTable("knowledge_records", { canonicalId: text("canonical_id").primaryKey(), sourceId: text("source_id").notNull().references(() => knowledgeSources.sourceId), spanId: text("span_id").notNull().references(() => knowledgeSourceSpans.spanId), recordType: text("record_type").notNull(), educationLevel: text("education_level").notNull(), subject: text("subject"), sourceWording: text("source_wording").notNull(), sourceLanguage: text("source_language").notNull().default("en"), normalized: jsonb("normalized").$type<Record<string, unknown>>().notNull(), extracted: jsonb("extracted").$type<Record<string, unknown>>().notNull(), verificationStatus: text("verification_status").notNull(), importedAt: timestamp("imported_at", { withTimezone: true }).notNull().defaultNow(), recordKey: text("record_key"), contentSha256: text("content_sha256"), payloadSchemaVersion: text("payload_schema_version").notNull().default("ate-knowledge-record-v1"), verifiedBy: uuid("verified_by"), verifiedAt: timestamp("verified_at", { withTimezone: true }), verificationReason: text("verification_reason") }, (table) => [index("knowledge_records_exact_lookup_idx").on(table.educationLevel, table.subject, table.recordType), index("knowledge_records_source_idx").on(table.sourceId)]);
+export const knowledgeRelationships = pgTable("knowledge_relationships", { relationshipId: text("relationship_id").primaryKey(), relationshipType: text("relationship_type").notNull(), fromCanonicalId: text("from_canonical_id").notNull(), toCanonicalId: text("to_canonical_id").notNull().references(() => knowledgeRecords.canonicalId), sourceId: text("source_id").notNull().references(() => knowledgeSources.sourceId), spanId: text("span_id").notNull().references(() => knowledgeSourceSpans.spanId), verificationStatus: text("verification_status").notNull(), verifiedBy: uuid("verified_by"), verifiedAt: timestamp("verified_at", { withTimezone: true }), verificationReason: text("verification_reason") }, (table) => [index("knowledge_relationships_from_idx").on(table.fromCanonicalId), index("knowledge_relationships_to_idx").on(table.toCanonicalId)]);
+export const knowledgeLegacyIdMappings = pgTable("knowledge_legacy_id_mappings", { legacyId: text("legacy_id").primaryKey(), canonicalId: text("canonical_id").notNull().references(() => knowledgeRecords.canonicalId), mappingReason: text("mapping_reason").notNull(), verificationStatus: text("verification_status").notNull(), sourceId: text("source_id").references(() => knowledgeSources.sourceId), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow() });
+export const knowledgeImportRuns = pgTable("knowledge_import_runs", { importRunId: text("import_run_id").primaryKey(), mode: text("mode").notNull(), datasetChecksumSha256: text("dataset_checksum_sha256").notNull(), sourceCount: integer("source_count").notNull(), importedCount: integer("imported_count").notNull(), rejectedCount: integer("rejected_count").notNull(), startedAt: timestamp("started_at", { withTimezone: true }).notNull(), completedAt: timestamp("completed_at", { withTimezone: true }).notNull(), report: jsonb("report").$type<Record<string, unknown>>().notNull(), importerVersion: text("importer_version").notNull().default("ate-knowledge-importer-1.0.0"), schemaVersion: text("schema_version").notNull().default("ate-knowledge-v1"), manifestId: text("manifest_id"), transactionStatus: text("transaction_status").notNull().default("COMMITTED"), completedReportSha256: text("completed_report_sha256") });
+export const knowledgeRecordTaxonomy = pgTable("knowledge_record_taxonomy", { recordType: text("record_type").primaryKey(), domain: text("domain").notNull(), authorityEligible: boolean("authority_eligible").notNull().default(true), createdAt: timestamp("created_at").notNull() });
+export const knowledgeCurriculumSubjects = pgTable("knowledge_curriculum_subjects", { id: uuid("id").primaryKey(), subjectKey: text("subject_key").notNull().unique(), title: text("title").notNull(), educationLevel: text("education_level").notNull(), programmeTrack: text("programme_track"), status: text("status").notNull(), createdAt: timestamp("created_at").notNull(), updatedAt: timestamp("updated_at").notNull() });
+export const knowledgeCurriculumReleases = pgTable("knowledge_curriculum_releases", { id: uuid("id").primaryKey(), releaseKey: text("release_key").notNull().unique(), authority: text("authority").notNull(), displayName: text("display_name").notNull(), educationLevel: text("education_level").notNull(), versionLabel: text("version_label").notNull(), effectiveFrom: date("effective_from").notNull(), effectiveTo: date("effective_to"), status: text("status").notNull(), supersedesReleaseId: uuid("supersedes_release_id"), manifestChecksumSha256: text("manifest_checksum_sha256").notNull(), createdAt: timestamp("created_at").notNull(), createdBy: uuid("created_by"), activatedAt: timestamp("activated_at"), activatedBy: uuid("activated_by") });
+export const knowledgeSubjectProfiles = pgTable("knowledge_subject_profiles", { id: uuid("id").primaryKey(), releaseId: uuid("release_id").notNull(), governedSubjectId: uuid("governed_subject_id").notNull(), profileKey: text("profile_key").notNull(), displayTitle: text("display_title").notNull(), educationLevel: text("education_level").notNull(), programmeTrack: text("programme_track"), status: text("status").notNull(), displayOrder: integer("display_order").notNull(), requiresAssessmentProfile: boolean("requires_assessment_profile").notNull(), createdAt: timestamp("created_at").notNull(), updatedAt: timestamp("updated_at").notNull() }, (table) => [index("knowledge_subject_profiles_release_idx").on(table.releaseId, table.status, table.displayOrder)]);
+export const knowledgeReleaseSources = pgTable("knowledge_release_sources", { id: uuid("id").primaryKey(), releaseId: uuid("release_id").notNull(), subjectProfileId: uuid("subject_profile_id"), sourceId: text("source_id").notNull(), sourceRole: text("source_role").notNull(), isRequired: boolean("is_required").notNull(), precedenceOrder: integer("precedence_order").notNull(), status: text("status").notNull(), createdAt: timestamp("created_at").notNull(), approvedAt: timestamp("approved_at"), approvedBy: uuid("approved_by") }, (table) => [index("knowledge_release_sources_lookup_idx").on(table.releaseId, table.subjectProfileId, table.sourceId, table.status)]);
+export const knowledgeProfileRecords = pgTable("knowledge_profile_records", { id: uuid("id").primaryKey(), releaseId: uuid("release_id").notNull(), subjectProfileId: uuid("subject_profile_id").notNull(), canonicalId: text("canonical_id").notNull(), membershipRole: text("membership_role").notNull(), orderingKey: text("ordering_key"), status: text("status").notNull(), effectiveFrom: date("effective_from"), effectiveTo: date("effective_to"), createdAt: timestamp("created_at").notNull() }, (table) => [index("knowledge_profile_records_lookup_idx").on(table.subjectProfileId, table.status, table.orderingKey, table.canonicalId)]);
+export const knowledgeAssessmentProfiles = pgTable("knowledge_assessment_profiles", { id: uuid("id").primaryKey(), releaseId: uuid("release_id").notNull(), subjectProfileId: uuid("subject_profile_id"), assessmentKey: text("assessment_key").notNull(), displayTitle: text("display_title").notNull(), purpose: text("purpose").notNull(), regime: text("regime").notNull(), compositionMode: text("composition_mode").notNull(), applicableSourceRoles: text("applicable_source_roles").array().notNull(), status: text("status").notNull(), createdAt: timestamp("created_at").notNull() }, (table) => [index("knowledge_assessment_profiles_lookup_idx").on(table.releaseId, table.subjectProfileId, table.status)]);
+export const knowledgeConflicts = pgTable("knowledge_conflicts", { id: uuid("id").primaryKey(), releaseId: uuid("release_id").notNull(), subjectProfileId: uuid("subject_profile_id"), category: text("category").notNull(), status: text("status").notNull(), summary: text("summary").notNull(), resolutionText: text("resolution_text"), resolvedBy: uuid("resolved_by"), resolvedAt: timestamp("resolved_at"), createdAt: timestamp("created_at").notNull() }, (table) => [index("knowledge_conflicts_scope_idx").on(table.releaseId, table.subjectProfileId, table.status)]);
+export const knowledgeConflictItems = pgTable("knowledge_conflict_items", { id: uuid("id").primaryKey(), conflictId: uuid("conflict_id").notNull(), itemType: text("item_type").notNull(), canonicalId: text("canonical_id"), sourceId: text("source_id"), spanId: text("span_id"), itemRole: text("item_role").notNull(), notes: text("notes"), createdAt: timestamp("created_at").notNull() });
+export const knowledgeVerificationDecisions = pgTable("knowledge_verification_decisions", { decisionId: uuid("decision_id").primaryKey(), entityType: text("entity_type").notNull(), entityId: text("entity_id").notNull(), resultingStatus: text("resulting_status").notNull(), actorUserId: uuid("actor_user_id").notNull(), decidedAt: timestamp("decided_at").notNull(), reason: text("reason").notNull(), evidenceReference: text("evidence_reference"), sourceVersionContext: text("source_version_context") }, (table) => [index("knowledge_verification_decisions_entity_idx").on(table.entityType, table.entityId, table.decidedAt)]);
+export const knowledgeRightsDecisions = pgTable("knowledge_rights_decisions", { decisionId: uuid("decision_id").primaryKey(), sourceId: text("source_id").notNull(), sourceChecksumSha256: text("source_checksum_sha256").notNull(), rightsStatus: text("rights_status").notNull(), productionUseStatus: text("production_use_status").notNull(), externalAiAllowed: boolean("external_ai_allowed").notNull(), formalArtifactAllowed: boolean("formal_artifact_allowed").notNull(), exportAllowed: boolean("export_allowed").notNull(), attributionRequired: boolean("attribution_required").notNull(), decisionSource: text("decision_source").notNull(), evidenceReference: text("evidence_reference"), actorUserId: uuid("actor_user_id").notNull(), decidedAt: timestamp("decided_at").notNull(), reviewExpiresAt: date("review_expires_at"), notes: text("notes") }, (table) => [index("knowledge_rights_decisions_source_idx").on(table.sourceId, table.decidedAt)]);
+export const knowledgeRecordIdentityMappings = pgTable("knowledge_record_identity_mappings", { mappingId: uuid("mapping_id").primaryKey(), sourceId: text("source_id").notNull(), sourceChecksumSha256: text("source_checksum_sha256").notNull(), candidateId: text("candidate_id").notNull(), canonicalId: text("canonical_id").notNull(), createdAt: timestamp("created_at").notNull() }, (table) => [uniqueIndex("knowledge_record_identity_mapping_unique").on(table.sourceId, table.sourceChecksumSha256, table.candidateId)]);

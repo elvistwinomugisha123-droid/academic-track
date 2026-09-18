@@ -2,8 +2,10 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 import { assessmentItemSchema, curriculumItemSchema, relationshipSchema, sourceMetadataSchema } from "../../knowledge-tools/schemas";
 import type { KnowledgeSqlClient } from "./db/client";
+import { withKnowledgeTransaction } from "./db/transaction";
 import { sourcePermitsProductionImport } from "./rights";
 import type { ImportMode, ImportReport, KnowledgeSource, ProductionUseStatus, RightsStatus, VerificationStatus } from "./types";
 
@@ -13,6 +15,9 @@ type RegistryRecord = {
   rights_status: RightsStatus; production_use_status: ProductionUseStatus; processing_status: string; verification_status: string; local_path: string;
   duplicate_of: string | null;
 };
+
+const IMPORTER_VERSION = "ate-knowledge-importer-2.0.0";
+const SCHEMA_VERSION = "ate-knowledge-v2";
 
 type SourceSpan = { id: string; source: unknown; pageStart: number; pageEnd: number; locator: string; text: string; extractionConfidence: "HIGH" | "MEDIUM" | "LOW"; verificationStatus: VerificationStatus };
 type CanonicalInput = { id: string; entityType: string; sourceWording: { text: string; language?: string }; normalized: Record<string, unknown>; extracted: Record<string, unknown>; verificationStatus: VerificationStatus; provenance: { sourceId: string; spanId: string } };
@@ -39,22 +44,24 @@ export const defaultKnowledgeImportPaths: KnowledgeImportPaths = {
 
 async function jsonFile<T>(filePath: string): Promise<T> { return JSON.parse(await readFile(filePath, "utf8")) as T; }
 async function jsonLines<T>(filePath: string): Promise<T[]> { return (await readFile(filePath, "utf8")).split("\n").filter(Boolean).map((line) => JSON.parse(line) as T); }
-function reviewState(value: string): VerificationStatus { return value === "VERIFIED" ? "VERIFIED" : value === "UNVERIFIED" ? "UNVERIFIED" : "REVIEW_REQUIRED"; }
+function reviewState(value: string): VerificationStatus { return value === "UNVERIFIED" ? "UNVERIFIED" : "REVIEW_REQUIRED"; }
 
 function sourceFromRegistry(record: RegistryRecord): KnowledgeSource {
   return {
     sourceId: record.source_id, authority: record.authority, title: record.title, documentType: record.document_type,
     educationLevel: record.education_level, subject: record.subject, publicationYear: record.publication_year, effectiveYear: record.effective_year,
-    sourceVersion: record.version, checksumSha256: record.checksum_sha256, rightsStatus: record.rights_status,
-    productionUseStatus: record.production_use_status, externalAiAllowed: false, attributionRequired: true,
+    sourceVersion: record.version, checksumSha256: record.checksum_sha256, rightsStatus: "REVIEW_REQUIRED",
+    productionUseStatus: "PERMISSION_PENDING", externalAiAllowed: false, attributionRequired: true, formalArtifactAllowed: false, exportAllowed: false,
     processingStatus: record.processing_status, verificationStatus: reviewState(record.verification_status), sourcePath: record.local_path,
   };
 }
 
 async function upsertSource(client: KnowledgeSqlClient, source: KnowledgeSource): Promise<void> {
-  await client.query(`INSERT INTO knowledge_sources (source_id, authority, title, document_type, education_level, subject, publication_year, effective_year, source_version, checksum_sha256, rights_status, production_use_status, external_ai_allowed, attribution_required, processing_status, verification_status, source_path)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
-    ON CONFLICT (source_id) DO UPDATE SET authority=EXCLUDED.authority, title=EXCLUDED.title, document_type=EXCLUDED.document_type, education_level=EXCLUDED.education_level, subject=EXCLUDED.subject, publication_year=EXCLUDED.publication_year, effective_year=EXCLUDED.effective_year, source_version=EXCLUDED.source_version, checksum_sha256=EXCLUDED.checksum_sha256, rights_status=EXCLUDED.rights_status, production_use_status=EXCLUDED.production_use_status, external_ai_allowed=EXCLUDED.external_ai_allowed, attribution_required=EXCLUDED.attribution_required, processing_status=EXCLUDED.processing_status, verification_status=EXCLUDED.verification_status, source_path=EXCLUDED.source_path`, [source.sourceId, source.authority, source.title, source.documentType, source.educationLevel, source.subject, source.publicationYear, source.effectiveYear, source.sourceVersion, source.checksumSha256, source.rightsStatus, source.productionUseStatus, source.externalAiAllowed, source.attributionRequired, source.processingStatus, source.verificationStatus, source.sourcePath]);
+  const existing = await client.query<{ checksum_sha256: string }>("SELECT checksum_sha256 FROM knowledge_sources WHERE source_id=$1", [source.sourceId]);
+  if (existing.rows[0] && existing.rows[0].checksum_sha256 !== source.checksumSha256) throw new Error(`Source ${source.sourceId} changed checksum; import requires a new source version identity.`);
+  await client.query(`INSERT INTO knowledge_sources (source_id, authority, title, document_type, education_level, subject, publication_year, effective_year, source_version, checksum_sha256, rights_status, production_use_status, external_ai_allowed, attribution_required, processing_status, verification_status, source_path, source_schema_version, formal_artifact_allowed, export_allowed)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+    ON CONFLICT (source_id) DO UPDATE SET authority=EXCLUDED.authority, title=EXCLUDED.title, document_type=EXCLUDED.document_type, education_level=EXCLUDED.education_level, subject=EXCLUDED.subject, publication_year=EXCLUDED.publication_year, effective_year=EXCLUDED.effective_year, source_version=EXCLUDED.source_version, processing_status=EXCLUDED.processing_status, source_path=EXCLUDED.source_path, source_schema_version=EXCLUDED.source_schema_version`, [source.sourceId, source.authority, source.title, source.documentType, source.educationLevel, source.subject, source.publicationYear, source.effectiveYear, source.sourceVersion, source.checksumSha256, source.rightsStatus, source.productionUseStatus, source.externalAiAllowed, source.attributionRequired, source.processingStatus, source.verificationStatus, source.sourcePath, "ate-source-v2", source.formalArtifactAllowed, source.exportAllowed]);
 }
 
 async function insertBatches(client: KnowledgeSqlClient, table: string, columns: string[], rows: unknown[][], chunkSize = 200): Promise<void> {
@@ -65,12 +72,14 @@ async function insertBatches(client: KnowledgeSqlClient, table: string, columns:
   }
 }
 
-export async function importAcademicKnowledge(client: KnowledgeSqlClient, mode: ImportMode, paths = defaultKnowledgeImportPaths): Promise<ImportReport> {
+async function importAcademicKnowledgeInTransaction(client: KnowledgeSqlClient, mode: ImportMode, paths: KnowledgeImportPaths): Promise<ImportReport> {
   const [registry, manifest, spans, curriculum, assessment, relationships, legacy] = await Promise.all([
     jsonFile<{ records: RegistryRecord[] }>(paths.registry), jsonFile<{ datasetChecksumSha256: string }>(paths.datasetManifest),
     jsonLines<SourceSpan>(paths.sourceSpans), jsonLines<CanonicalInput>(paths.curriculumItems), jsonLines<CanonicalInput>(paths.assessmentItems),
     jsonLines<{ id?: string; text?: string }>(paths.relationships), jsonLines<{ id?: string; text?: string }>(paths.legacyEntities),
   ]);
+  const existingRun = await client.query<{ report: ImportReport }>("SELECT report FROM knowledge_import_runs WHERE mode=$1 AND dataset_checksum_sha256=$2 AND importer_version=$3 AND schema_version=$4 AND transaction_status='COMMITTED' ORDER BY completed_at DESC LIMIT 1", [mode, manifest.datasetChecksumSha256, IMPORTER_VERSION, SCHEMA_VERSION]);
+  if (existingRun.rows[0]) return existingRun.rows[0].report;
   const runId = randomUUID(); const startedAt = new Date(); const rejected: ImportReport["recordsRejected"] = []; const rejectedSources: ImportReport["sourcesRejected"] = [];
   const uniqueRegistry = new Map<string, RegistryRecord>();
   for (const record of registry.records) if (!record.duplicate_of) uniqueRegistry.set(record.source_id, record);
@@ -87,26 +96,32 @@ export async function importAcademicKnowledge(client: KnowledgeSqlClient, mode: 
   for (const span of spans) {
     const parsedSource = sourceMetadataSchema.parse(span.source);
     if (!allowedSources.has(parsedSource.sourceId)) continue;
-    spanRows.push([span.id, parsedSource.sourceId, span.pageStart, span.pageEnd, span.locator, span.text, span.extractionConfidence, reviewState(span.verificationStatus)]);
+    spanRows.push([span.id, parsedSource.sourceId, span.pageStart, span.pageEnd, span.locator, span.text, span.extractionConfidence, reviewState(span.verificationStatus), createHash("sha256").update(span.text).digest("hex"), "ate-extractor-unknown", SCHEMA_VERSION]);
     allowedSpans.add(span.id);
   }
-  await insertBatches(client, "knowledge_source_spans", ["span_id", "source_id", "page_start", "page_end", "locator", "source_text", "extraction_confidence", "verification_status"], spanRows);
+  await insertBatches(client, "knowledge_source_spans", ["span_id", "source_id", "page_start", "page_end", "locator", "source_text", "extraction_confidence", "verification_status", "content_sha256", "extractor_version", "schema_version"], spanRows);
   const spansImported = spanRows.length;
   const inputRecords = [...curriculum.map((item) => curriculumItemSchema.parse(item)), ...assessment.map((item) => assessmentItemSchema.parse(item))] as CanonicalInput[];
-  const importedRecords: CanonicalInput[] = []; const byType: Record<string, number> = {};
+  const importedRecords: CanonicalInput[] = []; const byType: Record<string, number> = {}; const candidateToCanonical = new Map<string, string>(); const identityRows: unknown[][] = [];
   const recordRows: unknown[][] = [];
   for (const record of inputRecords) {
     if (!allowedSources.has(record.provenance.sourceId) || !allowedSpans.has(record.provenance.spanId)) { rejected.push({ id: record.id, reason: "Record source is not permitted for this import mode." }); continue; }
     const source = sources.get(record.provenance.sourceId)!;
-    recordRows.push([record.id, record.provenance.sourceId, record.provenance.spanId, record.entityType, source.educationLevel, source.subject, record.sourceWording.text, record.sourceWording.language ?? "en", JSON.stringify(record.normalized), JSON.stringify(record.extracted), reviewState(record.verificationStatus)]);
+    const identity = await client.query<{ canonical_id: string }>("SELECT canonical_id FROM knowledge_record_identity_mappings WHERE source_id=$1 AND source_checksum_sha256=$2 AND candidate_id=$3", [record.provenance.sourceId, source.checksumSha256, record.id]);
+    const canonicalId = identity.rows[0]?.canonical_id ?? randomUUID();
+    if (!identity.rows[0]) identityRows.push([record.provenance.sourceId, source.checksumSha256, record.id, canonicalId]);
+    candidateToCanonical.set(`${record.provenance.sourceId}::${record.id}`, canonicalId);
+    recordRows.push([canonicalId, record.provenance.sourceId, record.provenance.spanId, record.entityType, source.educationLevel, source.subject, record.sourceWording.text, record.sourceWording.language ?? "en", JSON.stringify(record.normalized), JSON.stringify(record.extracted), reviewState(record.verificationStatus), null, createHash("sha256").update(JSON.stringify(record.normalized)).digest("hex"), SCHEMA_VERSION]);
     importedRecords.push(record); byType[record.entityType] = (byType[record.entityType] ?? 0) + 1;
   }
-  await insertBatches(client, "knowledge_records", ["canonical_id", "source_id", "span_id", "record_type", "education_level", "subject", "source_wording", "source_language", "normalized", "extracted", "verification_status"], recordRows);
-  const importedRecordIds = new Set(importedRecords.map((record) => record.id)); const relationshipRows: unknown[][] = [];
+  await insertBatches(client, "knowledge_records", ["canonical_id", "source_id", "span_id", "record_type", "education_level", "subject", "source_wording", "source_language", "normalized", "extracted", "verification_status", "record_key", "content_sha256", "payload_schema_version"], recordRows);
+  await insertBatches(client, "knowledge_record_identity_mappings", ["source_id", "source_checksum_sha256", "candidate_id", "canonical_id"], identityRows);
+  const relationshipRows: unknown[][] = [];
   for (const rawRelationship of relationships) {
     const relationship = relationshipSchema.parse(rawRelationship);
-    if (!allowedSources.has(relationship.provenance.sourceId) || !allowedSpans.has(relationship.provenance.spanId) || !importedRecordIds.has(relationship.toId)) continue;
-    relationshipRows.push([relationship.id, relationship.relationshipType, relationship.fromId, relationship.toId, relationship.provenance.sourceId, relationship.provenance.spanId, relationship.verificationStatus]);
+    const fromCanonicalId = candidateToCanonical.get(`${relationship.provenance.sourceId}::${relationship.fromId}`); const toCanonicalId = candidateToCanonical.get(`${relationship.provenance.sourceId}::${relationship.toId}`);
+    if (!allowedSources.has(relationship.provenance.sourceId) || !allowedSpans.has(relationship.provenance.spanId) || !fromCanonicalId || !toCanonicalId) continue;
+    relationshipRows.push([relationship.id, relationship.relationshipType, fromCanonicalId, toCanonicalId, relationship.provenance.sourceId, relationship.provenance.spanId, reviewState(relationship.verificationStatus)]);
   }
   await insertBatches(client, "knowledge_relationships", ["relationship_id", "relationship_type", "from_canonical_id", "to_canonical_id", "source_id", "span_id", "verification_status"], relationshipRows);
   const relationshipsImported = relationshipRows.length;
@@ -117,10 +132,16 @@ export async function importAcademicKnowledge(client: KnowledgeSqlClient, mode: 
     if (!item.id || !item.text) continue;
     const match = canonicalByWording.get(item.text.trim().replace(/\s+/g, " ").toLowerCase());
     if (!match) continue;
-    await client.query(`INSERT INTO knowledge_legacy_id_mappings (legacy_id, canonical_id, mapping_reason, verification_status, source_id) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (legacy_id) DO UPDATE SET canonical_id=EXCLUDED.canonical_id, mapping_reason=EXCLUDED.mapping_reason, verification_status=EXCLUDED.verification_status, source_id=EXCLUDED.source_id`, [item.id, match.id, "Exact lower-secondary Biology source wording match during corpus import.", "REVIEW_REQUIRED", match.provenance.sourceId]);
+    const canonicalId = candidateToCanonical.get(`${match.provenance.sourceId}::${match.id}`); if (!canonicalId) continue;
+    await client.query(`INSERT INTO knowledge_legacy_id_mappings (legacy_id, canonical_id, mapping_reason, verification_status, source_id) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (legacy_id) DO UPDATE SET canonical_id=EXCLUDED.canonical_id, mapping_reason=EXCLUDED.mapping_reason, verification_status=EXCLUDED.verification_status, source_id=EXCLUDED.source_id`, [item.id, canonicalId, "Exact lower-secondary Biology source wording match during corpus import.", "REVIEW_REQUIRED", match.provenance.sourceId]);
     legacyIdsMapped += 1;
   }
   const report: ImportReport = { importRunId: runId, mode, recordsImportedByType: byType, sourcesImported: allowedSources.size, spansImported, relationshipsImported, legacyIdsMapped, sourcesRejected: rejectedSources, recordsRejected: rejected };
-  await client.query(`INSERT INTO knowledge_import_runs (import_run_id, mode, dataset_checksum_sha256, source_count, imported_count, rejected_count, started_at, completed_at, report) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb)`, [runId, mode, manifest.datasetChecksumSha256, allowedSources.size, importedRecords.length, rejected.length, startedAt.toISOString(), new Date().toISOString(), JSON.stringify(report)]);
+  const reportHash = createHash("sha256").update(JSON.stringify(report)).digest("hex");
+  await client.query(`INSERT INTO knowledge_import_runs (import_run_id, mode, dataset_checksum_sha256, source_count, imported_count, rejected_count, started_at, completed_at, report, importer_version, schema_version, manifest_id, transaction_status, completed_report_sha256) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12,'COMMITTED',$13)`, [runId, mode, manifest.datasetChecksumSha256, allowedSources.size, importedRecords.length, rejected.length, startedAt.toISOString(), new Date().toISOString(), JSON.stringify(report), IMPORTER_VERSION, SCHEMA_VERSION, manifest.datasetChecksumSha256, reportHash]);
   return report;
+}
+
+export async function importAcademicKnowledge(client: KnowledgeSqlClient, mode: ImportMode, paths = defaultKnowledgeImportPaths): Promise<ImportReport> {
+  return withKnowledgeTransaction(client, () => importAcademicKnowledgeInTransaction(client, mode, paths));
 }
