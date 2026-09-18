@@ -268,7 +268,7 @@ end
 $$;
 
 create or replace function public.accept_invitation(raw_token text)
-returns uuid language sql invoker set search_path = '' as $$
+returns uuid language sql security invoker set search_path = '' as $$
   select private.accept_invitation(raw_token)
 $$;
 
