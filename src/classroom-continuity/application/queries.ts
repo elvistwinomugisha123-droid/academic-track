@@ -19,9 +19,13 @@ export type ContinuityRow = {
   reason: string | null;
   note: string | null;
   confirmed_at: string | null;
-  continuity_state: "CLEAR" | "PARTIAL_CARRY_FORWARD" | "NOT_DELIVERED_CARRY_FORWARD" | "CHANGED_REVIEW" | "UNCONFIRMED" | "SCHEDULED";
+  lesson_state: "CLEAR" | "PARTIAL_CARRY_FORWARD" | "NOT_DELIVERED_CARRY_FORWARD" | "CHANGED_REVIEW" | "UNCONFIRMED" | "SCHEDULED";
+  carry_forward_state: "PARTIAL_CARRY_FORWARD" | "NOT_DELIVERED_CARRY_FORWARD" | "CHANGED_REVIEW" | null;
+  previous_lesson_id: string | null;
+  school_timezone: string;
   is_today: boolean;
-  is_confirmable: boolean;
+  can_confirm: boolean;
+  can_correct: boolean;
 };
 
 export type ClassroomContinuityData = {

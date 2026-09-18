@@ -126,6 +126,10 @@
 .continuity-rule { display:flex; align-items:flex-start; gap:9px; width:min(100%,280px); padding:13px 15px; color:var(--ate-muted); background:var(--ate-surface); border:1px solid var(--ate-border); border-radius:var(--ate-radius-control); font-size:12px; line-height:1.45; }
 .continuity-rule svg { flex:0 0 auto; color:var(--ate-blue); }
 .continuity-attention { display:grid; grid-template-columns:minmax(220px,.8fr) minmax(0,1.8fr); gap:18px; padding:20px; background:#fff8e9; border:1px solid #efd9a3; border-radius:var(--ate-radius-panel); }
+.continuity-assurance { display:flex; align-items:flex-start; gap:10px; padding:16px 18px; color:var(--ate-success); background:var(--ate-success-bg); border:1px solid #cce9dc; border-radius:var(--ate-radius-panel); }
+.continuity-assurance strong,.continuity-assurance span { display:block; }
+.continuity-assurance strong { color:var(--ate-navy); font-size:13px; }
+.continuity-assurance span { margin-top:2px; color:var(--ate-muted); font-size:12px; }
 .continuity-attention h2 { margin-top:5px; }
 .attention-list { display:grid; gap:8px; }
 .attention-item { display:grid; gap:2px; padding:9px 11px; background:rgb(255 255 255 / .64); border:1px solid #f0dfb8; border-radius:6px; }
@@ -140,7 +144,10 @@
 .lesson-main { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
 .lesson-main h3 { color:var(--ate-navy); font-size:19px; }
 .lesson-main p { margin-top:3px; color:var(--ate-muted); font-size:12px; }
-.continuity-copy { color:#7e641d; font-size:13px; }
+.source-state-copy { color:#7e641d; font-size:13px; }
+.carry-forward-box { display:grid; gap:2px; padding:10px 12px; background:#edf5fa; border:1px solid #c8dfed; border-radius:var(--ate-radius-control); }
+.carry-forward-box strong { color:var(--ate-navy); font-size:12px; }
+.carry-forward-box span { color:#28637f; font-size:12px; }
 .confirmed-line { display:flex; align-items:center; gap:8px; color:var(--ate-success); font-size:12px; }
 .confirmed-line svg { flex:0 0 auto; }
 .outcome-area { display:grid; gap:10px; padding-top:3px; }
