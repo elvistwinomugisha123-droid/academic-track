@@ -188,7 +188,7 @@ begin
 end
 $$;
 
-create or replace function public.accept_invitation(raw_token text)
+create or replace function private.accept_invitation(raw_token text)
 returns uuid language plpgsql security definer set search_path = '' as $$
 declare
   invite public.invitations%rowtype;
@@ -222,11 +222,17 @@ begin
 end
 $$;
 
+create or replace function public.accept_invitation(raw_token text)
+returns uuid language sql invoker set search_path = '' as $$
+  select private.accept_invitation(raw_token)
+$$;
+
 revoke all on function private.current_user_id() from public;
 revoke all on function private.is_active_school_member(uuid) from public;
 revoke all on function private.has_school_role(uuid, text) from public;
 revoke all on function private.has_department_role(uuid, uuid, text) from public;
 revoke all on function private.record_audit_event(uuid, text, text, uuid, jsonb, jsonb, jsonb, text) from public;
+revoke all on function private.accept_invitation(text) from public;
 revoke all on function public.accept_invitation(text) from public;
 grant usage on schema private to authenticated;
 grant execute on function private.current_user_id() to authenticated;
@@ -234,6 +240,7 @@ grant execute on function private.is_active_school_member(uuid) to authenticated
 grant execute on function private.has_school_role(uuid, text) to authenticated;
 grant execute on function private.has_department_role(uuid, uuid, text) to authenticated;
 grant execute on function private.record_audit_event(uuid, text, text, uuid, jsonb, jsonb, jsonb, text) to authenticated;
+grant execute on function private.accept_invitation(text) to authenticated;
 grant execute on function public.accept_invitation(text) to authenticated;
 
 alter table schools enable row level security;

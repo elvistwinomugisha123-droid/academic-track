@@ -9,7 +9,7 @@
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:security:integration": "vitest run src/security/security.integration.test.ts",
+    "test:security:integration": "vitest run --config vitest.security.config.ts",
     "test:e2e": "playwright test",
     "db:knowledge:import": "tsx knowledge-tools/import/import-academic-knowledge.ts",
     "db:knowledge:import:production": "tsx knowledge-tools/import/import-academic-knowledge.ts --production-authorised"
