@@ -95,6 +95,9 @@ describe("central Academic Knowledge governance", () => {
     await recordKnowledgeRightsDecision(client, { sourceId, rightsStatus: "CLEARED", productionUseStatus: "PERMITTED", externalAiAllowed: true, formalArtifactAllowed: true, exportAllowed: true, attributionRequired: true, decisionSource: "TEST_SYNTHETIC_EXTERNAL_AI_REVIEW", actorUserId: actorId });
     expect(await retrieveExactKnowledge(client, { ...request, use: "EXTERNAL_AI" })).toHaveLength(1);
     expect((await retrieveExactKnowledge(client, request))[0].canonicalId).toBe((await retrieveExactKnowledge(client, request))[0].canonicalId);
+    await recordKnowledgeRightsDecision(client, { sourceId, rightsStatus: "UNKNOWN", productionUseStatus: "PERMISSION_PENDING", externalAiAllowed: false, formalArtifactAllowed: false, exportAllowed: false, attributionRequired: true, decisionSource: "TEST_SYNTHETIC_PILOT_ONLY_REVIEW", actorUserId: actorId });
+    const pilotOnlyRecord = await retrieveExactKnowledge(client, { ...request, use: "CONTROLLED_PILOT" });
+    expect(pilotOnlyRecord[0].sourceWording).toBe("Synthetic source wording");
   });
 
   it("blocks open conflicts, wrong profiles, and superseded releases", async () => {

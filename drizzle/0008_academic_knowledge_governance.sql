@@ -956,6 +956,7 @@ end $$;
 create index school_subject_curriculum_bindings_lookup_idx on public.school_subject_curriculum_bindings(school_id, school_subject_id, status, effective_from);
 create index teaching_section_curriculum_bindings_lookup_idx on public.teaching_section_curriculum_bindings(school_id, teaching_section_id, status, effective_from);
 create index teaching_section_curriculum_position_events_lookup_idx on public.teaching_section_curriculum_position_events(school_id, teaching_section_id, confirmed_at desc);
+create unique index teaching_section_curriculum_position_one_successor_idx on public.teaching_section_curriculum_position_events(supersedes_event_id) where supersedes_event_id is not null;
 
 create or replace function private.validate_school_curriculum_binding()
 returns trigger language plpgsql set search_path = public, pg_temp as $$
@@ -976,6 +977,21 @@ $$;
 create trigger school_subject_curriculum_binding_validate before insert or update on public.school_subject_curriculum_bindings for each row execute function private.validate_school_curriculum_binding();
 create trigger teaching_section_curriculum_binding_validate before insert or update on public.teaching_section_curriculum_bindings for each row execute function private.validate_school_curriculum_binding();
 
+create or replace function private.validate_curriculum_position_event_shape()
+returns trigger language plpgsql set search_path = public, pg_temp as $$
+begin
+  if new.supersedes_event_id is null and nullif(trim(new.correction_reason), '') is not null then raise exception 'an initial curriculum position event cannot have a correction reason'; end if;
+  if new.supersedes_event_id is not null and nullif(trim(new.correction_reason), '') is null then raise exception 'a correction curriculum position event requires a correction reason'; end if;
+  if new.supersedes_event_id = new.id then raise exception 'a curriculum position event cannot supersede itself'; end if;
+  if new.supersedes_event_id is not null then
+    perform 1 from public.teaching_section_curriculum_position_events predecessor where predecessor.id=new.supersedes_event_id and predecessor.school_id=new.school_id and predecessor.teaching_section_id=new.teaching_section_id and predecessor.subject_profile_id=new.subject_profile_id;
+    if not found then raise exception 'a correction must supersede an event from the same school, teaching section, and subject profile'; end if;
+  end if;
+  return new;
+end;
+$$;
+create trigger teaching_section_curriculum_position_event_shape_validate before insert on public.teaching_section_curriculum_position_events for each row execute function private.validate_curriculum_position_event_shape();
+
 create or replace function private.validate_curriculum_position_event()
 returns trigger language plpgsql set search_path = public, pg_temp as $$
 declare section_profile uuid; record_profile uuid; current_teacher uuid;
@@ -989,7 +1005,19 @@ begin
   return new;
 end;
 $$;
-create trigger teaching_section_curriculum_position_validate before insert on public.teaching_section_curriculum_position_events for each row execute function private.validate_curriculum_position_event();
+do $$ begin
+  if to_regclass('public.teaching_sections') is not null and to_regclass('public.memberships') is not null then
+    execute 'create trigger teaching_section_curriculum_position_validate before insert on public.teaching_section_curriculum_position_events for each row execute function private.validate_curriculum_position_event()';
+  end if;
+end $$;
+
+create or replace function private.prevent_curriculum_position_event_mutation()
+returns trigger language plpgsql set search_path = public, pg_temp as $$
+begin
+  raise exception 'teaching section curriculum position events are append-only; corrections must append a successor event';
+end;
+$$;
+create trigger teaching_section_curriculum_position_events_append_only before update or delete on public.teaching_section_curriculum_position_events for each row execute function private.prevent_curriculum_position_event_mutation();
 
 alter table public.school_subject_curriculum_bindings enable row level security;
 alter table public.teaching_section_curriculum_bindings enable row level security;

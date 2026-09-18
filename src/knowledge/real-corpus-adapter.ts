@@ -18,6 +18,7 @@ export type RealCorpusAdapterReport = {
   frameworkRecords: number;
   relationshipsSeen: number;
   includedRecordIds: string[];
+  includedRelationshipIds: string[];
   excludedRecordIds: string[];
   excludedRelationshipIds: string[];
   unresolvedReviewItems: Array<{ id: string; affectedEntity: string; reason: string }>;
@@ -85,6 +86,7 @@ export async function prepareRealBiologyCorpus(root = process.cwd()): Promise<Re
     curriculumRows.push(JSON.stringify({ id: entity.id, entityType: type, sourceWording: { text: textFor(entity), language: "en" }, normalized, extracted: { method: "committed-curriculum-data-adapter", parserVersion: "ate-real-corpus-adapter-1.0.0", candidates: { sourceEntityId: entity.id, sourceDocumentId: entity.source.document_id } }, verificationStatus: "REVIEW_REQUIRED", provenance: p }));
   }
   const relationshipRows: string[] = [];
+  const includedRelationshipIds: string[] = [];
   const excludedRelationshipIds: string[] = [];
   for (const relationship of relationships) {
     const sourceSelected = sourceById.has(relationship.source.document_id);
@@ -93,12 +95,13 @@ export async function prepareRealBiologyCorpus(root = process.cwd()): Promise<Re
     const p = provenance(relationship.source, spanId);
     spanRows.push(JSON.stringify({ id: spanId, source: { sourceId: relationship.source.document_id, authority: relationship.source.authority, title: relationship.source.document_title, documentType: sourceById.get(relationship.source.document_id)?.document_type ?? "official_curriculum", educationLevel: "lower-secondary", subject: relationship.source.document_id === "ncdc-biology-2019" ? "Biology" : null, publicationYear: relationship.source.publication_year, effectiveYear: relationship.source.publication_year, version: relationship.source.document_version, rightsStatus: "UNKNOWN", checksumSha256: sourceById.get(relationship.source.document_id)!.sha256, sourcePath: relationship.source.document_id }, pageStart: p.pageStart, pageEnd: p.pageEnd, locator: `${p.locator}#relationship`, text: relationship.relationship, extractionConfidence: p.extractionConfidence, verificationStatus: "REVIEW_REQUIRED" }));
     relationshipRows.push(JSON.stringify({ id: relationship.id, relationshipType: relationship.relationship, fromId: relationship.from_id, toId: relationship.to_id, verificationStatus: "REVIEW_REQUIRED", provenance: { sourceId: relationship.source.document_id, pageStart: p.pageStart, pageEnd: p.pageEnd, spanId, locator: p.locator, extractionConfidence: p.extractionConfidence } }));
+    includedRelationshipIds.push(relationship.id);
   }
   const temp = await mkdtemp(path.join(os.tmpdir(), "ate-real-corpus-"));
   const sourceRegistry = { records: selected.map((source) => ({ source_id: source.id, authority: source.authority, title: source.document_title, document_type: source.document_type, education_level: "lower-secondary", subject: source.id === "ncdc-biology-2019" ? "Biology" : null, publication_year: source.publication_year, effective_year: source.publication_year, version: source.document_version, checksum_sha256: source.sha256, rights_status: "UNKNOWN", production_use_status: "PERMISSION_PENDING", processing_status: source.extraction_status, verification_status: "REVIEW_REQUIRED", local_path: `curriculum-data/${source.id}`, duplicate_of: null })) };
-  const datasetChecksumSha256 = sha256Canonical({ sources: selected.map((source) => ({ id: source.id, checksum: source.sha256 })), includedIds: [...includedIds].sort(), excludedRelationshipIds: [...excludedRelationshipIds].sort() });
+  const datasetChecksumSha256 = sha256Canonical({ sources: selected.map((source) => ({ id: source.id, checksum: source.sha256 })), includedIds: [...includedIds].sort(), includedRelationshipIds: [...includedRelationshipIds].sort(), excludedRelationshipIds: [...excludedRelationshipIds].sort() });
   const files: Record<string, unknown> = { registry: sourceRegistry, datasetManifest: { datasetChecksumSha256 }, sourceSpans: spanRows.join("\n") + "\n", curriculumItems: curriculumRows.join("\n") + "\n", assessmentItems: "", relationships: relationshipRows.join("\n") + "\n", legacyEntities: "" };
   const paths = {} as KnowledgeImportPaths;
   for (const [key, value] of Object.entries(files)) { const filePath = path.join(temp, `${key}.${key === "registry" || key === "datasetManifest" ? "json" : "jsonl"}`); await writeFile(filePath, typeof value === "string" ? value : JSON.stringify(value)); (paths as Record<string, string>)[key] = filePath; }
-  return { paths, report: { sources: selected.map((source) => source.id), sourceChecksums: Object.fromEntries(selected.map((source) => [source.id, source.sha256])), biologyEntities: biology.length, frameworkRecords: frameworkDocument.records.length, relationshipsSeen: relationships.length, includedRecordIds: [...includedIds].sort(), excludedRecordIds: excluded.map((entity) => entity.id), excludedRelationshipIds, unresolvedReviewItems: review.items.filter((item) => item.status === "open").map((item) => ({ id: item.id, affectedEntity: item.affected_entity, reason: item.reason_for_uncertainty })), reviewItems: review.items.length, datasetChecksumSha256 }, cleanup: () => rm(temp, { recursive: true, force: true }) };
+  return { paths, report: { sources: selected.map((source) => source.id), sourceChecksums: Object.fromEntries(selected.map((source) => [source.id, source.sha256])), biologyEntities: biology.length, frameworkRecords: frameworkDocument.records.length, relationshipsSeen: relationships.length, includedRecordIds: [...includedIds].sort(), includedRelationshipIds: [...includedRelationshipIds].sort(), excludedRecordIds: excluded.map((entity) => entity.id).sort(), excludedRelationshipIds: [...excludedRelationshipIds].sort(), unresolvedReviewItems: review.items.filter((item) => item.status === "open").map((item) => ({ id: item.id, affectedEntity: item.affected_entity, reason: item.reason_for_uncertainty })), reviewItems: review.items.length, datasetChecksumSha256 }, cleanup: () => rm(temp, { recursive: true, force: true }) };
 }
