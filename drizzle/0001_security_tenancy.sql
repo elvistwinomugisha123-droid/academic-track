@@ -268,3 +268,16 @@ create policy school_files_read on school_files for select to authenticated usin
 
 revoke insert, update, delete on audit_events from authenticated;
 revoke insert, update, delete on role_grants, departments, academic_periods, invitations, school_files, schools from authenticated;
+
+create policy ate_private_objects_read on storage.objects for select to authenticated using (
+  bucket_id in ('school-files', 'school-exports', 'restricted-files')
+  and exists (select 1 from public.memberships m where m.school_id::text = split_part(storage.objects.name, '/', 1) and m.user_id = (select auth.uid()) and m.status = 'ACTIVE')
+);
+create policy ate_private_objects_insert on storage.objects for insert to authenticated with check (
+  bucket_id in ('school-files', 'school-exports', 'restricted-files')
+  and exists (select 1 from public.memberships m where m.school_id::text = split_part(storage.objects.name, '/', 1) and m.user_id = (select auth.uid()) and m.status = 'ACTIVE')
+);
+create policy ate_private_objects_delete on storage.objects for delete to authenticated using (
+  bucket_id in ('school-files', 'school-exports', 'restricted-files')
+  and exists (select 1 from public.memberships m where m.school_id::text = split_part(storage.objects.name, '/', 1) and m.user_id = (select auth.uid()) and m.status = 'ACTIVE')
+);
