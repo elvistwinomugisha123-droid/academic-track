@@ -18,6 +18,9 @@ let teacherMembershipB = "";
 let dosMembershipA = "";
 let levelA = "";
 let streamA = "";
+let periodB = "";
+let levelB = "";
+let streamB = "";
 let subjectBiology = "";
 let subjectChemistry = "";
 let periodA = "";
@@ -30,6 +33,7 @@ let teacherA: TestUser;
 let teacherB: TestUser;
 let hodA: TestUser;
 let dosA: TestUser;
+let multiSchoolDos: TestUser;
 let principalA: TestUser;
 let adminA: TestUser;
 
@@ -63,8 +67,8 @@ async function insertOne(table: string, values: Record<string, unknown>, select 
 describe("isolated Step 4 academic operations integration", () => {
   beforeAll(async () => {
     requireConfigured();
-    [teacherA, teacherB, hodA, dosA, principalA, adminA] = await Promise.all([
-      createTestUser("teacher-a"), createTestUser("teacher-b"), createTestUser("hod"), createTestUser("dos"), createTestUser("principal"), createTestUser("admin"),
+    [teacherA, teacherB, hodA, dosA, multiSchoolDos, principalA, adminA] = await Promise.all([
+      createTestUser("teacher-a"), createTestUser("teacher-b"), createTestUser("hod"), createTestUser("dos"), createTestUser("multi-school-dos"), createTestUser("principal"), createTestUser("admin"),
     ]);
     const schools = requireData((await admin!.from("schools").insert([
       { name: `Operations Test A ${suffix}`, slug: `${suffix}-a` },
@@ -75,11 +79,12 @@ describe("isolated Step 4 academic operations integration", () => {
     biologyA = await insertOne("departments", { school_id: schoolA, name: `Biology ${suffix}`, code: `${suffix}-BIO` });
     chemistryA = await insertOne("departments", { school_id: schoolA, name: `Chemistry ${suffix}`, code: `${suffix}-CHEM` });
     const memberships = await admin!.from("memberships").insert([
-      ...[teacherA, teacherB, hodA, dosA, principalA, adminA].map((user) => ({ school_id: schoolA, user_id: user.id, status: "ACTIVE", display_name: user.email, joined_at: new Date().toISOString() })),
-    ]).select("id, user_id");
+      ...[teacherA, teacherB, hodA, dosA, multiSchoolDos, principalA, adminA].map((user) => ({ school_id: schoolA, user_id: user.id, status: "ACTIVE", display_name: user.email, joined_at: new Date().toISOString() })),
+      { school_id: schoolB, user_id: multiSchoolDos.id, status: "ACTIVE", display_name: multiSchoolDos.email, joined_at: new Date().toISOString() },
+    ]).select("id, user_id, school_id");
     const membershipRows = requireData(memberships.data, memberships.error);
-    const membership = (user: TestUser) => membershipRows.find((row) => row.user_id === user.id)!.id;
-    teacherMembershipA = membership(teacherA); teacherMembershipB = membership(teacherB); dosMembershipA = membership(dosA);
+    const membership = (user: TestUser, schoolId = schoolA) => membershipRows.find((row) => row.user_id === user.id && row.school_id === schoolId)!.id;
+    teacherMembershipA = membership(teacherA); teacherMembershipB = membership(teacherB); dosMembershipA = membership(dosA, schoolA);
     const roleRows = [
       { membership_id: teacherMembershipA, school_id: schoolA, role: "TEACHER", scope_type: "SCHOOL", granted_by: adminA.id },
       { membership_id: teacherMembershipA, school_id: schoolA, role: "HOD", scope_type: "DEPARTMENT", department_id: biologyA, granted_by: adminA.id },
@@ -89,26 +94,31 @@ describe("isolated Step 4 academic operations integration", () => {
       { membership_id: dosMembershipA, school_id: schoolA, role: "DOS", scope_type: "SCHOOL", granted_by: adminA.id },
       { membership_id: membership(principalA), school_id: schoolA, role: "PRINCIPAL", scope_type: "SCHOOL", granted_by: adminA.id },
       { membership_id: membership(adminA), school_id: schoolA, role: "SCHOOL_ADMIN", scope_type: "SCHOOL", granted_by: adminA.id },
+      { membership_id: membership(multiSchoolDos), school_id: schoolA, role: "DOS", scope_type: "SCHOOL", granted_by: adminA.id },
+      { membership_id: membership(multiSchoolDos, schoolB), school_id: schoolB, role: "DOS", scope_type: "SCHOOL", granted_by: adminA.id },
     ];
     const roleResult = await admin!.from("role_grants").insert(roleRows);
     if (roleResult.error) throw roleResult.error;
     periodA = await insertOne("academic_periods", { school_id: schoolA, name: `Term 3 ${suffix}`, period_type: "TERM", academic_year: 2026, starts_on: "2026-09-01", ends_on: "2026-12-31", status: "CURRENT" });
+    periodB = await insertOne("academic_periods", { school_id: schoolB, name: `Term 3 B ${suffix}`, period_type: "TERM", academic_year: 2026, starts_on: "2026-09-01", ends_on: "2026-12-31", status: "CURRENT" });
     levelA = await insertOne("class_levels", { school_id: schoolA, code: `S2-${suffix}`, name: `Senior 2 ${suffix}` });
     streamA = await insertOne("streams", { school_id: schoolA, class_level_id: levelA, code: `A-${suffix}`, name: `Blue ${suffix}` });
+    levelB = await insertOne("class_levels", { school_id: schoolB, code: `S2-B-${suffix}`, name: `Senior 2 B ${suffix}` });
+    streamB = await insertOne("streams", { school_id: schoolB, class_level_id: levelB, code: `B-${suffix}`, name: `Blue B ${suffix}` });
     subjectBiology = await insertOne("school_subjects", { school_id: schoolA, department_id: biologyA, code: `BIO-${suffix}`, name: `Biology ${suffix}` });
     subjectChemistry = await insertOne("school_subjects", { school_id: schoolA, department_id: chemistryA, code: `CHEM-${suffix}`, name: `Chemistry ${suffix}` });
     sectionA = await insertOne("teaching_sections", { school_id: schoolA, academic_period_id: periodA, teacher_membership_id: teacherMembershipA, school_subject_id: subjectBiology, class_level_id: levelA, stream_id: streamA, created_by: dosA.id });
     sectionB = await insertOne("teaching_sections", { school_id: schoolA, academic_period_id: periodA, teacher_membership_id: teacherMembershipB, school_subject_id: subjectBiology, class_level_id: levelA, stream_id: streamA, created_by: dosA.id });
     chemistrySection = await insertOne("teaching_sections", { school_id: schoolA, academic_period_id: periodA, teacher_membership_id: teacherMembershipB, school_subject_id: subjectChemistry, class_level_id: levelA, stream_id: streamA, created_by: dosA.id });
     versionA = await insertOne("timetable_versions", { school_id: schoolA, academic_period_id: periodA, version_number: 1, name: `Draft ${suffix}`, status: "DRAFT", effective_from: "2026-01-01", created_by: dosA.id });
-    await signIn(teacherA); await signIn(teacherB); await signIn(hodA); await signIn(dosA); await signIn(principalA); await signIn(adminA);
+    await signIn(teacherA); await signIn(teacherB); await signIn(hodA); await signIn(dosA); await signIn(multiSchoolDos); await signIn(principalA); await signIn(adminA);
   });
 
   afterAll(async () => {
     if (!admin || !schoolA) return;
-    for (const table of ["scheduled_lessons", "timetable_slots", "timetable_versions", "programme_event_targets", "school_programme_events", "teaching_sections", "streams", "class_levels", "school_subjects", "academic_periods", "role_grants", "memberships", "departments"]) await admin.from(table).delete().eq("school_id", schoolA);
+    for (const table of ["scheduled_lessons", "timetable_slots", "timetable_versions", "programme_event_targets", "school_programme_events", "teaching_sections", "streams", "class_levels", "school_subjects", "academic_periods", "role_grants", "memberships", "departments"]) await admin.from(table).delete().in("school_id", [schoolA, schoolB]);
     await admin.from("schools").delete().in("id", [schoolA, schoolB]);
-    for (const user of [teacherA, teacherB, hodA, dosA, principalA, adminA]) if (user) await admin.auth.admin.deleteUser(user.id);
+    for (const user of [teacherA, teacherB, hodA, dosA, multiSchoolDos, principalA, adminA]) if (user) await admin.auth.admin.deleteUser(user.id);
   });
 
   it("denies anonymous and cross-tenant access", async () => {
@@ -238,14 +248,24 @@ describe("isolated Step 4 academic operations integration", () => {
   });
 
   it("creates programme events and targets atomically through the narrow command", async () => {
-    const targeted = await dosA.client.rpc("create_programme_event", { p_academic_period_id: periodA, p_event_type: "ASSEMBLY", p_title: `Targeted ${suffix}`, p_starts_at: "2026-11-02T08:00:00+00:00", p_ends_at: "2026-11-02T09:00:00+00:00", p_notes: "Department assembly", p_target_type: "STREAM", p_target_id: streamA });
+    const targeted = await dosA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: periodA, p_event_type: "ASSEMBLY", p_title: `Targeted ${suffix}`, p_starts_at: "2026-11-02T08:00:00+00:00", p_ends_at: "2026-11-02T09:00:00+00:00", p_notes: "Department assembly", p_target_type: "STREAM", p_target_id: streamA });
     expect(targeted.error).toBeNull();
     const target = await admin!.from("programme_event_targets").select("stream_id, class_level_id, department_id").eq("event_id", targeted.data).single();
     expect(target.error).toBeNull();
     expect(target.data).toMatchObject({ stream_id: streamA, class_level_id: null, department_id: null });
-    const schoolWide = await dosA.client.rpc("create_programme_event", { p_academic_period_id: periodA, p_event_type: "HOLIDAY", p_title: `Whole school ${suffix}`, p_starts_at: "2026-11-03T08:00:00+00:00", p_ends_at: "2026-11-03T09:00:00+00:00", p_notes: "", p_target_type: "SCHOOL", p_target_id: null });
+    const audit = await admin!.from("audit_events").select("actor_user_id, action, resource_type, resource_id").eq("resource_id", targeted.data).single();
+    expect(audit.error).toBeNull();
+    expect(audit.data).toMatchObject({ actor_user_id: dosA.id, action: "CREATE", resource_type: "SCHOOL_PROGRAMME_EVENT", resource_id: targeted.data });
+    const schoolWide = await dosA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: periodA, p_event_type: "HOLIDAY", p_title: `Whole school ${suffix}`, p_starts_at: "2026-11-03T08:00:00+00:00", p_ends_at: "2026-11-03T09:00:00+00:00", p_notes: "", p_target_type: "SCHOOL", p_target_id: null });
     expect(schoolWide.error).toBeNull();
     expect((await admin!.from("programme_event_targets").select("id").eq("event_id", schoolWide.data)).data).toEqual([]);
-    expect((await teacherA.client.rpc("create_programme_event", { p_academic_period_id: periodA, p_event_type: "ASSEMBLY", p_title: "No", p_starts_at: "2026-11-04T08:00:00+00:00", p_ends_at: "2026-11-04T09:00:00+00:00", p_notes: null, p_target_type: "SCHOOL", p_target_id: null })).error).toBeTruthy();
+    const adminEvent = await adminA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: periodA, p_event_type: "VISITATION", p_title: `Admin event ${suffix}`, p_starts_at: "2026-11-05T08:00:00+00:00", p_ends_at: "2026-11-05T09:00:00+00:00", p_notes: null, p_target_type: "SCHOOL", p_target_id: null });
+    expect(adminEvent.error).toBeNull();
+    const noPeriod = await multiSchoolDos.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: null, p_event_type: "OTHER", p_title: `No period ${suffix}`, p_starts_at: "2026-11-06T08:00:00+00:00", p_ends_at: "2026-11-06T09:00:00+00:00", p_notes: null, p_target_type: "SCHOOL", p_target_id: null });
+    expect(noPeriod.error).toBeNull();
+    expect((await dosA.client.rpc("create_programme_event", { p_school_id: schoolB, p_academic_period_id: null, p_event_type: "OTHER", p_title: "Wrong school", p_starts_at: "2026-11-07T08:00:00+00:00", p_ends_at: "2026-11-07T09:00:00+00:00", p_notes: null, p_target_type: "SCHOOL", p_target_id: null })).error).toBeTruthy();
+    expect((await dosA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: periodB, p_event_type: "OTHER", p_title: "Wrong period", p_starts_at: "2026-11-08T08:00:00+00:00", p_ends_at: "2026-11-08T09:00:00+00:00", p_notes: null, p_target_type: "SCHOOL", p_target_id: null })).error).toBeTruthy();
+    expect((await dosA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: null, p_event_type: "OTHER", p_title: "Wrong target", p_starts_at: "2026-11-09T08:00:00+00:00", p_ends_at: "2026-11-09T09:00:00+00:00", p_notes: null, p_target_type: "STREAM", p_target_id: streamB })).error).toBeTruthy();
+    expect((await teacherA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: periodA, p_event_type: "ASSEMBLY", p_title: "No", p_starts_at: "2026-11-04T08:00:00+00:00", p_ends_at: "2026-11-04T09:00:00+00:00", p_notes: null, p_target_type: "SCHOOL", p_target_id: null })).error).toBeTruthy();
   });
 });
