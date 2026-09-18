@@ -117,6 +117,28 @@ insert into public.knowledge_record_taxonomy (record_type, domain, authority_eli
   ('review_note', 'SOURCE_INTERPRETATION', false)
 on conflict (record_type) do nothing;
 
+insert into public.knowledge_record_taxonomy (record_type, domain, authority_eligible) values
+  ('active_learning_expectation','CURRICULUM_INTENT',true),
+  ('assessment_principle','ASSESSMENT_KNOWLEDGE',true),
+  ('curriculum_menu','CURRICULUM_STRUCTURE',true),
+  ('elective_subject_time_allocation','CURRICULUM_STRUCTURE',true),
+  ('framework_model','CURRICULUM_STRUCTURE',true),
+  ('gender_equity','CURRICULUM_INTENT',true),
+  ('generic_skill_descriptor','CURRICULUM_INTENT',true),
+  ('graduate_profile','CURRICULUM_INTENT',true),
+  ('implementation_guidance','SOURCE_INTERPRETATION',false),
+  ('inclusion_mixed_ability','CURRICULUM_INTENT',true),
+  ('key_learning_outcome','CURRICULUM_INTENT',true),
+  ('learning_environment','CURRICULUM_INTENT',true),
+  ('subject_menu','CURRICULUM_STRUCTURE',true),
+  ('subject_rationale','CURRICULUM_INTENT',true),
+  ('subject_rationale_table','CURRICULUM_INTENT',true),
+  ('subject_time_allocation','CURRICULUM_STRUCTURE',true),
+  ('teaching_learning_principle','CURRICULUM_INTENT',true),
+  ('time_allocation_guidance','CURRICULUM_STRUCTURE',true)
+  ,('note','SOURCE_INTERPRETATION',false)
+on conflict (record_type) do nothing;
+
 -- Preserve pre-existing rows without allowing unknown types to become
 -- production authority. New rows must be explicitly registered above or by a
 -- reviewed taxonomy change.
@@ -565,8 +587,9 @@ begin
 end;
 $$;
 
+drop trigger if exists knowledge_conflicts_evidence_guard on public.knowledge_conflicts;
 create trigger knowledge_conflicts_evidence_guard
-before update or delete on public.knowledge_conflicts
+before insert or update or delete on public.knowledge_conflicts
 for each row execute function private.prevent_conflict_evidence_mutation();
 
 create trigger knowledge_conflict_items_evidence_guard
@@ -714,3 +737,282 @@ begin
   end loop;
 end;
 $$;
+
+-- Step 6 completion: runtime eligibility is an academic-operational projection,
+-- deliberately independent from legal rights and redistribution permissions.
+alter table public.knowledge_subject_profiles
+  add column runtime_status text not null default 'CANDIDATE'
+    check (runtime_status in ('CANDIDATE', 'ACADEMICALLY_VERIFIED', 'PILOT_ACTIVE', 'RETIRED'));
+
+alter table public.knowledge_profile_records
+  add column runtime_status text not null default 'CANDIDATE'
+    check (runtime_status in ('CANDIDATE', 'ACADEMICALLY_VERIFIED', 'PILOT_ACTIVE', 'RETIRED'));
+
+create or replace function private.enforce_knowledge_release_lifecycle()
+returns trigger language plpgsql set search_path = public, pg_temp as $$
+declare command_name text := coalesce(current_setting('ate.knowledge_governance_command', true), '');
+begin
+  if tg_op = 'INSERT' and new.status <> 'DRAFT' then raise exception 'central knowledge releases/profiles/subjects must be created as DRAFT'; end if;
+  if tg_op = 'UPDATE' and old.status = 'ACTIVE' and new.status in ('ACTIVE', 'SUPERSEDED') and (to_jsonb(new) - 'status' - 'activated_at' - 'activated_by' - 'updated_at' - 'runtime_status') is distinct from (to_jsonb(old) - 'status' - 'activated_at' - 'activated_by' - 'updated_at' - 'runtime_status') then
+    raise exception 'active central knowledge meaning is immutable; create a new release/profile';
+  end if;
+  if tg_op = 'UPDATE' and new.status is distinct from old.status then
+    if new.status = 'REVIEW' and old.status = 'DRAFT' and command_name = 'SUBMIT_RELEASE_REVIEW' then return new; end if;
+    if new.status = 'ACTIVE' and command_name = 'ACTIVATE_RELEASE' and ((tg_table_name = 'knowledge_curriculum_releases' and old.status = 'REVIEW') or (tg_table_name <> 'knowledge_curriculum_releases' and old.status in ('DRAFT','REVIEW'))) then return new; end if;
+    if new.status = 'SUPERSEDED' and old.status = 'ACTIVE' and command_name = 'SUPERSEDE_RELEASE' then return new; end if;
+    if new.status = 'RETIRED' and old.status in ('DRAFT','REVIEW','SUPERSEDED') and command_name = 'RETIRE_RELEASE' then return new; end if;
+    raise exception 'unauthorised central knowledge lifecycle transition';
+  end if;
+  return new;
+end;
+$$;
+
+create table public.knowledge_runtime_decisions (
+  decision_id uuid primary key default gen_random_uuid(),
+  entity_type text not null check (entity_type in ('SUBJECT_PROFILE', 'PROFILE_RECORD')),
+  entity_id text not null,
+  previous_status text not null check (previous_status in ('CANDIDATE', 'ACADEMICALLY_VERIFIED', 'PILOT_ACTIVE', 'RETIRED')),
+  resulting_status text not null check (resulting_status in ('CANDIDATE', 'ACADEMICALLY_VERIFIED', 'PILOT_ACTIVE', 'RETIRED')),
+  actor_user_id uuid not null,
+  decided_at timestamptz not null default now(),
+  reason text not null,
+  evidence_reference text
+);
+create index knowledge_runtime_decisions_entity_idx on public.knowledge_runtime_decisions (entity_type, entity_id, decided_at desc, decision_id desc);
+
+create or replace function private.prevent_runtime_decision_mutation()
+returns trigger language plpgsql set search_path = public, pg_temp as $$
+begin raise exception 'knowledge runtime decision history is append-only'; end;
+$$;
+create trigger knowledge_runtime_decisions_append_only
+before update or delete on public.knowledge_runtime_decisions
+for each row execute function private.prevent_runtime_decision_mutation();
+
+create or replace function private.prevent_unaudited_runtime_change()
+returns trigger language plpgsql set search_path = public, pg_temp as $$
+begin
+  if new.runtime_status is distinct from old.runtime_status
+     and coalesce(current_setting('ate.knowledge_runtime_decision', true), '') <> 'true' then
+    raise exception 'runtime eligibility changes require the controlled runtime decision command';
+  end if;
+  return new;
+end;
+$$;
+create trigger knowledge_subject_profiles_runtime_guard
+before update of runtime_status on public.knowledge_subject_profiles
+for each row execute function private.prevent_unaudited_runtime_change();
+create trigger knowledge_profile_records_runtime_guard
+before update of runtime_status on public.knowledge_profile_records
+for each row execute function private.prevent_unaudited_runtime_change();
+
+-- Runtime-only changes are permitted after academic composition is active. Any
+-- change to release/profile/source/membership meaning remains immutable.
+create or replace function private.prevent_active_knowledge_membership_edit()
+returns trigger language plpgsql set search_path = public, pg_temp as $$
+declare target_release_id uuid;
+begin
+  if tg_op = 'DELETE' then
+    target_release_id := old.release_id;
+  elsif tg_op = 'INSERT' then
+    target_release_id := new.release_id;
+  else
+    target_release_id := old.release_id;
+    if old.release_id is distinct from new.release_id then
+      raise exception 'active release membership is immutable; create a new release';
+    end if;
+    if exists (select 1 from public.knowledge_curriculum_releases where id = target_release_id and status = 'ACTIVE')
+       and tg_table_name in ('knowledge_subject_profiles', 'knowledge_profile_records')
+       and coalesce(current_setting('ate.knowledge_runtime_decision', true), '') = 'true'
+       and (to_jsonb(new) - 'runtime_status' - 'updated_at') = (to_jsonb(old) - 'runtime_status' - 'updated_at') then
+      return new;
+    end if;
+  end if;
+  if exists (select 1 from public.knowledge_curriculum_releases where id = target_release_id and status = 'ACTIVE') then
+    raise exception 'active release membership is immutable; create a new release';
+  end if;
+  if tg_op = 'DELETE' then return old; end if;
+  return new;
+end;
+$$;
+
+alter table public.knowledge_conflicts add column resolution_reason text;
+create or replace function private.prevent_conflict_evidence_mutation()
+returns trigger language plpgsql set search_path = public, pg_temp as $$
+begin
+  if tg_table_name = 'knowledge_conflict_items' then raise exception 'conflict evidence is append-only'; end if;
+  if tg_op = 'INSERT' then
+    if new.status <> 'OPEN' then raise exception 'new conflicts must start OPEN'; end if;
+    return new;
+  end if;
+  if tg_op = 'DELETE' then raise exception 'conflicts cannot be deleted; resolve them instead'; end if;
+  if coalesce(current_setting('ate.knowledge_conflict_resolution', true), '') <> 'true' then raise exception 'conflict resolution requires the controlled resolution command'; end if;
+  if old.status <> 'OPEN' then raise exception 'resolved conflict evidence is immutable'; end if;
+  if new.summary is distinct from old.summary or new.release_id is distinct from old.release_id or new.subject_profile_id is distinct from old.subject_profile_id or new.category is distinct from old.category or new.created_at is distinct from old.created_at then
+    raise exception 'conflict summary and scope are immutable';
+  end if;
+  if new.status not in ('RESOLVED', 'ACCEPTED_OVERRIDE') or new.resolution_text is null or new.resolution_reason is null or new.resolved_by is null or new.resolved_at is null then
+    raise exception 'conflict resolution requires status, actor, timestamp, reason, and resolution text';
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.resolve_knowledge_conflict(
+  p_conflict_id uuid, p_status text, p_actor_user_id uuid, p_reason text, p_resolution_text text
+) returns void language plpgsql security definer set search_path = public, pg_temp as $$
+begin
+  if p_status not in ('RESOLVED', 'ACCEPTED_OVERRIDE') or p_actor_user_id is null or nullif(trim(p_reason), '') is null or nullif(trim(p_resolution_text), '') is null then
+    raise exception 'conflict resolution requires an accepted status, actor, reason, and resolution';
+  end if;
+  perform set_config('ate.knowledge_conflict_resolution', 'true', true);
+  update public.knowledge_conflicts
+    set status = p_status, resolved_by = p_actor_user_id, resolved_at = now(), resolution_text = p_resolution_text, resolution_reason = p_reason
+    where id = p_conflict_id and status = 'OPEN';
+  if not found then raise exception 'open knowledge conflict not found'; end if;
+end;
+$$;
+
+create or replace function public.record_knowledge_runtime_decision(
+  p_entity_type text, p_entity_id text, p_resulting_status text, p_actor_user_id uuid, p_reason text, p_evidence_reference text default null
+) returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
+declare previous_status text; decision_id uuid;
+begin
+  if p_entity_type not in ('SUBJECT_PROFILE', 'PROFILE_RECORD') or p_resulting_status not in ('CANDIDATE', 'ACADEMICALLY_VERIFIED', 'PILOT_ACTIVE', 'RETIRED') or p_actor_user_id is null or nullif(trim(p_reason), '') is null then
+    raise exception 'invalid runtime decision';
+  end if;
+  if p_resulting_status = 'PILOT_ACTIVE' and coalesce(current_setting('ate.knowledge_pilot_activation', true), '') <> 'true' then
+    raise exception 'PILOT_ACTIVE requires the controlled pilot activation command';
+  end if;
+  if p_entity_type = 'SUBJECT_PROFILE' then
+    select runtime_status into previous_status from public.knowledge_subject_profiles where id = p_entity_id::uuid for update;
+  else
+    select runtime_status into previous_status from public.knowledge_profile_records where id = p_entity_id::uuid for update;
+  end if;
+  if previous_status is null then raise exception 'runtime entity not found'; end if;
+  perform set_config('ate.knowledge_runtime_decision', 'true', true);
+  insert into public.knowledge_runtime_decisions(entity_type, entity_id, previous_status, resulting_status, actor_user_id, reason, evidence_reference)
+    values(p_entity_type, p_entity_id, previous_status, p_resulting_status, p_actor_user_id, p_reason, p_evidence_reference)
+    returning knowledge_runtime_decisions.decision_id into decision_id;
+  if p_entity_type = 'SUBJECT_PROFILE' then
+    update public.knowledge_subject_profiles set runtime_status = p_resulting_status where id = p_entity_id::uuid;
+  else
+    update public.knowledge_profile_records set runtime_status = p_resulting_status where id = p_entity_id::uuid;
+  end if;
+  return decision_id;
+end;
+$$;
+
+create or replace function public.activate_knowledge_profile_pilot(
+  p_subject_profile_id uuid, p_actor_user_id uuid, p_reason text
+) returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
+declare profile record; candidate record; report jsonb := jsonb_build_object('profileId', p_subject_profile_id, 'activated', false); count_records integer; total_records integer;
+begin
+  if p_actor_user_id is null or nullif(trim(p_reason), '') is null then raise exception 'pilot activation actor and reason are required'; end if;
+  select p.*, r.status as release_status into profile from public.knowledge_subject_profiles p join public.knowledge_curriculum_releases r on r.id=p.release_id where p.id=p_subject_profile_id for update;
+  if not found then raise exception 'subject profile not found'; end if;
+  if profile.release_status <> 'ACTIVE' or profile.status <> 'ACTIVE' then raise exception 'pilot activation requires an ACTIVE academic release and profile'; end if;
+  if exists(select 1 from public.knowledge_conflicts c where c.release_id=profile.release_id and c.status='OPEN' and (c.subject_profile_id is null or c.subject_profile_id=p_subject_profile_id)) then raise exception 'open conflict blocks pilot activation'; end if;
+  select count(*) into total_records from public.knowledge_profile_records where subject_profile_id=p_subject_profile_id and status='APPROVED';
+  if total_records = 0 then raise exception 'pilot activation requires at least one approved profile record'; end if;
+  select count(*) into count_records from public.knowledge_profile_records pr join public.knowledge_records r on r.canonical_id=pr.canonical_id join public.knowledge_source_spans sp on sp.span_id=r.span_id and sp.source_id=r.source_id where pr.subject_profile_id=p_subject_profile_id and pr.status='APPROVED' and (pr.runtime_status not in ('CANDIDATE','ACADEMICALLY_VERIFIED') or r.verification_status <> 'VERIFIED' or sp.verification_status <> 'VERIFIED' or not exists(select 1 from public.knowledge_verification_decisions d where d.entity_type='RECORD' and d.entity_id=r.canonical_id and d.resulting_status='VERIFIED') or not exists(select 1 from public.knowledge_verification_decisions d where d.entity_type='SPAN' and d.entity_id=sp.span_id and d.resulting_status='VERIFIED') or exists(select 1 from public.knowledge_relationships rel where (rel.from_canonical_id=r.canonical_id or rel.to_canonical_id=r.canonical_id) and (rel.verification_status <> 'VERIFIED' or not exists(select 1 from public.knowledge_verification_decisions d where d.entity_type='RELATIONSHIP' and d.entity_id=rel.relationship_id and d.resulting_status='VERIFIED'))));
+  if count_records > 0 then raise exception 'pilot activation requires verified, provenance-complete profile records'; end if;
+  perform set_config('ate.knowledge_pilot_activation', 'true', true);
+  perform public.record_knowledge_runtime_decision('SUBJECT_PROFILE', p_subject_profile_id::text, 'PILOT_ACTIVE', p_actor_user_id, p_reason, null);
+  for candidate in select pr.id from public.knowledge_profile_records pr where pr.subject_profile_id=p_subject_profile_id and pr.status='APPROVED' and pr.runtime_status in ('CANDIDATE','ACADEMICALLY_VERIFIED') loop
+    perform public.record_knowledge_runtime_decision('PROFILE_RECORD', candidate.id::text, 'PILOT_ACTIVE', p_actor_user_id, p_reason, null);
+  end loop;
+  return jsonb_build_object('profileId', p_subject_profile_id, 'activated', true, 'rightsIndependent', true);
+end;
+$$;
+
+-- The immutable audit records cannot be edited or deleted, including by a
+-- service-role client outside the narrow command path.
+create trigger knowledge_release_activation_runs_append_only before update or delete on public.knowledge_release_activation_runs for each row execute function private.prevent_knowledge_decision_mutation();
+create trigger knowledge_record_identity_mappings_append_only before update or delete on public.knowledge_record_identity_mappings for each row execute function private.prevent_knowledge_decision_mutation();
+create trigger knowledge_legacy_id_mappings_append_only before update or delete on public.knowledge_legacy_id_mappings for each row execute function private.prevent_knowledge_decision_mutation();
+
+alter table public.knowledge_release_activation_runs enable row level security;
+alter table public.knowledge_runtime_decisions enable row level security;
+
+create table public.school_subject_curriculum_bindings (
+  id uuid primary key default gen_random_uuid(), school_id uuid not null, school_subject_id uuid not null, subject_profile_id uuid not null references public.knowledge_subject_profiles(id), effective_from date not null, effective_to date, status text not null default 'ACTIVE' check(status in ('ACTIVE','RETIRED')), bound_by uuid not null, created_at timestamptz not null default now(), retired_at timestamptz, unique (id, school_id), check(effective_to is null or effective_to >= effective_from)
+);
+create table public.teaching_section_curriculum_bindings (
+  id uuid primary key default gen_random_uuid(), school_id uuid not null, teaching_section_id uuid not null, subject_profile_id uuid not null references public.knowledge_subject_profiles(id), effective_from date not null, effective_to date, status text not null default 'ACTIVE' check(status in ('ACTIVE','RETIRED')), bound_by uuid not null, created_at timestamptz not null default now(), retired_at timestamptz, unique (id, school_id), check(effective_to is null or effective_to >= effective_from)
+);
+create table public.teaching_section_curriculum_position_events (
+  id uuid primary key default gen_random_uuid(), school_id uuid not null, teaching_section_id uuid not null, subject_profile_id uuid not null references public.knowledge_subject_profiles(id), canonical_id text not null references public.knowledge_records(canonical_id), position_kind text not null check(position_kind in ('TOPIC','LEARNING_OUTCOME','CURRICULAR_UNIT')), confirmed_by uuid not null, confirmed_at timestamptz not null default now(), supersedes_event_id uuid references public.teaching_section_curriculum_position_events(id), correction_reason text, unique (id, school_id)
+);
+
+do $$ begin
+  if to_regclass('public.school_subjects') is not null then
+    alter table public.school_subject_curriculum_bindings add constraint school_subject_curriculum_bindings_subject_fk foreign key (school_subject_id, school_id) references public.school_subjects(id, school_id);
+  end if;
+  if to_regclass('public.teaching_sections') is not null then
+    alter table public.teaching_section_curriculum_bindings add constraint teaching_section_curriculum_bindings_section_fk foreign key (teaching_section_id, school_id) references public.teaching_sections(id, school_id);
+    alter table public.teaching_section_curriculum_position_events add constraint teaching_section_curriculum_position_events_section_fk foreign key (teaching_section_id, school_id) references public.teaching_sections(id, school_id);
+  end if;
+end $$;
+create index school_subject_curriculum_bindings_lookup_idx on public.school_subject_curriculum_bindings(school_id, school_subject_id, status, effective_from);
+create index teaching_section_curriculum_bindings_lookup_idx on public.teaching_section_curriculum_bindings(school_id, teaching_section_id, status, effective_from);
+create index teaching_section_curriculum_position_events_lookup_idx on public.teaching_section_curriculum_position_events(school_id, teaching_section_id, confirmed_at desc);
+
+create or replace function private.validate_school_curriculum_binding()
+returns trigger language plpgsql set search_path = public, pg_temp as $$
+declare school_subject_record record; profile record; section_record record; bound_profile uuid;
+begin
+  select ss.school_id, ss.id into school_subject_record from public.school_subjects ss where ss.id=new.school_subject_id and ss.school_id=new.school_id;
+  if not found then raise exception 'school subject does not belong to school'; end if;
+  select p.id, p.governed_subject_id, p.education_level, p.runtime_status, p.status into profile from public.knowledge_subject_profiles p where p.id=new.subject_profile_id;
+  if not found or profile.status <> 'ACTIVE' or profile.runtime_status <> 'PILOT_ACTIVE' then raise exception 'binding requires a PILOT_ACTIVE subject profile'; end if;
+  if tg_table_name = 'school_subject_curriculum_bindings' then return new; end if;
+  select ts.school_subject_id into section_record from public.teaching_sections ts where ts.id=new.teaching_section_id and ts.school_id=new.school_id;
+  if not found then raise exception 'teaching section does not belong to school'; end if;
+  select b.subject_profile_id into bound_profile from public.school_subject_curriculum_bindings b where b.school_id=new.school_id and b.school_subject_id=section_record.school_subject_id and b.status='ACTIVE' and b.effective_from <= new.effective_from and (b.effective_to is null or b.effective_to >= new.effective_from) order by b.effective_from desc limit 1;
+  if bound_profile is null or bound_profile <> new.subject_profile_id then raise exception 'teaching section profile must match its school subject binding'; end if;
+  return new;
+end;
+$$;
+create trigger school_subject_curriculum_binding_validate before insert or update on public.school_subject_curriculum_bindings for each row execute function private.validate_school_curriculum_binding();
+create trigger teaching_section_curriculum_binding_validate before insert or update on public.teaching_section_curriculum_bindings for each row execute function private.validate_school_curriculum_binding();
+
+create or replace function private.validate_curriculum_position_event()
+returns trigger language plpgsql set search_path = public, pg_temp as $$
+declare section_profile uuid; record_profile uuid; current_teacher uuid;
+begin
+  select b.subject_profile_id into section_profile from public.teaching_section_curriculum_bindings b where b.school_id=new.school_id and b.teaching_section_id=new.teaching_section_id and b.status='ACTIVE' and b.effective_from <= new.confirmed_at::date and (b.effective_to is null or b.effective_to >= new.confirmed_at::date) order by b.effective_from desc limit 1;
+  if section_profile is null or section_profile <> new.subject_profile_id then raise exception 'position profile does not match the active teaching-section binding'; end if;
+  select pr.subject_profile_id into record_profile from public.knowledge_profile_records pr where pr.canonical_id=new.canonical_id and pr.subject_profile_id=new.subject_profile_id and pr.status='APPROVED' and pr.runtime_status='PILOT_ACTIVE';
+  if record_profile is null then raise exception 'position record is not an active member of the selected subject profile'; end if;
+  select m.user_id into current_teacher from public.teaching_sections ts join public.memberships m on m.id=ts.teacher_membership_id and m.school_id=ts.school_id where ts.id=new.teaching_section_id and ts.school_id=new.school_id;
+  if current_teacher is not null and current_teacher <> new.confirmed_by and not private.has_school_role(new.school_id, 'DOS') and not private.has_school_role(new.school_id, 'SCHOOL_ADMIN') then raise exception 'only the assigned teacher or an authorised school academic role may confirm a curriculum position'; end if;
+  return new;
+end;
+$$;
+create trigger teaching_section_curriculum_position_validate before insert on public.teaching_section_curriculum_position_events for each row execute function private.validate_curriculum_position_event();
+
+alter table public.school_subject_curriculum_bindings enable row level security;
+alter table public.teaching_section_curriculum_bindings enable row level security;
+alter table public.teaching_section_curriculum_position_events enable row level security;
+do $$ begin
+  if exists (select 1 from pg_roles where rolname='authenticated') then
+    grant select, insert, update on public.school_subject_curriculum_bindings, public.teaching_section_curriculum_bindings, public.teaching_section_curriculum_position_events to authenticated;
+    if to_regprocedure('private.is_active_school_member(uuid)') is not null then
+      execute 'create policy school_subject_curriculum_bindings_read on public.school_subject_curriculum_bindings for select to authenticated using(private.is_active_school_member(school_id))';
+      execute 'create policy teaching_section_curriculum_bindings_read on public.teaching_section_curriculum_bindings for select to authenticated using(private.is_active_school_member(school_id))';
+      execute 'create policy teaching_section_curriculum_position_events_read on public.teaching_section_curriculum_position_events for select to authenticated using(private.is_active_school_member(school_id))';
+    end if;
+    if to_regprocedure('private.has_school_role(uuid,text)') is not null then
+      execute 'create policy school_subject_curriculum_bindings_manage on public.school_subject_curriculum_bindings for all to authenticated using(private.has_school_role(school_id,''SCHOOL_ADMIN'') or private.has_school_role(school_id,''DOS'')) with check(private.has_school_role(school_id,''SCHOOL_ADMIN'') or private.has_school_role(school_id,''DOS''))';
+      execute 'create policy teaching_section_curriculum_bindings_manage on public.teaching_section_curriculum_bindings for all to authenticated using(private.has_school_role(school_id,''SCHOOL_ADMIN'') or private.has_school_role(school_id,''DOS'')) with check(private.has_school_role(school_id,''SCHOOL_ADMIN'') or private.has_school_role(school_id,''DOS''))';
+      execute 'create policy teaching_section_curriculum_position_events_insert on public.teaching_section_curriculum_position_events for insert to authenticated with check(private.is_active_school_member(school_id) and (confirmed_by = auth.uid() or private.has_school_role(school_id,''DOS'') or private.has_school_role(school_id,''SCHOOL_ADMIN'')))';
+    end if;
+  end if;
+end $$;
+
+revoke all on table public.knowledge_runtime_decisions from public;
+do $$ begin
+  if exists (select 1 from pg_roles where rolname='anon') then revoke all on table public.school_subject_curriculum_bindings, public.teaching_section_curriculum_bindings, public.teaching_section_curriculum_position_events from anon; end if;
+end $$;
+revoke all on function public.record_knowledge_runtime_decision(text,text,text,uuid,text,text) from public;
+revoke all on function public.activate_knowledge_profile_pilot(uuid,uuid,text) from public;

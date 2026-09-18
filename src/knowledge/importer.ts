@@ -50,7 +50,7 @@ function sourceFromRegistry(record: RegistryRecord): KnowledgeSource {
   return {
     sourceId: record.source_id, authority: record.authority, title: record.title, documentType: record.document_type,
     educationLevel: record.education_level, subject: record.subject, publicationYear: record.publication_year, effectiveYear: record.effective_year,
-    sourceVersion: record.version, checksumSha256: record.checksum_sha256, rightsStatus: "REVIEW_REQUIRED",
+    sourceVersion: record.version, checksumSha256: record.checksum_sha256, rightsStatus: "UNKNOWN",
     productionUseStatus: "PERMISSION_PENDING", externalAiAllowed: false, attributionRequired: true, formalArtifactAllowed: false, exportAllowed: false,
     processingStatus: record.processing_status, verificationStatus: reviewState(record.verification_status), sourcePath: record.local_path,
   };

@@ -67,6 +67,11 @@ describe("central Academic Knowledge governance", () => {
     await recordKnowledgeVerificationDecision(client, { entityType: "RECORD", entityId: canonicalId, resultingStatus: "VERIFIED", actorUserId: actorId, reason: "Synthetic normalized record checked against the synthetic span." });
     report = await activateKnowledgeRelease(client, releaseId, actorId);
     expect(report).toMatchObject({ activated: true, status: "ACTIVE", issues: [] });
+    await expect(client.query("UPDATE knowledge_subject_profiles SET runtime_status='PILOT_ACTIVE' WHERE id=$1", [profileId])).rejects.toThrow();
+    await client.query("SELECT public.activate_knowledge_profile_pilot($1,$2,$3)", [profileId, actorId, "Synthetic controlled pilot activation."]);
+    const pilotRecords = await retrieveExactKnowledge(client, { use: "CONTROLLED_PILOT", releaseId, subjectProfileId: profileId, effectiveOn: "2026-03-01", recordTypes: ["topic"] });
+    expect(pilotRecords).toHaveLength(1);
+    expect(pilotRecords[0].governance?.runtimeStatus).toBe("PILOT_ACTIVE");
     await expect(client.query("UPDATE knowledge_curriculum_releases SET status='DRAFT' WHERE id=$1", [releaseId])).rejects.toThrow();
     expect((await activateKnowledgeRelease(client, releaseId, actorId)).issues.map((issue) => issue.code)).toContain("ALREADY_ACTIVE");
     const release = await client.query<{ status: string }>("SELECT status FROM knowledge_curriculum_releases WHERE id=$1", [releaseId]);

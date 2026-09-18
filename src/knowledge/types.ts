@@ -3,7 +3,8 @@ export type RightsStatus = "CLEARED" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNO
 export type VerificationStatus = "UNVERIFIED" | "REVIEW_REQUIRED" | "VERIFIED";
 export type ProductionUseStatus = "PERMITTED" | "PERMISSION_PENDING" | "BLOCKED";
 export type ImportMode = "DEVELOPMENT" | "PRODUCTION_AUTHORISED";
-export type RetrievalUse = "DEVELOPMENT_VIEW" | "PRODUCTION_APP" | "FORMAL_ARTIFACT" | "EXTERNAL_AI";
+export type RetrievalUse = "DEVELOPMENT_VIEW" | "CONTROLLED_PILOT" | "PRODUCTION_APP" | "FORMAL_ARTIFACT" | "EXTERNAL_AI";
+export type KnowledgeRuntimeStatus = "CANDIDATE" | "ACADEMICALLY_VERIFIED" | "PILOT_ACTIVE" | "RETIRED";
 export type KnowledgeEntityType = "SOURCE" | "SPAN" | "RECORD" | "RELATIONSHIP";
 export type KnowledgeReleaseStatus = "DRAFT" | "REVIEW" | "ACTIVE" | "SUPERSEDED" | "RETIRED";
 
@@ -75,6 +76,8 @@ export type RetrievedKnowledgeRecord = {
     effectiveOn: string;
     releaseStatus: KnowledgeReleaseStatus;
     profileStatus: "DRAFT" | "ACTIVE" | "RETIRED";
+    runtimeStatus?: KnowledgeRuntimeStatus;
+    profileRuntimeStatus?: KnowledgeRuntimeStatus;
     membershipStatus: "DRAFT" | "APPROVED" | "RETIRED";
     conflictFree: boolean;
   };

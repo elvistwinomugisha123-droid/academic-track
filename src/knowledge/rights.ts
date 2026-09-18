@@ -4,6 +4,7 @@ type RightsInput = Pick<KnowledgeSource, "rightsStatus" | "productionUseStatus" 
 
 export function sourcePermitsUse(source: RightsInput, use: RetrievalUse): boolean {
   if (use === "DEVELOPMENT_VIEW") return source.rightsStatus !== "RESTRICTED";
+  if (use === "CONTROLLED_PILOT") return true;
   if (source.rightsStatus !== "CLEARED" || source.productionUseStatus !== "PERMITTED") return false;
   if (use === "EXTERNAL_AI") return source.externalAiAllowed;
   if (use === "FORMAL_ARTIFACT") return source.formalArtifactAllowed;

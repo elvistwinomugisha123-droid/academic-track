@@ -13,6 +13,18 @@ export const relationshipTypeSchema = z.enum([
   "SOURCE_DEFINES_ENTITY",
   "PREREQUISITE_OF",
   "CURRICULUM_LINKED_TO_ASSESSMENT_GUIDANCE",
+  "associated_with_subject",
+  "associated_with_topic",
+  "belongs_to_framework",
+  "belongs_to_level",
+  "belongs_to_subject",
+  "belongs_to_term",
+  "belongs_to_theme",
+  "belongs_to_topic",
+  "descriptor_of",
+  "guided_by_framework",
+  "maps_to_detailed_topic",
+  "suggested_for_topic",
 ]);
 
 export const relationshipSchema = z.object({

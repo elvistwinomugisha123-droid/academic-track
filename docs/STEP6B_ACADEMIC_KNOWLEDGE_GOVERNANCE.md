@@ -1,6 +1,6 @@
 # ATE v1 Step 6B — Academic Knowledge Governance
 
-Status: pre-apply hardened implementation; no real curriculum release is active and 0008 is not applied remotely.
+Status: Step 6 completion implementation; the committed real corpus is available only as a historical Lower Secondary Biology/framework controlled-pilot candidate. 0008 remains unapplied remotely.
 
 This document records the Step 6B production design and implementation boundary. Academic Knowledge is central governed reference data. It is not school-tenanted operational data, classroom evidence, or an LLM memory store.
 
@@ -48,6 +48,10 @@ The new central tables are:
 - `knowledge_rights_decisions`
 - `knowledge_record_identity_mappings`
 - `knowledge_release_activation_runs`
+- `knowledge_runtime_decisions`
+- `school_subject_curriculum_bindings`
+- `teaching_section_curriculum_bindings`
+- `teaching_section_curriculum_position_events`
 
 The migration enables RLS and revokes browser-role privileges on every central table. There are no `anon` or ordinary `authenticated` write policies. Governance decision functions are security-definer database commands and their execute privilege is revoked from browser roles; the application server/database owner is the intended access boundary.
 
@@ -107,6 +111,7 @@ The use gates are:
 | `PRODUCTION_APP` | active applicable profile, verified provenance path, `CLEARED` + `PERMITTED` |
 | `FORMAL_ARTIFACT` | all production gates plus formal-artifact allowance and attribution rules |
 | `EXTERNAL_AI` | all production gates plus explicit `external_ai_allowed`; source wording only where policy allows |
+| `CONTROLLED_PILOT` | active academic profile, clean verified provenance and no blocking conflict; normalized facts/provenance may be used while rights remain pending, with restricted source wording withheld |
 
 `REVIEW_REQUIRED`, `PERMISSION_PENDING`, `RESTRICTED` and `BLOCKED` fail closed for the stricter modes. Rights-cleared does not make an unverified record usable as truth.
 
@@ -138,6 +143,8 @@ An open conflict scoped to a release/profile blocks activation and affected prod
 
 On any blocker it rolls back and returns `activated: false`. Every actor-bearing attempt is recorded in append-only `knowledge_release_activation_runs` with the deterministic report and hash. On success it transitions the release and its profiles/subjects/required assessment profiles through the activation command and records the activating actor/time. Import completion never invokes this command.
 
+`CONTROLLED_PILOT` uses the same academic activation checks but does not convert legal rights metadata into permission. A pilot profile is explicitly labelled historical/reference when currentness has not been established. `PILOT_ACTIVE` is a runtime eligibility projection, not NCDC endorsement, legal clearance, export permission, republication permission or external-AI permission. Runtime transitions have their own append-only decision history and narrow database command.
+
 ## 11. Retrieval contract
 
 The legacy exact path remains available for controlled development compatibility. Governed production/formal/external retrieval requires explicit release, subject profile, effective date and record types. It joins the profile membership and approved source set, validates active/effective release state, subject/profile regime, verification evidence, rights decision expiry, conflict state, source/profile compatibility and complete span/source provenance. It returns canonical IDs plus source title, authority, version, the full `sourceChecksumSha256`, extracted `spanContentSha256`, normalized `recordContentSha256`, page/locator, rights and governance context.
@@ -146,7 +153,9 @@ Governed retrieval fails closed with explicit errors including `NOT_FOUND`, `NOT
 
 ## 12. Import boundary
 
-The importer is transactional and idempotent for mode + dataset checksum + importer version + schema version. It records manifest identity, outcome and report hash. It writes candidates only, never verification, rights elevation or activation. Source checksum changes for an existing source identity are rejected rather than silently overwriting version identity. Legacy IDs are insert-only/idempotent and cannot silently repoint. The historical Biology workbench and the previously described 45-source corpus are not adapted or activated by Step 6B.
+The importer is transactional and idempotent for mode + dataset checksum + importer version + schema version. It records manifest identity, outcome and report hash. It writes candidates only, never verification, rights elevation or activation. Source checksum changes for an existing source identity are rejected rather than silently overwriting version identity. Legacy IDs are insert-only/idempotent and cannot silently repoint.
+
+The committed real adapter is intentionally narrow. It reads only `ncdc-biology-2019` and `ncdc-framework-2019`, excludes `user-extraction-brief`, preserves source checksums/page locators/source wording and relationship evidence, and emits a deterministic clean-subset report. The 26 open review items remain report evidence; records and relationships directly depending on those items are excluded rather than silently repaired. No missing hierarchy, assessment rule, currentness, permission or endorsement is inferred. The real source registry remains `UNKNOWN` / `PERMISSION_PENDING`.
 
 ## 13. External AI boundary
 
@@ -158,6 +167,24 @@ The governance tests use clearly labelled `TEST_SYNTHETIC_*` source/release/prof
 
 FACT: `public.knowledge_sources` does not currently exist in `ATE_Security_Test`; the 0000 Academic Knowledge foundation has not been applied there. Later live testing must first apply existing 0000, then corrected 0008, then run live integration/advisor checks. The local test applies 0000 and 0008 to an isolated PGlite database; this does not apply anything remotely.
 
-## 15. Deferred Step 6C
+## 15. School binding and teacher position history
 
-This step deliberately creates no `school_subject_curriculum_bindings`, `teaching_section_curriculum_bindings` or `teaching_section_curriculum_position_events`. It creates no UI and does not let a school role mutate central governance. Step 6C will bind school-owned subjects and teaching sections to active central subject/profile identities, with teacher-confirmed curriculum position history kept separate from classroom continuity events.
+School-owned bindings reference central profile UUIDs and are tenant-scoped. A school subject can bind only to a `PILOT_ACTIVE` compatible profile. A Teaching Section can bind only to the profile selected for its school subject. Teacher position events reference a `PILOT_ACTIVE` topic/outcome membership, record actor/time and correction/successor history, and resolve the latest non-superseded event with full provenance. No `teaching_sections.current_topic` is introduced; no timetable inference or scheme-of-work upload is required. Classroom continuity remains separate and a classroom event does not create a curriculum position automatically.
+
+The school tables are guarded by RLS and school-role policies when the full tenancy foundation is present. The local knowledge-only PGlite harness conditionally omits tenancy FKs/policies because it does not install 0001/0002; full live testing must run against the complete migration sequence.
+
+## 16. Real-corpus limitations and unavailable sources
+
+FACT: the checkout contains two official-source-labelled 2019 documents, 588 Biology entities, 130 framework records, 1,103 relationships and 26 open review items. The manifest explicitly says authenticity/currentness and permission/endorsement were not independently established.
+
+UNKNOWN / BLOCKED: Lower Secondary Physics, Advanced Secondary Physics/Chemistry/Biology/Mathematics and other Advanced Secondary subjects, the Advanced Secondary Assessment Framework 2026 and subject assessment guidelines are not present in this checkout. No records or profiles are invented for them. Their absence remains a blocker for corresponding production claims and later assessment workflows.
+
+The Biology pilot is therefore a controlled historical reference runtime only. It supports navigation, normalized curriculum facts, teacher-position anchoring and deterministic scope logic for the clean subset. It does not authorize public republication, bulk export, formal artifact generation from restricted wording, external AI transmission of restricted wording, or any claim of current national curriculum status.
+
+## 17. Required live test-database sequence
+
+FACT: `public.knowledge_sources` does not currently exist in `ATE_Security_Test`; the 0000 Academic Knowledge foundation has not been applied there. Later live testing must first apply existing `0000_academic_knowledge.sql`, then corrected `0008_academic_knowledge_governance.sql`, then run live migration/RLS/governance/real-corpus/binding tests and Supabase advisor checks. No remote database was modified by this implementation pass.
+
+## 18. Deferred Step 7
+
+No Lesson Readiness, Assessment Studio, AI integration, large UI build, or Step 7 work is included. The next school-facing vertical slice may refine the minimal binding commands and add UI while preserving the central governance boundary.
