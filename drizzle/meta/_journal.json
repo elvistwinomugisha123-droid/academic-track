@@ -4,6 +4,7 @@
   "entries": [
     { "idx": 0, "version": "7", "when": 1783620000000, "tag": "0000_academic_knowledge", "breakpoints": true },
     { "idx": 1, "version": "7", "when": 1783706400000, "tag": "0001_security_tenancy", "breakpoints": true },
-    { "idx": 2, "version": "7", "when": 1783706400001, "tag": "0002_academic_operations", "breakpoints": true }
+    { "idx": 2, "version": "7", "when": 1783706400001, "tag": "0002_academic_operations", "breakpoints": true },
+    { "idx": 3, "version": "7", "when": 1783706400002, "tag": "0003_step4_rpc_privileges", "breakpoints": true }
   ]
 }
