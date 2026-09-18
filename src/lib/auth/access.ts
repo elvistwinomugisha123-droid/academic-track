@@ -1,5 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type AccessContext = { userId: string; schoolId: string; membershipId: string; displayName: string; roles: string[] };
@@ -21,5 +22,7 @@ export async function requireWorkspaceAccess(schoolId?: string) {
   if (context) return context;
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
-  redirect(user ? "/no-membership" : "/sign-in?next=/workspace");
+  if (user) redirect("/no-membership");
+  const hasSessionCookie = (await cookies()).getAll().some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("auth-token"));
+  redirect(hasSessionCookie ? "/session-expired?next=/workspace" : "/sign-in?next=/workspace");
 }
