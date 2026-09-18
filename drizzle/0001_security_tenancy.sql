@@ -54,11 +54,13 @@ create table role_grants (
   foreign key (membership_id, school_id) references memberships(id, school_id),
   foreign key (department_id, school_id) references departments(id, school_id),
   check ((scope_type = 'SCHOOL' and department_id is null) or (scope_type = 'DEPARTMENT' and department_id is not null)),
-  unique (membership_id, role, scope_type, department_id)
+  check ((role = 'HOD' and scope_type = 'DEPARTMENT') or (role in ('TEACHER', 'DOS', 'PRINCIPAL', 'SCHOOL_ADMIN') and scope_type = 'SCHOOL'))
 );
 create index role_grants_membership_status_idx on role_grants (membership_id, status);
 create index role_grants_school_role_status_idx on role_grants (school_id, role, status);
 create index role_grants_department_role_status_idx on role_grants (school_id, department_id, role, status);
+create unique index role_grants_active_school_unique on role_grants (membership_id, role) where status = 'ACTIVE' and scope_type = 'SCHOOL';
+create unique index role_grants_active_department_unique on role_grants (membership_id, role, department_id) where status = 'ACTIVE' and scope_type = 'DEPARTMENT';
 
 create table academic_periods (
   id uuid primary key default gen_random_uuid(),
@@ -82,16 +84,29 @@ create table invitations (
   email_normalized text not null check (email_normalized = lower(trim(email_normalized))),
   token_hash text not null unique,
   status text not null default 'PENDING' check (status in ('PENDING', 'ACCEPTED', 'REVOKED', 'EXPIRED')),
-  intended_role text check (intended_role in ('TEACHER', 'HOD', 'DOS', 'PRINCIPAL', 'SCHOOL_ADMIN')),
-  department_id uuid,
   expires_at timestamptz not null,
   accepted_by uuid references auth.users(id),
   accepted_at timestamptz,
   created_by uuid not null references auth.users(id),
   created_at timestamptz not null default now(),
-  foreign key (department_id, school_id) references departments(id, school_id)
+  unique (id, school_id)
 );
 create index invitations_school_status_expiry_idx on invitations (school_id, status, expires_at);
+
+create table invitation_role_grants (
+  id uuid primary key default gen_random_uuid(),
+  invitation_id uuid not null references invitations(id) on delete cascade,
+  school_id uuid not null,
+  role text not null check (role in ('TEACHER', 'HOD', 'DOS', 'PRINCIPAL', 'SCHOOL_ADMIN')),
+  scope_type text not null check (scope_type in ('SCHOOL', 'DEPARTMENT')),
+  department_id uuid,
+  foreign key (invitation_id, school_id) references invitations(id, school_id),
+  foreign key (department_id, school_id) references departments(id, school_id),
+  check ((scope_type = 'SCHOOL' and department_id is null) or (scope_type = 'DEPARTMENT' and department_id is not null)),
+  check ((role = 'HOD' and scope_type = 'DEPARTMENT') or (role in ('TEACHER', 'DOS', 'PRINCIPAL', 'SCHOOL_ADMIN') and scope_type = 'SCHOOL'))
+);
+create unique index invitation_role_grants_unique on invitation_role_grants (invitation_id, role, scope_type, coalesce(department_id, '00000000-0000-0000-0000-000000000000'::uuid));
+create index invitation_role_grants_school_idx on invitation_role_grants (school_id, invitation_id);
 
 create table audit_events (
   id uuid primary key default gen_random_uuid(),
@@ -126,6 +141,42 @@ create table school_files (
 );
 create index school_files_school_classification_idx on school_files (school_id, classification, status);
 
+create or replace function private.prevent_membership_identity_change()
+returns trigger language plpgsql set search_path = '' as $$
+begin
+  if new.school_id is distinct from old.school_id or new.user_id is distinct from old.user_id then
+    raise exception 'membership tenant and identity fields are immutable';
+  end if;
+  return new;
+end
+$$;
+create trigger memberships_identity_immutable
+before update on memberships
+for each row execute function private.prevent_membership_identity_change();
+
+create or replace function private.prevent_school_file_identity_change()
+returns trigger language plpgsql set search_path = '' as $$
+begin
+  if new.school_id is distinct from old.school_id or new.bucket_id is distinct from old.bucket_id or new.object_path is distinct from old.object_path or new.uploaded_by is distinct from old.uploaded_by then
+    raise exception 'school file tenant and object identity fields are immutable';
+  end if;
+  return new;
+end
+$$;
+create trigger school_files_identity_immutable
+before update on school_files
+for each row execute function private.prevent_school_file_identity_change();
+
+create or replace function private.prevent_audit_mutation()
+returns trigger language plpgsql set search_path = '' as $$
+begin
+  raise exception 'audit events are append-only';
+end
+$$;
+create trigger audit_events_append_only
+before update or delete on audit_events
+for each row execute function private.prevent_audit_mutation();
+
 create or replace function private.current_user_id()
 returns uuid language sql stable set search_path = '' as $$
   select auth.uid()
@@ -147,10 +198,12 @@ returns boolean language sql stable security definer set search_path = '' as $$
   select exists (
     select 1 from public.role_grants rg
     join public.memberships m on m.id = rg.membership_id
+    join public.schools s on s.id = rg.school_id
     where rg.school_id = target_school_id
       and m.user_id = (select auth.uid())
       and m.status = 'ACTIVE'
       and rg.status = 'ACTIVE'
+      and s.status = 'ACTIVE'
       and rg.role = required_role
       and rg.scope_type = 'SCHOOL'
   )
@@ -161,31 +214,18 @@ returns boolean language sql stable security definer set search_path = '' as $$
   select exists (
     select 1 from public.role_grants rg
     join public.memberships m on m.id = rg.membership_id
+    join public.schools s on s.id = rg.school_id
+    join public.departments d on d.id = rg.department_id and d.school_id = rg.school_id
     where rg.school_id = target_school_id
       and rg.department_id = target_department_id
       and m.user_id = (select auth.uid())
       and m.status = 'ACTIVE'
       and rg.status = 'ACTIVE'
+      and s.status = 'ACTIVE'
+      and d.status = 'ACTIVE'
       and rg.role = required_role
       and rg.scope_type = 'DEPARTMENT'
   )
-$$;
-
-create or replace function private.record_audit_event(
-  target_school_id uuid, event_action text, target_resource_type text, target_resource_id uuid,
-  event_metadata jsonb default '{}'::jsonb, event_before jsonb default null, event_after jsonb default null, correlation_id text default null
-)
-returns uuid language plpgsql security definer set search_path = '' as $$
-declare event_id uuid;
-begin
-  if not (select private.is_active_school_member(target_school_id)) then
-    raise exception 'active membership required';
-  end if;
-  insert into public.audit_events (school_id, actor_user_id, action, resource_type, resource_id, metadata, before_state, after_state, request_id)
-  values (target_school_id, (select auth.uid()), event_action, target_resource_type, target_resource_id, coalesce(event_metadata, '{}'::jsonb), event_before, event_after, correlation_id)
-  returning id into event_id;
-  return event_id;
-end
 $$;
 
 create or replace function private.accept_invitation(raw_token text)
@@ -194,27 +234,32 @@ declare
   invite public.invitations%rowtype;
   new_membership_id uuid;
   current_email text;
+  invited_role record;
 begin
   if (select auth.uid()) is null or raw_token is null or length(raw_token) < 32 then
     raise exception 'invalid invitation';
   end if;
-  select email into current_email from auth.users where id = (select auth.uid());
+  select email into current_email from auth.users where id = (select auth.uid()) and email_confirmed_at is not null;
   select * into invite from public.invitations
     where token_hash = encode(extensions.digest(raw_token::bytea, 'sha256'), 'hex')
       and status = 'PENDING' and expires_at > now()
     for update;
-  if not found or lower(trim(current_email)) <> invite.email_normalized then
+  if not found or current_email is null or lower(trim(current_email)) <> invite.email_normalized then
     raise exception 'invalid invitation';
+  end if;
+  if not exists (select 1 from public.invitation_role_grants where invitation_id = invite.id and school_id = invite.school_id) then
+    raise exception 'invitation has no role grants';
   end if;
   insert into public.memberships (school_id, user_id, status, display_name, joined_at)
     values (invite.school_id, (select auth.uid()), 'ACTIVE', coalesce(nullif(trim(current_email), ''), invite.email_normalized), now())
     on conflict (school_id, user_id) do update set status = 'ACTIVE', joined_at = coalesce(public.memberships.joined_at, now()), deactivated_at = null
     returning id into new_membership_id;
-  if invite.intended_role is not null then
+  for invited_role in select role, scope_type, department_id from public.invitation_role_grants where invitation_id = invite.id and school_id = invite.school_id loop
     insert into public.role_grants (membership_id, school_id, role, scope_type, department_id, granted_by)
-      values (new_membership_id, invite.school_id, invite.intended_role, case when invite.department_id is null then 'SCHOOL' else 'DEPARTMENT' end, invite.department_id, invite.created_by)
-      on conflict (membership_id, role, scope_type, department_id) do update set status = 'ACTIVE', revoked_at = null;
-  end if;
+      values (new_membership_id, invite.school_id, invited_role.role, invited_role.scope_type, invited_role.department_id, invite.created_by)
+      on conflict do nothing;
+    update public.role_grants set status = 'ACTIVE', revoked_at = null where membership_id = new_membership_id and school_id = invite.school_id and role = invited_role.role and scope_type = invited_role.scope_type and department_id is not distinct from invited_role.department_id and status = 'REVOKED';
+  end loop;
   update public.invitations set status = 'ACCEPTED', accepted_by = (select auth.uid()), accepted_at = now() where id = invite.id;
   insert into public.audit_events (school_id, actor_user_id, action, resource_type, resource_id, metadata)
     values (invite.school_id, (select auth.uid()), 'invitation.accepted', 'invitation', invite.id, jsonb_build_object('membership_id', new_membership_id));
@@ -231,7 +276,6 @@ revoke all on function private.current_user_id() from public;
 revoke all on function private.is_active_school_member(uuid) from public;
 revoke all on function private.has_school_role(uuid, text) from public;
 revoke all on function private.has_department_role(uuid, uuid, text) from public;
-revoke all on function private.record_audit_event(uuid, text, text, uuid, jsonb, jsonb, jsonb, text) from public;
 revoke all on function private.accept_invitation(text) from public;
 revoke all on function public.accept_invitation(text) from public;
 grant usage on schema private to authenticated;
@@ -239,7 +283,6 @@ grant execute on function private.current_user_id() to authenticated;
 grant execute on function private.is_active_school_member(uuid) to authenticated;
 grant execute on function private.has_school_role(uuid, text) to authenticated;
 grant execute on function private.has_department_role(uuid, uuid, text) to authenticated;
-grant execute on function private.record_audit_event(uuid, text, text, uuid, jsonb, jsonb, jsonb, text) to authenticated;
 grant execute on function private.accept_invitation(text) to authenticated;
 grant execute on function public.accept_invitation(text) to authenticated;
 
@@ -252,32 +295,58 @@ alter table invitations enable row level security;
 alter table audit_events enable row level security;
 alter table school_files enable row level security;
 
-revoke all on schools, memberships, departments, role_grants, academic_periods, invitations, audit_events, school_files from anon;
-revoke all on schools, memberships, departments, role_grants, academic_periods, invitations, audit_events, school_files from authenticated;
-grant select on schools, memberships, departments, role_grants, academic_periods, invitations, audit_events, school_files to authenticated;
+revoke all on schools, memberships, departments, role_grants, academic_periods, invitations, invitation_role_grants, audit_events, school_files from anon;
+revoke all on schools, memberships, departments, role_grants, academic_periods, invitations, invitation_role_grants, audit_events, school_files from authenticated;
+grant select on schools, memberships, departments, role_grants, academic_periods, invitations, invitation_role_grants, audit_events to authenticated;
+grant update on memberships to authenticated;
+grant select, insert, update on school_files to authenticated;
 
 create policy schools_read on schools for select to authenticated using ((select private.is_active_school_member(id)));
 create policy memberships_read on memberships for select to authenticated using (user_id = (select auth.uid()) or (select private.has_school_role(school_id, 'SCHOOL_ADMIN')));
-create policy memberships_admin_update on memberships for update to authenticated using ((select private.has_school_role(school_id, 'SCHOOL_ADMIN'))) with check (school_id = school_id and user_id = user_id);
+create policy memberships_admin_update on memberships for update to authenticated using ((select private.has_school_role(school_id, 'SCHOOL_ADMIN'))) with check ((select private.has_school_role(school_id, 'SCHOOL_ADMIN')));
 create policy departments_read on departments for select to authenticated using ((select private.is_active_school_member(school_id)));
 create policy role_grants_read on role_grants for select to authenticated using ((select private.is_active_school_member(school_id)));
 create policy academic_periods_read on academic_periods for select to authenticated using ((select private.is_active_school_member(school_id)));
 create policy invitations_admin_read on invitations for select to authenticated using ((select private.has_school_role(school_id, 'SCHOOL_ADMIN')));
+create policy invitation_role_grants_admin_read on invitation_role_grants for select to authenticated using ((select private.has_school_role(school_id, 'SCHOOL_ADMIN')));
 create policy audit_events_read on audit_events for select to authenticated using ((select private.has_school_role(school_id, 'SCHOOL_ADMIN')) or (select private.has_school_role(school_id, 'PRINCIPAL')));
-create policy school_files_read on school_files for select to authenticated using ((select private.is_active_school_member(school_id)));
+create policy school_files_read on school_files for select to authenticated using (
+  (
+    status = 'ACTIVE' and (
+    (bucket_id = 'school-files' and (select private.is_active_school_member(school_id)))
+    or (bucket_id = 'school-exports' and ((select private.has_school_role(school_id, 'SCHOOL_ADMIN')) or (select private.has_school_role(school_id, 'PRINCIPAL')) or (select private.has_school_role(school_id, 'DOS'))))
+    or (bucket_id = 'restricted-files' and ((select private.has_school_role(school_id, 'SCHOOL_ADMIN')) or (select private.has_school_role(school_id, 'PRINCIPAL'))))
+    )
+  ) or (
+    status = 'PENDING'
+    and bucket_id = 'school-files'
+    and uploaded_by = (select auth.uid())
+    and (select private.is_active_school_member(school_id))
+  )
+);
+create policy school_files_insert on school_files for insert to authenticated with check (
+  status = 'PENDING' and uploaded_by = (select auth.uid()) and split_part(object_path, '/', 1) = school_id::text and (
+    (bucket_id = 'school-files' and (select private.is_active_school_member(school_id)))
+    or (bucket_id = 'restricted-files' and ((select private.has_school_role(school_id, 'SCHOOL_ADMIN')) or (select private.has_school_role(school_id, 'PRINCIPAL'))))
+  )
+);
+create policy school_files_update on school_files for update to authenticated using (
+  (select private.has_school_role(school_id, 'SCHOOL_ADMIN')) or (select private.has_school_role(school_id, 'PRINCIPAL'))
+) with check ((select private.has_school_role(school_id, 'SCHOOL_ADMIN')) or (select private.has_school_role(school_id, 'PRINCIPAL')));
+create policy school_files_delete on school_files for delete to authenticated using (
+  (select private.has_school_role(school_id, 'SCHOOL_ADMIN')) or (select private.has_school_role(school_id, 'PRINCIPAL'))
+);
 
 revoke insert, update, delete on audit_events from authenticated;
-revoke insert, update, delete on role_grants, departments, academic_periods, invitations, school_files, schools from authenticated;
+revoke insert, update, delete on role_grants, departments, academic_periods, invitations, invitation_role_grants, schools from authenticated;
 
 create policy ate_private_objects_read on storage.objects for select to authenticated using (
-  bucket_id in ('school-files', 'school-exports', 'restricted-files')
-  and exists (select 1 from public.memberships m where m.school_id::text = split_part(storage.objects.name, '/', 1) and m.user_id = (select auth.uid()) and m.status = 'ACTIVE')
+  exists (select 1 from public.school_files f where f.bucket_id = storage.objects.bucket_id and f.object_path = storage.objects.name and f.status = 'ACTIVE')
 );
 create policy ate_private_objects_insert on storage.objects for insert to authenticated with check (
-  bucket_id in ('school-files', 'school-exports', 'restricted-files')
-  and exists (select 1 from public.memberships m where m.school_id::text = split_part(storage.objects.name, '/', 1) and m.user_id = (select auth.uid()) and m.status = 'ACTIVE')
+  bucket_id = 'school-files'
+  and exists (select 1 from public.school_files f where f.bucket_id = storage.objects.bucket_id and f.object_path = storage.objects.name and f.status = 'PENDING' and f.uploaded_by = (select auth.uid()))
 );
 create policy ate_private_objects_delete on storage.objects for delete to authenticated using (
-  bucket_id in ('school-files', 'school-exports', 'restricted-files')
-  and exists (select 1 from public.memberships m where m.school_id::text = split_part(storage.objects.name, '/', 1) and m.user_id = (select auth.uid()) and m.status = 'ACTIVE')
+  exists (select 1 from public.school_files f where f.bucket_id = storage.objects.bucket_id and f.object_path = storage.objects.name and ((f.bucket_id = 'school-files' and ((select private.has_school_role(f.school_id, 'SCHOOL_ADMIN')) or (select private.has_school_role(f.school_id, 'PRINCIPAL')))) or (f.bucket_id in ('school-exports', 'restricted-files') and ((select private.has_school_role(f.school_id, 'SCHOOL_ADMIN')) or (select private.has_school_role(f.school_id, 'PRINCIPAL'))))) )
 );
