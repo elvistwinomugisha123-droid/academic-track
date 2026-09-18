@@ -10,6 +10,7 @@
     { "idx": 5, "version": "7", "when": 1783706400004, "tag": "0005_programme_event_creation", "breakpoints": true },
     { "idx": 6, "version": "7", "when": 1783706400005, "tag": "0006_classroom_continuity", "breakpoints": true },
     { "idx": 7, "version": "7", "when": 1783706400006, "tag": "0007_classroom_rpc_privileges", "breakpoints": true },
-    { "idx": 8, "version": "7", "when": 1783706400007, "tag": "0008_academic_knowledge_governance", "breakpoints": true }
+    { "idx": 8, "version": "7", "when": 1783706400007, "tag": "0008_academic_knowledge_governance", "breakpoints": true },
+    { "idx": 9, "version": "7", "when": 1783706400008, "tag": "0009_knowledge_runtime_rpc_privileges", "breakpoints": true }
   ]
 }
