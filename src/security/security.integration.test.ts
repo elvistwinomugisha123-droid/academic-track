@@ -99,7 +99,7 @@ describe("isolated Supabase security integration", () => {
   it("denies anonymous access and prevents cross-tenant reads and writes", async () => {
     const anonymous = createClient(url!, publishableKey!);
     const { data: anonymousSchools, error: anonymousError } = await anonymous.from("schools").select("id");
-    expect(anonymousSchools).toEqual([]); requireError(anonymousError);
+    expect(anonymousSchools).toBeNull(); requireError(anonymousError);
     const { data: visible, error: readError } = await teacherA.client.from("schools").select("id");
     expect(readError).toBeNull(); expect(visible?.map((row) => row.id)).toEqual([schoolA]);
     requireError((await teacherA.client.from("academic_periods").insert({ school_id: schoolB, name: "Cross tenant", period_type: "TERM", academic_year: 2026, starts_on: "2026-01-01", ends_on: "2026-03-31" })).error);
@@ -178,9 +178,16 @@ describe("isolated Supabase security integration", () => {
     await admin!.storage.from("school-files").upload(wrongSchoolPath, new Blob(["x"]));
     requireError((await teacherA.client.storage.from("school-files").upload(wrongSchoolPath, new Blob(["x"]))).error);
     requireError((await teacherA.client.storage.from("school-files").download(wrongSchoolPath)).error);
-    requireError((await teacherA.client.storage.from("school-files").remove([wrongSchoolPath])).error);
-    requireError((await teacherA.client.storage.from("school-files").remove([schoolFilePath])).error);
+
+    await teacherA.client.storage.from("school-files").remove([wrongSchoolPath]);
+    expect((await admin!.storage.from("school-files").download(wrongSchoolPath)).error).toBeNull();
+
+    await teacherA.client.storage.from("school-files").remove([schoolFilePath]);
+    expect((await admin!.storage.from("school-files").download(schoolFilePath)).error).toBeNull();
+
     expect((await adminA.client.storage.from("school-files").remove([schoolFilePath])).error).toBeNull();
+    requireError((await admin!.storage.from("school-files").download(schoolFilePath)).error);
+
     await admin!.storage.from("school-files").remove([wrongSchoolPath]);
     await admin!.from("school_files").delete().eq("object_path", wrongSchoolPath);
   });
