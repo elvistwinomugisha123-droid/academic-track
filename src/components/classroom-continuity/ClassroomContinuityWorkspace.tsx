@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { AlertCircle, Check, Clock3, RotateCcw } from "lucide-react";
 import type { ClassroomContinuityData, ContinuityRow } from "@/classroom-continuity/application/queries";
@@ -14,9 +15,10 @@ function formatDate(value: string, timeZone: string) { return new Intl.DateTimeF
 
 export function ClassroomContinuityWorkspace({ data }: { data: ClassroomContinuityData }) {
   const isLeader = data.scope !== "MY";
-  const visibleLessons = isLeader ? data.lessons.filter((lesson) => (lesson.lesson_state !== "SCHEDULED" && lesson.lesson_state !== "CLEAR") || lesson.carry_forward_state) : data.lessons;
+  const isOperationalException = (lesson: ContinuityRow) => (lesson.lesson_state !== "SCHEDULED" && lesson.lesson_state !== "CLEAR") || Boolean(lesson.carry_forward_state);
+  const visibleLessons = isLeader ? data.lessons.filter((lesson) => lesson.teacher_membership_id === data.access.membershipId || isOperationalException(lesson)) : data.lessons;
   const today = visibleLessons.filter((lesson) => lesson.is_today);
-  const attention = visibleLessons.filter((lesson) => (lesson.lesson_state !== "SCHEDULED" && lesson.lesson_state !== "CLEAR") || lesson.carry_forward_state);
+  const attention = visibleLessons.filter(isOperationalException);
   return <div className="continuity-page">
     <header className="continuity-heading">
       <div><p className="eyebrow">{isLeader ? "Operational continuity" : "My classroom"}</p><h1>{isLeader ? data.scope === "DEPARTMENT" ? "Department continuity." : "Academic continuity." : "What happened in class?"}</h1><p className="lede">{isLeader ? "Review only the interruptions that need coordination. Classroom reality remains teacher-confirmed." : "See the expected lesson, then record what actually happened in a few seconds."}</p></div>
@@ -28,6 +30,7 @@ export function ClassroomContinuityWorkspace({ data }: { data: ClassroomContinui
 }
 
 function LessonCard({ lesson }: { lesson: ContinuityRow }) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [formOutcome, setFormOutcome] = useState<ContinuityRow["outcome"]>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -36,7 +39,8 @@ function LessonCard({ lesson }: { lesson: ContinuityRow }) {
   const [effectiveOutcome, setEffectiveOutcome] = useState(lesson.outcome);
   const confirmed = effectiveEventId !== null;
   const canConfirm = lesson.can_confirm && effectiveEventId === null;
-  const canCorrect = lesson.can_correct || effectiveEventId !== null;
+  const locallyConfirmedByAuthorizedTeacher = lesson.can_confirm && effectiveEventId !== null;
+  const canCorrect = lesson.can_correct || locallyConfirmedByAuthorizedTeacher;
   const canAct = canConfirm || canCorrect;
   const visibleState = effectiveOutcome === "DELIVERED" ? "CLEAR" : effectiveOutcome === "PARTIALLY_DELIVERED" ? "PARTIAL_CARRY_FORWARD" : effectiveOutcome === "NOT_DELIVERED" ? "NOT_DELIVERED_CARRY_FORWARD" : effectiveOutcome === "CHANGED" ? "CHANGED_REVIEW" : lesson.lesson_state;
   const confirm = (outcome: NonNullable<ContinuityRow["outcome"]>, form?: HTMLFormElement) => {
@@ -44,17 +48,17 @@ function LessonCard({ lesson }: { lesson: ContinuityRow }) {
     startTransition(async () => {
       const result = canCorrect ? await correctRecordedOutcome({ scheduledLessonId: lesson.lesson_id, priorEventId: effectiveEventId!, outcome, reason: String(values?.get("reason") || ""), note: String(values?.get("note") || "") }) : await recordClassroomOutcome({ scheduledLessonId: lesson.lesson_id, outcome, reason: String(values?.get("reason") || ""), note: String(values?.get("note") || "") });
       setMessage(result.ok ? `${canCorrect ? "Corrected" : "Confirmed"}: ${outcomeLabels[outcome]}.` : result.error);
-      if (result.ok) { setEffectiveEventId(result.eventId); setEffectiveOutcome(outcome); setFormOutcome(null); setCorrecting(false); }
+      if (result.ok) { setEffectiveEventId(result.eventId); setEffectiveOutcome(outcome); setFormOutcome(null); setCorrecting(false); router.refresh(); }
     });
   };
   return <article className={`lesson-card${lesson.lesson_state !== "CLEAR" && lesson.lesson_state !== "SCHEDULED" ? " needs-attention" : ""}`}>
     <div className="lesson-meta"><span>{formatTime(lesson.starts_at, lesson.school_timezone)}–{formatTime(lesson.ends_at, lesson.school_timezone)}</span><span>{lesson.class_level_name} · {lesson.stream_name}</span><span>{formatDate(lesson.starts_at, lesson.school_timezone)}</span></div>
     <div className="lesson-main"><div><h3>{lesson.subject_name}</h3><p>Scheduled lesson · expected timetable occurrence</p></div><StateLabel state={visibleState} /></div>
-    {lesson.lesson_state !== "CLEAR" && lesson.lesson_state !== "SCHEDULED" && <p className="source-state-copy">{ownStateLabels[lesson.lesson_state as keyof typeof ownStateLabels]}</p>}
+    {visibleState !== "CLEAR" && visibleState !== "SCHEDULED" && <p className="source-state-copy">{ownStateLabels[visibleState as keyof typeof ownStateLabels]}</p>}
     {lesson.carry_forward_state && <div className="carry-forward-box"><strong>Continuity from previous lesson</strong><span>{carryLabels[lesson.carry_forward_state]}</span></div>}
     {effectiveOutcome && <div className="confirmed-line"><Check size={15} /><span><strong>{outcomeLabels[effectiveOutcome]}</strong>{lesson.confirmed_at ? ` · Recorded ${formatTime(lesson.confirmed_at, lesson.school_timezone)}` : ""}</span></div>}
     {message && <div className={`continuity-message${message.startsWith("Confirmed") || message.startsWith("Corrected") ? " success" : " error"}`} role="status"><span>{message.startsWith("Confirmed") || message.startsWith("Corrected") ? <Check size={15} /> : <AlertCircle size={15} />}</span>{message}</div>}
-    {canAct && <div className="outcome-area">{(canConfirm || correcting) && <>{!formOutcome && <div className="outcome-actions"><button className="button button-primary" disabled={pending} onClick={() => confirm("DELIVERED")}>Delivered</button><button className="button" disabled={pending} onClick={() => setFormOutcome("PARTIALLY_DELIVERED")}>Partially delivered</button><button className="button" disabled={pending} onClick={() => setFormOutcome("NOT_DELIVERED")}>Not delivered</button><button className="button" disabled={pending} onClick={() => setFormOutcome("CHANGED")}>Changed</button></div>}{formOutcome && <form className="outcome-form" onSubmit={(event) => { event.preventDefault(); confirm(formOutcome, event.currentTarget); }}><strong>{outcomeLabels[formOutcome]}</strong>{(formOutcome === "NOT_DELIVERED" || formOutcome === "CHANGED") && <label>Reason <span>{formOutcome === "CHANGED" ? "(optional if note is supplied)" : ""}</span><input name="reason" required={formOutcome === "NOT_DELIVERED"} placeholder={formOutcome === "CHANGED" ? "What changed?" : "Choose a concise operational reason"} /></label>}{(formOutcome === "PARTIALLY_DELIVERED" || formOutcome === "CHANGED" || formOutcome === "NOT_DELIVERED") && <label>Note <span>{formOutcome === "CHANGED" ? "(required if no reason)" : "(optional)"}</span><textarea name="note" rows={2} required={formOutcome === "CHANGED"} placeholder="Add a short note for the next action" /></label>}<div className="action-row"><button className="button button-primary" disabled={pending}>{pending ? "Recording..." : canCorrect ? "Save correction" : "Record outcome"}</button><button type="button" className="button button-quiet" onClick={() => setFormOutcome(null)}>Cancel</button></div></form>}</>}{canCorrect && !correcting && <button className="text-button correction-button" onClick={() => setCorrecting(true)}><RotateCcw size={13} />Correct this record</button>}{canCorrect && correcting && <span className="correction-note">Correction preserves the original classroom record.</span>}</div>}
+    {canAct && <div className="outcome-area">{(canConfirm || correcting) && <>{!formOutcome && <div className="outcome-actions"><button className="button button-primary" disabled={pending} onClick={() => confirm("DELIVERED")}>Delivered</button><button className="button" disabled={pending} onClick={() => setFormOutcome("PARTIALLY_DELIVERED")}>Partially delivered</button><button className="button" disabled={pending} onClick={() => setFormOutcome("NOT_DELIVERED")}>Not delivered</button><button className="button" disabled={pending} onClick={() => setFormOutcome("CHANGED")}>Changed</button></div>}{formOutcome && <form className="outcome-form" onSubmit={(event) => { event.preventDefault(); confirm(formOutcome, event.currentTarget); }}><strong>{outcomeLabels[formOutcome]}</strong>{formOutcome === "NOT_DELIVERED" && <label>Reason <input name="reason" required placeholder="Choose a concise operational reason" /></label>}{formOutcome === "CHANGED" && <label>What changed?<textarea name="note" rows={2} required placeholder="Add a concise context note" /></label>}{(formOutcome === "PARTIALLY_DELIVERED" || formOutcome === "NOT_DELIVERED") && <label>Note <span>(optional)</span><textarea name="note" rows={2} placeholder="Add a short note for the next action" /></label>}<div className="action-row"><button className="button button-primary" disabled={pending}>{pending ? "Recording..." : canCorrect ? "Save correction" : "Record outcome"}</button><button type="button" className="button button-quiet" onClick={() => setFormOutcome(null)}>Cancel</button></div></form>}</>}{canCorrect && !correcting && <button className="text-button correction-button" onClick={() => setCorrecting(true)}><RotateCcw size={13} />Correct this record</button>}{canCorrect && correcting && <span className="correction-note">Correction preserves the original classroom record.</span>}</div>}
     {confirmed && !canAct && <p className="muted-note">Read-only classroom evidence.</p>}
   </article>;
 }

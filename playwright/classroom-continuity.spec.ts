@@ -29,8 +29,13 @@ test("teacher sees the own-lesson workflow and a reachable correction affordance
     await expect(delivered).toBeVisible();
     await delivered.click();
     await expect(page.getByRole("status").filter({ hasText: /Confirmed: Delivered/i })).toBeVisible();
+    await expect(page.locator("article.lesson-card").first()).not.toContainText(/awaiting confirmation/i);
   }
   await expect(correction).toBeVisible();
+  await correction.click();
+  await page.getByRole("button", { name: /^Changed$/i }).last().click();
+  await expect(page.locator("textarea[name=note]").last()).toBeRequired();
+  await expect(page.locator("input[name=reason]").last()).toHaveCount(0);
 });
 
 test("teacher outcome controls stay usable at 390px and the school timezone is explicit", async ({ page }) => {
@@ -47,13 +52,16 @@ test("HOD sees department exceptions and retains only additive teacher authority
   await signIn(page, accounts.hod);
   await expect(page.getByRole("heading", { name: /Department continuity/i })).toBeVisible();
   await expect(page.getByRole("heading", { name: /Operational exceptions/i })).toBeVisible();
+  if (process.env.E2E_HOD_HAS_TEACHER === "true") await expect(page.getByRole("button", { name: /^Delivered$/i }).first()).toBeVisible();
+  else await expect(page.getByRole("button", { name: /Delivered|Correct this record/i })).toHaveCount(0);
 });
 
 test("DOS sees school exceptions without classroom mutation controls", async ({ page }) => {
   test.skip(requires(accounts.dos), "requires isolated DOS E2E credentials and seeded lessons");
   await signIn(page, accounts.dos);
   await expect(page.getByRole("heading", { name: /Academic continuity/i })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Delivered|Correct this record/i })).toHaveCount(0);
+  if (process.env.E2E_DOS_HAS_TEACHER === "true") await expect(page.getByRole("button", { name: /^Delivered$/i }).first()).toBeVisible();
+  else await expect(page.getByRole("button", { name: /Delivered|Correct this record/i })).toHaveCount(0);
 });
 
 test("Principal receives read-only assurance", async ({ page }) => {

@@ -278,6 +278,8 @@ describe("isolated Step 4 academic operations integration", () => {
     expect(nextLesson).toMatchObject({ schedule_status: "SCHEDULED" });
     expect(unconfirmedLesson).toMatchObject({ schedule_status: "SCHEDULED" });
     const anonymous = createClient(url!, publishableKey!);
+    expect((await anonymous.rpc("confirm_classroom_outcome", { p_scheduled_lesson_id: lesson!.id, p_outcome: "DELIVERED" })).error).toBeTruthy();
+    expect((await anonymous.rpc("correct_classroom_outcome", { p_scheduled_lesson_id: lesson!.id, p_supersedes_event_id: "00000000-0000-0000-0000-000000000000", p_outcome: "DELIVERED" })).error).toBeTruthy();
     expect((await anonymous.from("classroom_events").insert({ school_id: schoolA, scheduled_lesson_id: lesson!.id, teaching_section_id: sectionB, actor_membership_id: teacherMembershipB, outcome: "DELIVERED" })).error).toBeTruthy();
     expect((await teacherB.client.from("classroom_events").insert({ school_id: schoolA, scheduled_lesson_id: lesson!.id, teaching_section_id: sectionB, actor_membership_id: teacherMembershipB, outcome: "DELIVERED" })).error).toBeTruthy();
     expect((await admin!.from("classroom_events").insert({ school_id: schoolA, scheduled_lesson_id: lesson!.id, teaching_section_id: sectionB, actor_membership_id: teacherMembershipB, outcome: "NOT_DELIVERED" })).error).toBeTruthy();
