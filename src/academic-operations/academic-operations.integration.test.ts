@@ -16,6 +16,7 @@ let chemistryA = "";
 let teacherMembershipA = "";
 let teacherMembershipB = "";
 let dosMembershipA = "";
+let hodMembershipA = "";
 let levelA = "";
 let streamA = "";
 let periodB = "";
@@ -84,7 +85,7 @@ describe("isolated Step 4 academic operations integration", () => {
     ]).select("id, user_id, school_id");
     const membershipRows = requireData(memberships.data, memberships.error);
     const membership = (user: TestUser, schoolId = schoolA) => membershipRows.find((row) => row.user_id === user.id && row.school_id === schoolId)!.id;
-    teacherMembershipA = membership(teacherA); teacherMembershipB = membership(teacherB); dosMembershipA = membership(dosA, schoolA);
+    teacherMembershipA = membership(teacherA); teacherMembershipB = membership(teacherB); hodMembershipA = membership(hodA); dosMembershipA = membership(dosA, schoolA);
     const roleRows = [
       { membership_id: teacherMembershipA, school_id: schoolA, role: "TEACHER", scope_type: "SCHOOL", granted_by: adminA.id },
       { membership_id: teacherMembershipA, school_id: schoolA, role: "HOD", scope_type: "DEPARTMENT", department_id: biologyA, granted_by: adminA.id },
@@ -229,22 +230,22 @@ describe("isolated Step 4 academic operations integration", () => {
   it("limits the assignment directory to authorized active teachers and safe fields", async () => {
     const directory = await dosA.client.rpc("list_assignable_teachers", { p_school_id: schoolA });
     expect(directory.error).toBeNull();
-    expect(directory.data?.map((row: { membership_id: string }) => row.membership_id)).toEqual([teacherMembershipA, teacherMembershipB]);
+    expect(directory.data?.map((row: { membership_id: string }) => row.membership_id)).toEqual([hodMembershipA, teacherMembershipA, teacherMembershipB]);
     expect(directory.data?.every((row: { membership_id: string; display_name: string }) => Object.keys(row).sort().join(",") === "display_name,membership_id")).toBe(true);
     const adminDirectory = await adminA.client.rpc("list_assignable_teachers", { p_school_id: schoolA });
     expect(adminDirectory.error).toBeNull();
-    expect(adminDirectory.data?.map((row: { membership_id: string }) => row.membership_id)).toEqual([teacherMembershipA, teacherMembershipB]);
+    expect(adminDirectory.data?.map((row: { membership_id: string }) => row.membership_id)).toEqual([hodMembershipA, teacherMembershipA, teacherMembershipB]);
     expect((await dosA.client.rpc("list_assignable_teachers", { p_school_id: schoolB })).error).toBeTruthy();
     expect((await teacherA.client.rpc("list_assignable_teachers", { p_school_id: schoolA })).error).toBeTruthy();
 
     await admin!.from("memberships").update({ status: "SUSPENDED" }).eq("id", teacherMembershipB);
     const inactiveDirectory = await dosA.client.rpc("list_assignable_teachers", { p_school_id: schoolA });
-    expect(inactiveDirectory.data?.map((row: { membership_id: string }) => row.membership_id)).toEqual([teacherMembershipA]);
+    expect(inactiveDirectory.data?.map((row: { membership_id: string }) => row.membership_id)).toEqual([hodMembershipA, teacherMembershipA]);
     await admin!.from("memberships").update({ status: "ACTIVE" }).eq("id", teacherMembershipB);
 
     await admin!.from("role_grants").update({ status: "REVOKED", revoked_at: new Date().toISOString() }).eq("membership_id", teacherMembershipB).eq("role", "TEACHER");
     const revokedDirectory = await dosA.client.rpc("list_assignable_teachers", { p_school_id: schoolA });
-    expect(revokedDirectory.data?.map((row: { membership_id: string }) => row.membership_id)).toEqual([teacherMembershipA]);
+    expect(revokedDirectory.data?.map((row: { membership_id: string }) => row.membership_id)).toEqual([hodMembershipA, teacherMembershipA]);
   });
 
   it("creates programme events and targets atomically through the narrow command", async () => {
