@@ -120,3 +120,43 @@
 @media (max-width:900px) { .operations-heading { display:block; } .operations-identity { width:max-content; margin-top:20px; } .setup-grid { grid-template-columns:1fr; } .setup-panel:last-child { grid-column:auto; } .form-row,.form-row.five-fields { grid-template-columns:repeat(2,minmax(0,1fr)); } .metric-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media (max-width:767px) { .operations-page { gap:20px; } .operations-heading { padding-bottom:20px; } .operations-heading h1 { font-size:clamp(2.1rem,10vw,3.1rem); } .operations-tabs { margin-inline:-16px; padding-inline:16px; } .operations-tab { min-width:125px; } .readiness-panel { padding:20px; } .readiness-panel h2 { font-size:20px; } .metric-grid,.workflow-grid,.version-summary { grid-template-columns:1fr 1fr; } .metric { padding:14px; } .metric strong { font-size:26px; } .form-row,.form-row.five-fields { grid-template-columns:1fr; } .timetable-toolbar { display:block; } .timetable-toolbar .action-row { margin-top:12px; } .timetable-toolbar select { width:100%; min-width:0; } .assignment-panel,.setup-panel { padding:16px; } .operations-table { min-width:700px; } }
 .auth-page { min-height:100dvh; display:grid; place-items:center; padding:24px; background:var(--ate-bg); } .auth-panel { width:min(100%,520px); padding:clamp(28px,6vw,56px); background:var(--ate-surface); border:1px solid var(--ate-border); border-radius:var(--ate-radius-panel); box-shadow:0 18px 55px rgb(11 35 67 / .08); } .auth-panel .brand-mark { margin-bottom:32px; } .auth-panel h1 { font-size:clamp(2rem,6vw,3.4rem); } .auth-form { display:grid; gap:9px; margin-top:28px; } .auth-form label { color:var(--ate-navy); font-size:13px; font-weight:600; } .auth-form input { min-height:44px; padding:0 12px; color:var(--ate-text); background:var(--ate-surface); border:1px solid var(--ate-border-strong); border-radius:var(--ate-radius-control); } .auth-form input:focus { border-color:var(--ate-focus); } .auth-form button { margin-top:8px; } .auth-error { padding:10px 12px; color:#8c2832; background:#fdecee; border:1px solid #f5cdd1; border-radius:var(--ate-radius-control); font-size:13px; } .auth-notice { padding:10px 12px; color:#12618b; background:#e8f2fa; border:1px solid #c9e0ef; border-radius:var(--ate-radius-control); font-size:13px; } .auth-loading { margin-top:24px; color:var(--ate-muted); } .auth-action { margin-left:auto; } .auth-action .button { min-height:34px; padding-inline:11px; font-size:12px; }
+.continuity-page { display:grid; gap:30px; }
+.continuity-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:30px; padding-bottom:28px; border-bottom:1px solid var(--ate-border); }
+.continuity-heading h1 { max-width:800px; }
+.continuity-rule { display:flex; align-items:flex-start; gap:9px; width:min(100%,280px); padding:13px 15px; color:var(--ate-muted); background:var(--ate-surface); border:1px solid var(--ate-border); border-radius:var(--ate-radius-control); font-size:12px; line-height:1.45; }
+.continuity-rule svg { flex:0 0 auto; color:var(--ate-blue); }
+.continuity-attention { display:grid; grid-template-columns:minmax(220px,.8fr) minmax(0,1.8fr); gap:18px; padding:20px; background:#fff8e9; border:1px solid #efd9a3; border-radius:var(--ate-radius-panel); }
+.continuity-attention h2 { margin-top:5px; }
+.attention-list { display:grid; gap:8px; }
+.attention-item { display:grid; gap:2px; padding:9px 11px; background:rgb(255 255 255 / .64); border:1px solid #f0dfb8; border-radius:6px; }
+.attention-item strong { color:var(--ate-navy); font-size:12px; }
+.attention-item span { color:#7e641d; font-size:12px; }
+.continuity-body { display:grid; gap:22px; max-width:1060px; }
+.continuity-list { display:grid; gap:12px; }
+.lesson-card { display:grid; gap:14px; padding:20px; background:var(--ate-surface); border:1px solid var(--ate-border); border-radius:var(--ate-radius-panel); }
+.lesson-card.needs-attention { border-color:#e5c982; }
+.lesson-meta { display:flex; flex-wrap:wrap; gap:8px 14px; color:var(--ate-muted); font-size:11px; font-weight:650; }
+.lesson-meta span:first-child { color:var(--ate-blue); }
+.lesson-main { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.lesson-main h3 { color:var(--ate-navy); font-size:19px; }
+.lesson-main p { margin-top:3px; color:var(--ate-muted); font-size:12px; }
+.continuity-copy { color:#7e641d; font-size:13px; }
+.confirmed-line { display:flex; align-items:center; gap:8px; color:var(--ate-success); font-size:12px; }
+.confirmed-line svg { flex:0 0 auto; }
+.outcome-area { display:grid; gap:10px; padding-top:3px; }
+.outcome-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.outcome-actions .button { min-height:42px; }
+.outcome-form { display:grid; gap:11px; max-width:560px; padding-top:3px; }
+.outcome-form > strong { color:var(--ate-navy); font-size:13px; }
+.outcome-form label { display:grid; gap:5px; color:var(--ate-navy); font-size:11px; font-weight:700; }
+.outcome-form label span { color:var(--ate-muted); font-weight:400; }
+.outcome-form input,.outcome-form textarea { width:100%; padding:9px 10px; color:var(--ate-text); background:#fff; border:1px solid var(--ate-border-strong); border-radius:var(--ate-radius-control); font-weight:400; }
+.outcome-form input { min-height:40px; }
+.outcome-form textarea { resize:vertical; }
+.continuity-message { display:flex; align-items:center; gap:8px; padding:9px 11px; border:1px solid; border-radius:var(--ate-radius-control); font-size:12px; }
+.continuity-message.success { color:var(--ate-success); background:var(--ate-success-bg); border-color:#cce9dc; }
+.continuity-message.error { color:#8c2832; background:#fdecee; border-color:#f5cdd1; }
+.correction-button { display:inline-flex; align-items:center; gap:5px; }
+.correction-note { color:var(--ate-muted); font-size:11px; }
+@media (max-width:900px) { .continuity-heading { display:block; } .continuity-rule { margin-top:20px; width:max-content; max-width:100%; } }
+@media (max-width:767px) { .continuity-page { gap:22px; } .continuity-heading { padding-bottom:20px; } .continuity-heading h1 { font-size:clamp(2.1rem,10vw,3.1rem); } .continuity-attention { grid-template-columns:1fr; gap:14px; padding:16px; } .lesson-card { padding:16px; } .lesson-main { display:grid; gap:10px; } .outcome-actions { display:grid; grid-template-columns:1fr 1fr; } .outcome-actions .button { min-height:46px; padding-inline:8px; } }

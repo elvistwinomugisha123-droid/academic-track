@@ -81,3 +81,12 @@ export const confirmTeachingSectionAssignmentCommandSchema = z.object({
 
 export const verifyTimetableVersionCommandSchema = z.object({ versionId: uuid });
 export const activateTimetableVersionCommandSchema = z.object({ versionId: uuid });
+
+export const classroomOutcomeSchema = z.enum(["DELIVERED", "PARTIALLY_DELIVERED", "NOT_DELIVERED", "CHANGED"]);
+export const confirmClassroomOutcomeCommandSchema = z.object({
+  scheduledLessonId: uuid,
+  outcome: classroomOutcomeSchema,
+  reason: z.string().trim().max(240).optional(),
+  note: z.string().trim().max(500).optional(),
+});
+export const correctClassroomOutcomeCommandSchema = confirmClassroomOutcomeCommandSchema.extend({ priorEventId: uuid });

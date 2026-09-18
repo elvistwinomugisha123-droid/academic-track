@@ -1,6 +1,6 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { activateTimetableVersionCommandSchema, confirmTeachingSectionAssignmentCommandSchema, verifyTimetableVersionCommandSchema } from "@/academic-operations/schemas";
+import { activateTimetableVersionCommandSchema, confirmClassroomOutcomeCommandSchema, confirmTeachingSectionAssignmentCommandSchema, correctClassroomOutcomeCommandSchema, verifyTimetableVersionCommandSchema } from "@/academic-operations/schemas";
 
 type RpcError = { message: string };
 
@@ -36,6 +36,31 @@ export async function activateTimetableVersion(input: unknown): Promise<string> 
   const command = activateTimetableVersionCommandSchema.parse(input);
   const client = await createSupabaseServerClient();
   const { data, error } = await client.rpc("activate_timetable_version", { p_version_id: command.versionId });
+  return expectUuid(data, error);
+}
+
+export async function confirmClassroomOutcome(input: unknown): Promise<string> {
+  const command = confirmClassroomOutcomeCommandSchema.parse(input);
+  const client = await createSupabaseServerClient();
+  const { data, error } = await client.rpc("confirm_classroom_outcome", {
+    p_scheduled_lesson_id: command.scheduledLessonId,
+    p_outcome: command.outcome,
+    p_reason: command.reason || null,
+    p_note: command.note || null,
+  });
+  return expectUuid(data, error);
+}
+
+export async function correctClassroomOutcome(input: unknown): Promise<string> {
+  const command = correctClassroomOutcomeCommandSchema.parse(input);
+  const client = await createSupabaseServerClient();
+  const { data, error } = await client.rpc("correct_classroom_outcome", {
+    p_scheduled_lesson_id: command.scheduledLessonId,
+    p_supersedes_event_id: command.priorEventId,
+    p_outcome: command.outcome,
+    p_reason: command.reason || null,
+    p_note: command.note || null,
+  });
   return expectUuid(data, error);
 }
 

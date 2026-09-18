@@ -117,7 +117,7 @@ describe("isolated Step 4 academic operations integration", () => {
 
   afterAll(async () => {
     if (!admin || !schoolA) return;
-    for (const table of ["scheduled_lessons", "timetable_slots", "timetable_versions", "programme_event_targets", "school_programme_events", "teaching_sections", "streams", "class_levels", "school_subjects", "academic_periods", "role_grants", "memberships", "departments"]) await admin.from(table).delete().in("school_id", [schoolA, schoolB]);
+    for (const table of ["classroom_events", "scheduled_lessons", "timetable_slots", "timetable_versions", "programme_event_targets", "school_programme_events", "teaching_sections", "streams", "class_levels", "school_subjects", "academic_periods", "role_grants", "memberships", "departments"]) await admin.from(table).delete().in("school_id", [schoolA, schoolB]);
     await admin.from("schools").delete().in("id", [schoolA, schoolB]);
     for (const user of [teacherA, teacherB, hodA, dosA, multiSchoolDos, principalA, adminA]) if (user) await admin.auth.admin.deleteUser(user.id);
   });
@@ -268,5 +268,35 @@ describe("isolated Step 4 academic operations integration", () => {
     expect((await dosA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: periodB, p_event_type: "OTHER", p_title: "Wrong period", p_starts_at: "2026-11-08T08:00:00+00:00", p_ends_at: "2026-11-08T09:00:00+00:00", p_notes: null, p_target_type: "SCHOOL", p_target_id: null })).error).toBeTruthy();
     expect((await dosA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: null, p_event_type: "OTHER", p_title: "Wrong target", p_starts_at: "2026-11-09T08:00:00+00:00", p_ends_at: "2026-11-09T09:00:00+00:00", p_notes: null, p_target_type: "STREAM", p_target_id: streamB })).error).toBeTruthy();
     expect((await teacherA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: periodA, p_event_type: "ASSEMBLY", p_title: "No", p_starts_at: "2026-11-04T08:00:00+00:00", p_ends_at: "2026-11-04T09:00:00+00:00", p_notes: null, p_target_type: "SCHOOL", p_target_id: null })).error).toBeTruthy();
+  });
+
+  it("preserves classroom evidence, authority, correction history, and continuity projection", async () => {
+    const lesson = (await admin!.from("scheduled_lessons").select("id, starts_at, ends_at, schedule_status").eq("timetable_version_id", versionB).eq("scheduled_date", "2026-09-14").single()).data;
+    expect(lesson).toMatchObject({ schedule_status: "SCHEDULED" });
+    const anonymous = createClient(url!, publishableKey!);
+    expect((await anonymous.from("classroom_events").insert({ school_id: schoolA, scheduled_lesson_id: lesson!.id, teaching_section_id: sectionB, actor_membership_id: teacherMembershipB, outcome: "DELIVERED" })).error).toBeTruthy();
+    expect((await teacherA.client.rpc("confirm_classroom_outcome", { p_scheduled_lesson_id: lesson!.id, p_outcome: "DELIVERED" })).error).toBeTruthy();
+    expect((await hodA.client.rpc("confirm_classroom_outcome", { p_scheduled_lesson_id: lesson!.id, p_outcome: "DELIVERED" })).error).toBeTruthy();
+    expect((await dosA.client.rpc("confirm_classroom_outcome", { p_scheduled_lesson_id: lesson!.id, p_outcome: "DELIVERED" })).error).toBeTruthy();
+    expect((await principalA.client.rpc("confirm_classroom_outcome", { p_scheduled_lesson_id: lesson!.id, p_outcome: "DELIVERED" })).error).toBeTruthy();
+    expect((await adminA.client.rpc("confirm_classroom_outcome", { p_scheduled_lesson_id: lesson!.id, p_outcome: "DELIVERED" })).error).toBeTruthy();
+    const confirmed = await teacherB.client.rpc("confirm_classroom_outcome", { p_scheduled_lesson_id: lesson!.id, p_outcome: "PARTIALLY_DELIVERED", p_note: "Continue next lesson" });
+    expect(confirmed.error).toBeNull();
+    const eventId = confirmed.data as string;
+    expect((await teacherB.client.rpc("confirm_classroom_outcome", { p_scheduled_lesson_id: lesson!.id, p_outcome: "DELIVERED" })).error).toBeTruthy();
+    expect((await teacherB.client.from("classroom_events").update({ note: "changed" }).eq("id", eventId)).error).toBeTruthy();
+    expect((await teacherB.client.from("classroom_events").delete().eq("id", eventId)).error).toBeTruthy();
+    const correction = await teacherB.client.rpc("correct_classroom_outcome", { p_scheduled_lesson_id: lesson!.id, p_supersedes_event_id: eventId, p_outcome: "DELIVERED" });
+    expect(correction.error).toBeNull();
+    expect((await teacherB.client.rpc("correct_classroom_outcome", { p_scheduled_lesson_id: lesson!.id, p_supersedes_event_id: eventId, p_outcome: "NOT_DELIVERED", p_reason: "Correction attempt" })).error).toBeTruthy();
+    const history = await admin!.from("classroom_events").select("id, outcome, supersedes_event_id").eq("scheduled_lesson_id", lesson!.id).order("created_at");
+    expect(history.data).toHaveLength(2);
+    expect(history.data?.[0]).toMatchObject({ id: eventId, outcome: "PARTIALLY_DELIVERED", supersedes_event_id: null });
+    expect(history.data?.[1]).toMatchObject({ outcome: "DELIVERED", supersedes_event_id: eventId });
+    const projection = await teacherB.client.rpc("get_classroom_continuity", { p_scope: "MY" });
+    expect(projection.error).toBeNull();
+    expect(projection.data).toEqual(expect.arrayContaining([expect.objectContaining({ lesson_id: lesson!.id, outcome: "DELIVERED", continuity_state: "CLEAR" })]));
+    const persistedLesson = await admin!.from("scheduled_lessons").select("schedule_status").eq("id", lesson!.id).single();
+    expect(persistedLesson.data?.schedule_status).toBe("SCHEDULED");
   });
 });
