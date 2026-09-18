@@ -6,6 +6,7 @@ const publishableKey = process.env.TEST_SUPABASE_PUBLISHABLE_KEY;
 const serviceKey = process.env.TEST_SUPABASE_SERVICE_ROLE_KEY;
 const admin = url && serviceKey ? createClient(url, serviceKey) : null;
 const suffix = `operations-${Date.now()}`;
+const revisionEffectiveFrom = "2026-10-01";
 
 type TestUser = { id: string; email: string; password: string; client: SupabaseClient };
 let schoolA = "";
@@ -81,6 +82,7 @@ describe("isolated Step 4 academic operations integration", () => {
     teacherMembershipA = membership(teacherA); teacherMembershipB = membership(teacherB); dosMembershipA = membership(dosA);
     const roleRows = [
       { membership_id: teacherMembershipA, school_id: schoolA, role: "TEACHER", scope_type: "SCHOOL", granted_by: adminA.id },
+      { membership_id: teacherMembershipA, school_id: schoolA, role: "HOD", scope_type: "DEPARTMENT", department_id: biologyA, granted_by: adminA.id },
       { membership_id: teacherMembershipB, school_id: schoolA, role: "TEACHER", scope_type: "SCHOOL", granted_by: adminA.id },
       { membership_id: membership(hodA), school_id: schoolA, role: "TEACHER", scope_type: "SCHOOL", granted_by: adminA.id },
       { membership_id: membership(hodA), school_id: schoolA, role: "HOD", scope_type: "DEPARTMENT", department_id: biologyA, granted_by: adminA.id },
@@ -117,8 +119,8 @@ describe("isolated Step 4 academic operations integration", () => {
   });
 
   it("scopes teachers to their own sections and schedules", async () => {
-    expect((await teacherA.client.from("teaching_sections").select("id")).data?.map((row) => row.id)).toEqual([sectionA]);
-    expect((await teacherA.client.from("scheduled_lessons").select("id")).data).toEqual([]);
+    expect((await teacherB.client.from("teaching_sections").select("id")).data?.map((row) => row.id)).toEqual([sectionB]);
+    expect((await teacherB.client.from("scheduled_lessons").select("id")).data).toEqual([]);
   });
 
   it("limits HOD reads to the active department scope", async () => {
@@ -161,13 +163,15 @@ describe("isolated Step 4 academic operations integration", () => {
   it("protects active slots and supersedes only future occurrences during revision", async () => {
     const activeSlot = (await admin!.from("timetable_slots").select("id").eq("timetable_version_id", versionB).single()).data!.id;
     expect((await dosA.client.from("timetable_slots").update({ room_label: "Moved" }).eq("id", activeSlot)).error).toBeTruthy();
-    const versionC = await insertOne("timetable_versions", { school_id: schoolA, academic_period_id: periodA, version_number: 3, name: `Revision ${suffix}`, status: "DRAFT", effective_from: "2026-10-01", created_by: dosA.id });
+    const versionC = await insertOne("timetable_versions", { school_id: schoolA, academic_period_id: periodA, version_number: 3, name: `Revision ${suffix}`, status: "DRAFT", effective_from: revisionEffectiveFrom, created_by: dosA.id });
     await admin!.from("timetable_slots").insert({ school_id: schoolA, timetable_version_id: versionC, teaching_section_id: sectionB, day_of_week: 1, starts_at: "10:00", ends_at: "11:00" });
     expect((await dosA.client.rpc("verify_timetable_version", { p_version_id: versionC })).error).toBeNull();
     expect((await dosA.client.rpc("activate_timetable_version", { p_version_id: versionC })).error).toBeNull();
     const oldLessons = await admin!.from("scheduled_lessons").select("scheduled_date, schedule_status, superseded_by_timetable_version_id").eq("timetable_version_id", versionB);
-    expect(oldLessons.data!.some((lesson) => lesson.schedule_status === "SUPERSEDED" && lesson.superseded_by_timetable_version_id === versionC)).toBe(true);
-    expect(oldLessons.data!.some((lesson) => lesson.scheduled_date < "2026-09-18" && lesson.schedule_status === "SCHEDULED")).toBe(true);
+    expect(oldLessons.data!.some((lesson) => lesson.scheduled_date >= revisionEffectiveFrom && lesson.schedule_status === "SUPERSEDED" && lesson.superseded_by_timetable_version_id === versionC)).toBe(true);
+    expect(oldLessons.data!.some((lesson) => lesson.scheduled_date < revisionEffectiveFrom && lesson.schedule_status === "SCHEDULED")).toBe(true);
+    const replacementLessons = await admin!.from("scheduled_lessons").select("scheduled_date").eq("timetable_version_id", versionC);
+    expect(replacementLessons.data!.every((lesson) => lesson.scheduled_date >= revisionEffectiveFrom)).toBe(true);
   });
 
   it("does not allow Principal to verify or activate", async () => {
@@ -186,7 +190,7 @@ describe("isolated Step 4 academic operations integration", () => {
     await admin!.from("programme_event_targets").insert({ event_id: event, school_id: schoolA, stream_id: streamA });
     const lesson = (await admin!.from("scheduled_lessons").select("id").eq("timetable_version_id", versionB).eq("scheduled_date", "2026-09-21").single()).data;
     expect(lesson).toBeTruthy();
-    const overlaps = await teacherA.client.rpc("find_programme_event_overlaps", { p_scheduled_lesson_id: lesson!.id });
+    const overlaps = await teacherB.client.rpc("find_programme_event_overlaps", { p_scheduled_lesson_id: lesson!.id });
     expect(overlaps.error).toBeNull();
     expect(overlaps.data).toEqual(expect.arrayContaining([expect.objectContaining({ event_id: event, target_scope: "TARGETED" })]));
     expect((await admin!.from("scheduled_lessons").select("schedule_status")).data ?? []).not.toContainEqual(expect.objectContaining({ schedule_status: "DELIVERED" }));

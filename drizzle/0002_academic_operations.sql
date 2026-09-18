@@ -327,6 +327,25 @@ create trigger teaching_sections_actor before insert or update on public.teachin
 create trigger timetable_versions_actor before insert or update on public.timetable_versions for each row execute function private.enforce_academic_operations_actor();
 create trigger school_programme_events_actor before insert or update on public.school_programme_events for each row execute function private.enforce_academic_operations_actor();
 
+create or replace function private.enforce_teaching_section_assignment_command()
+returns trigger language plpgsql set search_path = '' as $$
+begin
+  if tg_op = 'INSERT' then
+    if (select auth.uid()) is not null and (new.assignment_state <> 'PROPOSED' or new.confirmed_at is not null or new.flag_reason is not null) then
+      raise exception 'new Teaching Sections must begin PROPOSED with no confirmation fields';
+    end if;
+  elsif new.assignment_state is distinct from old.assignment_state or new.confirmed_at is distinct from old.confirmed_at or new.flag_reason is distinct from old.flag_reason then
+    if current_setting('app.ate_command', true) <> 'confirm_teaching_section_assignment' then
+      raise exception 'Teaching Section assignment confirmation is command-controlled';
+    end if;
+  end if;
+  return new;
+end
+$$;
+create trigger teaching_sections_assignment_command
+before insert or update on public.teaching_sections
+for each row execute function private.enforce_teaching_section_assignment_command();
+
 create or replace function private.enforce_timetable_version_lifecycle()
 returns trigger language plpgsql set search_path = '' as $$
 declare
@@ -484,11 +503,7 @@ begin
   for update of ts;
   if not found then raise exception 'Teaching Section not found'; end if;
   if not private.is_active_school_member(section_record.school_id) or section_record.user_id <> actor then raise exception 'only the assigned active teacher may confirm this section'; end if;
-  if not private.has_school_role(section_record.school_id, 'TEACHER') or exists (
-    select 1 from public.role_grants rg join public.memberships membership on membership.id = rg.membership_id and membership.school_id = rg.school_id
-    where rg.school_id = section_record.school_id and membership.user_id = actor and membership.status = 'ACTIVE' and rg.status = 'ACTIVE'
-      and rg.role in ('HOD', 'DOS', 'PRINCIPAL', 'SCHOOL_ADMIN')
-  ) then raise exception 'academic leadership roles cannot impersonate teacher confirmation'; end if;
+  if not private.has_school_role(section_record.school_id, 'TEACHER') then raise exception 'an active TEACHER grant is required'; end if;
   if section_record.assignment_state <> 'PROPOSED' then raise exception 'only proposed Teaching Sections may be confirmed or flagged'; end if;
   perform set_config('app.ate_command', 'confirm_teaching_section_assignment', true);
   update public.teaching_sections
@@ -532,6 +547,10 @@ declare
   slot_record record;
   occurrence_date date;
   generation_start date;
+  replacement_boundary timestamptz;
+  occurrence_starts_at timestamptz;
+  occurrence_ends_at timestamptz;
+  had_previous_active boolean := false;
   actor uuid := (select auth.uid());
 begin
   if actor is null then raise exception 'authentication required'; end if;
@@ -548,14 +567,17 @@ begin
   if version_record.verified_by is null or version_record.verified_at is null then raise exception 'timetable verification metadata is required'; end if;
   perform private.validate_timetable_version_ready(p_version_id, version_record.school_id);
   perform set_config('app.ate_command', 'activate_timetable_version', true);
+  replacement_boundary := greatest(now(), ((select effective_from from public.timetable_versions where id = p_version_id)::timestamp at time zone version_record.timezone));
   for old_version in select id from public.timetable_versions where school_id = version_record.school_id and academic_period_id = version_record.academic_period_id and status = 'ACTIVE' and id <> p_version_id for update loop
+    had_previous_active := true;
     update public.scheduled_lessons
       set schedule_status = 'SUPERSEDED', superseded_by_timetable_version_id = p_version_id, updated_at = now()
-    where school_id = version_record.school_id and timetable_version_id = old_version.id and schedule_status = 'SCHEDULED' and starts_at >= now();
+    where school_id = version_record.school_id and timetable_version_id = old_version.id and schedule_status = 'SCHEDULED' and starts_at >= replacement_boundary;
     update public.timetable_versions set status = 'RETIRED', updated_at = now() where id = old_version.id;
   end loop;
   update public.timetable_versions set status = 'ACTIVE', activated_by = actor, activated_at = now(), updated_at = now() where id = p_version_id;
   generation_start := greatest(version_record.starts_on, (select effective_from from public.timetable_versions where id = p_version_id));
+  if had_previous_active then generation_start := greatest(generation_start, (replacement_boundary at time zone version_record.timezone)::date); end if;
   for slot_record in
     select slot.id, slot.day_of_week, slot.starts_at, slot.ends_at, slot.teaching_section_id
     from public.timetable_slots slot
@@ -563,11 +585,14 @@ begin
   loop
     for occurrence_date in select generated::date from generate_series(generation_start::timestamp, version_record.ends_on::timestamp, interval '1 day') generated loop
       if extract(isodow from occurrence_date) = slot_record.day_of_week then
+        occurrence_starts_at := ((occurrence_date::timestamp + slot_record.starts_at) at time zone version_record.timezone);
+        occurrence_ends_at := ((occurrence_date::timestamp + slot_record.ends_at) at time zone version_record.timezone);
+        if not had_previous_active or occurrence_starts_at >= replacement_boundary then
         insert into public.scheduled_lessons (school_id, academic_period_id, teaching_section_id, timetable_version_id, timetable_slot_id, scheduled_date, starts_at, ends_at, schedule_status)
           values (version_record.school_id, version_record.academic_period_id, slot_record.teaching_section_id, p_version_id, slot_record.id, occurrence_date,
-            ((occurrence_date::timestamp + slot_record.starts_at) at time zone version_record.timezone),
-            ((occurrence_date::timestamp + slot_record.ends_at) at time zone version_record.timezone), 'SCHEDULED')
+            occurrence_starts_at, occurrence_ends_at, 'SCHEDULED')
           on conflict (school_id, teaching_section_id, timetable_slot_id, scheduled_date) do nothing;
+        end if;
       end if;
     end loop;
   end loop;
@@ -601,6 +626,7 @@ revoke all on function private.validate_timetable_version_period() from public;
 revoke all on function private.validate_timetable_slot_context() from public;
 revoke all on function private.prevent_academic_operations_identity_change() from public;
 revoke all on function private.enforce_academic_operations_actor() from public;
+revoke all on function private.enforce_teaching_section_assignment_command() from public;
 revoke all on function private.enforce_timetable_version_lifecycle() from public;
 revoke all on function private.prevent_active_timetable_mutation() from public;
 revoke all on function private.prevent_active_timetable_slot_mutation() from public;
