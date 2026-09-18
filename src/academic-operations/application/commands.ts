@@ -63,3 +63,20 @@ export async function listAssignableTeachers(schoolId: string): Promise<Assignab
   if (error) throwRpcError(error);
   return (data ?? []) as AssignableTeacher[];
 }
+
+export type ProgrammeTargetType = "SCHOOL" | "CLASS_LEVEL" | "STREAM" | "DEPARTMENT";
+
+export async function createProgrammeEvent(input: { academicPeriodId: string | null; eventType: string; title: string; startsAt: string; endsAt: string; notes: string | null; targetType: ProgrammeTargetType; targetId: string | null }): Promise<string> {
+  const client = await createSupabaseServerClient();
+  const { data, error } = await client.rpc("create_programme_event", {
+    p_academic_period_id: input.academicPeriodId,
+    p_event_type: input.eventType,
+    p_title: input.title,
+    p_starts_at: input.startsAt,
+    p_ends_at: input.endsAt,
+    p_notes: input.notes,
+    p_target_type: input.targetType,
+    p_target_id: input.targetId,
+  });
+  return expectUuid(data, error);
+}

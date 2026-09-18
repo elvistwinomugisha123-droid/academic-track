@@ -227,7 +227,7 @@ describe("isolated Step 4 academic operations integration", () => {
     expect((await dosA.client.rpc("list_assignable_teachers", { p_school_id: schoolB })).error).toBeTruthy();
     expect((await teacherA.client.rpc("list_assignable_teachers", { p_school_id: schoolA })).error).toBeTruthy();
 
-    await admin!.from("memberships").update({ status: "INACTIVE" }).eq("id", teacherMembershipB);
+    await admin!.from("memberships").update({ status: "SUSPENDED" }).eq("id", teacherMembershipB);
     const inactiveDirectory = await dosA.client.rpc("list_assignable_teachers", { p_school_id: schoolA });
     expect(inactiveDirectory.data?.map((row: { membership_id: string }) => row.membership_id)).toEqual([teacherMembershipA]);
     await admin!.from("memberships").update({ status: "ACTIVE" }).eq("id", teacherMembershipB);
@@ -235,5 +235,17 @@ describe("isolated Step 4 academic operations integration", () => {
     await admin!.from("role_grants").update({ status: "REVOKED", revoked_at: new Date().toISOString() }).eq("membership_id", teacherMembershipB).eq("role", "TEACHER");
     const revokedDirectory = await dosA.client.rpc("list_assignable_teachers", { p_school_id: schoolA });
     expect(revokedDirectory.data?.map((row: { membership_id: string }) => row.membership_id)).toEqual([teacherMembershipA]);
+  });
+
+  it("creates programme events and targets atomically through the narrow command", async () => {
+    const targeted = await dosA.client.rpc("create_programme_event", { p_academic_period_id: periodA, p_event_type: "ASSEMBLY", p_title: `Targeted ${suffix}`, p_starts_at: "2026-11-02T08:00:00+00:00", p_ends_at: "2026-11-02T09:00:00+00:00", p_notes: "Department assembly", p_target_type: "STREAM", p_target_id: streamA });
+    expect(targeted.error).toBeNull();
+    const target = await admin!.from("programme_event_targets").select("stream_id, class_level_id, department_id").eq("event_id", targeted.data).single();
+    expect(target.error).toBeNull();
+    expect(target.data).toMatchObject({ stream_id: streamA, class_level_id: null, department_id: null });
+    const schoolWide = await dosA.client.rpc("create_programme_event", { p_academic_period_id: periodA, p_event_type: "HOLIDAY", p_title: `Whole school ${suffix}`, p_starts_at: "2026-11-03T08:00:00+00:00", p_ends_at: "2026-11-03T09:00:00+00:00", p_notes: "", p_target_type: "SCHOOL", p_target_id: null });
+    expect(schoolWide.error).toBeNull();
+    expect((await admin!.from("programme_event_targets").select("id").eq("event_id", schoolWide.data)).data).toEqual([]);
+    expect((await teacherA.client.rpc("create_programme_event", { p_academic_period_id: periodA, p_event_type: "ASSEMBLY", p_title: "No", p_starts_at: "2026-11-04T08:00:00+00:00", p_ends_at: "2026-11-04T09:00:00+00:00", p_notes: null, p_target_type: "SCHOOL", p_target_id: null })).error).toBeTruthy();
   });
 });

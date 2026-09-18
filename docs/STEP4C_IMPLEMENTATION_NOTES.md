@@ -6,13 +6,15 @@ Step 4C adds the minimal authenticated operational workspace on top of the Step 
 
 `drizzle/0004_teacher_assignment_directory.sql` adds `public.list_assignable_teachers(uuid)`. It is a narrow authenticated RPC for DOS and SCHOOL_ADMIN assignment forms. It returns only `membership_id` and `display_name` for active memberships with an active TEACHER grant. The UI never queries the memberships table broadly.
 
+`drizzle/0005_programme_event_creation.sql` adds the atomic `public.create_programme_event(...)` command. It creates school-wide, class-level, stream or department events and their single target in one transaction, derives the actor from `auth.uid()`, and writes the audit event transactionally.
+
 ## Surfaces and route
 
 - `/workspace/academic-operations` — authenticated role-aware workspace containing Overview, Academic setup, Teaching Sections, Timetable and Programme surfaces.
 - Academic setup — SCHOOL_ADMIN only for class levels, streams and school subjects with department association and lifecycle status controls.
 - Teaching Sections — DOS/SCHOOL_ADMIN may propose assignments; teachers see their RLS-scoped sections and can confirm or flag their own proposed section through the existing command.
-- Timetable — DOS/SCHOOL_ADMIN can create drafts, add slots, verify, activate and inspect generated scheduled lesson intent. Verified/active versions are not editable in the UI.
-- Programme — DOS/SCHOOL_ADMIN can schedule and cancel school programme events. The UI describes overlaps as programme/schedule facts only.
+- Timetable — DOS creates drafts and slots, verifies and activates versions, and inspects generated scheduled lesson intent. Verified/active versions are not editable in the UI. Other allowed readers receive read-oriented visibility without lifecycle controls.
+- Programme — DOS/SCHOOL_ADMIN can schedule and cancel school programme events atomically at school, class, stream or department scope. The UI describes overlaps as programme/schedule facts only.
 
 ## UX and authorization decisions
 
