@@ -1,0 +1,4 @@
+import { AppShell } from "@/components/foundation/AppShell";
+import { SignOutButton } from "@/components/auth/SignOutButton";
+import { requireWorkspaceAccess } from "@/lib/auth/access";
+export default async function WorkspacePage() { const access = await requireWorkspaceAccess(); return <AppShell><section className="foundation-intro"><p className="eyebrow">Authenticated workspace</p><h1>Ready for governed academic work.</h1><p className="lede">You are signed in as {access.displayName}. Academic workflows will be introduced after the security foundation.</p><div className="foundation-note" role="status"><span className="status-dot" />Active membership · {access.roles.length ? access.roles.join(" · ") : "No role grants"}<span className="auth-action"><SignOutButton /></span></div></section></AppShell>; }

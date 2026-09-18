@@ -1,0 +1,3 @@
+import { Suspense } from "react";
+import { InvitationAcceptance } from "@/components/auth/InvitationAcceptance";
+export default function InvitationAcceptPage() { return <main className="auth-page"><section className="auth-panel" aria-labelledby="invite-title"><div className="brand-mark">A</div><p className="eyebrow">ATE v1 · invitation</p><h1 id="invite-title">Join your school workspace.</h1><p className="lede">Accepting an invitation activates the school membership attached to your verified account.</p><Suspense fallback={<p className="auth-loading">Checking invitation…</p>}><InvitationAcceptance /></Suspense></section></main>; }

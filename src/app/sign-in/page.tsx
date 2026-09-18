@@ -1,0 +1,3 @@
+import { Suspense } from "react";
+import { SignInForm } from "@/components/auth/SignInForm";
+export default function SignInPage() { return <main className="auth-page"><section className="auth-panel" aria-labelledby="sign-in-title"><div className="brand-mark">A</div><p className="eyebrow">ATE v1 · secure access</p><h1 id="sign-in-title">Sign in to your academic workspace.</h1><p className="lede">Use the account provided by your school. Workspace access is granted through an active school membership.</p><Suspense fallback={<p className="auth-loading">Loading sign-in…</p>}><SignInForm /></Suspense></section></main>; }
