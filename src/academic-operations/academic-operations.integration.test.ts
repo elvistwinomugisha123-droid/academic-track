@@ -119,7 +119,10 @@ describe("isolated Step 4 academic operations integration", () => {
   });
 
   it("scopes teachers to their own sections and schedules", async () => {
-    expect((await teacherB.client.from("teaching_sections").select("id")).data?.map((row) => row.id)).toEqual([sectionB]);
+    const visibleIds = (await teacherB.client.from("teaching_sections").select("id")).data?.map((row) => row.id) ?? [];
+    expect(visibleIds).toHaveLength(2);
+    expect(visibleIds).toEqual(expect.arrayContaining([sectionB, chemistrySection]));
+    expect(visibleIds).not.toContain(sectionA);
     expect((await teacherB.client.from("scheduled_lessons").select("id")).data).toEqual([]);
   });
 
@@ -133,7 +136,24 @@ describe("isolated Step 4 academic operations integration", () => {
   it("allows only the assigned teacher to confirm a proposed section", async () => {
     expect((await teacherB.client.rpc("confirm_teaching_section_assignment", { p_section_id: sectionA, p_decision: "CONFIRMED", p_reason: null })).error).toBeTruthy();
     expect((await teacherA.client.rpc("confirm_teaching_section_assignment", { p_section_id: sectionA, p_decision: "CONFIRMED", p_reason: null })).error).toBeNull();
-    expect((await teacherA.client.from("teaching_sections").update({ teacher_membership_id: teacherMembershipB }).eq("id", sectionA)).error).toBeTruthy();
+
+    const attemptedIdentityChange = await teacherA.client
+      .from("teaching_sections")
+      .update({ teacher_membership_id: teacherMembershipB })
+      .eq("id", sectionA)
+      .select("id, teacher_membership_id");
+
+    expect(attemptedIdentityChange.error).toBeNull();
+    expect(attemptedIdentityChange.data).toEqual([]);
+
+    const persistedSection = await admin!
+      .from("teaching_sections")
+      .select("teacher_membership_id")
+      .eq("id", sectionA)
+      .single();
+
+    expect(persistedSection.error).toBeNull();
+    expect(persistedSection.data?.teacher_membership_id).toBe(teacherMembershipA);
   });
 
   it("rejects verification with unconfirmed sections and conflicts", async () => {
