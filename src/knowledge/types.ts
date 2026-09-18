@@ -48,7 +48,8 @@ export type KnowledgeProvenance = {
   spanId: string;
   locator: string;
   extractionConfidence: "HIGH" | "MEDIUM" | "LOW";
-  sourceContentSha256?: string | null;
+  sourceChecksumSha256?: string | null;
+  spanContentSha256?: string | null;
   recordContentSha256?: string | null;
   rightsStatus: RightsStatus;
   productionUseStatus: ProductionUseStatus;
@@ -114,6 +115,7 @@ export type KnowledgeErrorCode =
   | "RELEASE_SUPERSEDED"
   | "PROVENANCE_BROKEN"
   | "SUBJECT_PROFILE_MISMATCH"
+  | "EFFECTIVE_DATE_MISMATCH"
   | "KNOWLEDGE_NOT_FOUND"
   | "KNOWLEDGE_RIGHTS_DENIED";
 

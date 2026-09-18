@@ -2,7 +2,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { applyAcademicKnowledgeMigration } from "./db/migration";
 import type { KnowledgeSqlClient } from "./db/client";
-import { activateKnowledgeRelease, recordKnowledgeRightsDecision, recordKnowledgeVerificationDecision, submitKnowledgeReleaseForReview, supersedeKnowledgeRelease } from "./governance";
+import { activateKnowledgeRelease, recordKnowledgeRightsDecision, recordKnowledgeVerificationDecision, resolveKnowledgeConflict, submitKnowledgeReleaseForReview, supersedeKnowledgeRelease } from "./governance";
 import { retrieveExactKnowledge } from "./retrieval";
 
 const sourceId = "TEST_SYNTHETIC_SOURCE";
@@ -31,8 +31,8 @@ describe("central Academic Knowledge governance", () => {
     await client.query("INSERT INTO knowledge_curriculum_subjects (id,subject_key,title,education_level,status) VALUES ($1,'TEST-LOWER-PHYSICS','TEST Synthetic Physics','lower-secondary','DRAFT')", [subjectId]);
     await client.query("INSERT INTO knowledge_curriculum_releases (id,release_key,authority,display_name,education_level,version_label,effective_from,status,manifest_checksum_sha256) VALUES ($1,'TEST-SYNTHETIC-RELEASE','TEST AUTHORITY','TEST Synthetic Release','lower-secondary','test-1','2026-01-01','DRAFT',$2)", [releaseId, manifestChecksum]);
     await client.query("INSERT INTO knowledge_subject_profiles (id,release_id,governed_subject_id,profile_key,display_title,education_level,status,requires_assessment_profile) VALUES ($1,$2,$3,'TEST-SYNTHETIC-PHYSICS','TEST Synthetic Physics Profile','lower-secondary','DRAFT',false)", [profileId, releaseId, subjectId]);
-    await client.query("INSERT INTO knowledge_release_sources (release_id,subject_profile_id,source_id,source_role,is_required,status) VALUES ($1,$2,$3,'SUBJECT_SYLLABUS',true,'APPROVED')", [releaseId, profileId, sourceId]);
-    await client.query("INSERT INTO knowledge_profile_records (release_id,subject_profile_id,canonical_id,membership_role,status,ordering_key) VALUES ($1,$2,$3,'CURRICULUM','APPROVED','001')", [releaseId, profileId, canonicalId]);
+    await client.query("INSERT INTO knowledge_release_sources (release_id,subject_profile_id,source_id,source_role,is_required,status,approved_at,approved_by) VALUES ($1,$2,$3,'SUBJECT_SYLLABUS',true,'APPROVED',now(),$4)", [releaseId, profileId, sourceId, actorId]);
+    await client.query("INSERT INTO knowledge_profile_records (release_id,subject_profile_id,canonical_id,membership_role,status,ordering_key,effective_from,effective_to,approved_at,approved_by) VALUES ($1,$2,$3,'CURRICULUM','APPROVED','001','2026-01-01','2026-12-31',now(),$4)", [releaseId, profileId, canonicalId, actorId]);
   }, 60_000);
 
   afterAll(async () => { await client.close(); });
@@ -50,6 +50,10 @@ describe("central Academic Knowledge governance", () => {
   });
 
   it("fails closed until source, span, record, and rights decisions are independently recorded", async () => {
+    const skippedReview = await activateKnowledgeRelease(client, releaseId, actorId);
+    expect(skippedReview.issues.map((issue) => issue.code)).toContain("RELEASE_NOT_IN_REVIEW");
+    await expect(client.query("INSERT INTO knowledge_release_sources (release_id,source_id,source_role,is_required,status,approved_at,approved_by) VALUES ($1,$2,'SUBJECT_SYLLABUS',true,'APPROVED',now(),$3)", [releaseId, sourceId, actorId])).rejects.toThrow();
+    await expect(client.query("INSERT INTO knowledge_release_sources (release_id,source_id,source_role,is_required,status) VALUES ($1,$2,'SUPPORTING_REFERENCE',false,'APPROVED')", [releaseId, sourceId])).rejects.toThrow();
     await submitKnowledgeReleaseForReview(client, releaseId);
     let report = await activateKnowledgeRelease(client, releaseId, actorId);
     expect(report.activated).toBe(false);
@@ -63,6 +67,8 @@ describe("central Academic Knowledge governance", () => {
     await recordKnowledgeVerificationDecision(client, { entityType: "RECORD", entityId: canonicalId, resultingStatus: "VERIFIED", actorUserId: actorId, reason: "Synthetic normalized record checked against the synthetic span." });
     report = await activateKnowledgeRelease(client, releaseId, actorId);
     expect(report).toMatchObject({ activated: true, status: "ACTIVE", issues: [] });
+    await expect(client.query("UPDATE knowledge_curriculum_releases SET status='DRAFT' WHERE id=$1", [releaseId])).rejects.toThrow();
+    expect((await activateKnowledgeRelease(client, releaseId, actorId)).issues.map((issue) => issue.code)).toContain("ALREADY_ACTIVE");
     const release = await client.query<{ status: string }>("SELECT status FROM knowledge_curriculum_releases WHERE id=$1", [releaseId]);
     expect(release.rows[0].status).toBe("ACTIVE");
   });
@@ -71,7 +77,15 @@ describe("central Academic Knowledge governance", () => {
     const request = { use: "PRODUCTION_APP" as const, releaseId, subjectProfileId: profileId, effectiveOn: "2026-03-01", recordTypes: ["topic"] };
     const records = await retrieveExactKnowledge(client, request);
     expect(records).toHaveLength(1);
-    expect(records[0]).toMatchObject({ canonicalId, governance: { releaseId, subjectProfileId: profileId, conflictFree: true }, provenance: { sourceId, spanId, pageStart: 1, sourceContentSha256: checksum, recordContentSha256: checksum } });
+    expect(records[0]).toMatchObject({ canonicalId, governance: { releaseId, subjectProfileId: profileId, conflictFree: true }, provenance: { sourceId, spanId, pageStart: 1, sourceChecksumSha256: checksum, spanContentSha256: checksum, recordContentSha256: checksum } });
+    await expect(retrieveExactKnowledge(client, { ...request, effectiveOn: "2027-01-01" })).rejects.toMatchObject({ code: "EFFECTIVE_DATE_MISMATCH" });
+    await expect(client.query("UPDATE knowledge_records SET verification_status='REVIEW_REQUIRED' WHERE canonical_id=$1", [canonicalId])).rejects.toThrow();
+    await expect(client.query("UPDATE knowledge_sources SET rights_status='REVIEW_REQUIRED' WHERE source_id=$1", [sourceId])).rejects.toThrow();
+    await expect(client.query("UPDATE knowledge_sources SET attribution_required=false WHERE source_id=$1", [sourceId])).rejects.toThrow();
+    await expect(recordKnowledgeRightsDecision(client, { sourceId, rightsStatus: "REVIEW_REQUIRED", productionUseStatus: "PERMITTED", externalAiAllowed: false, formalArtifactAllowed: false, exportAllowed: false, attributionRequired: true, decisionSource: "TEST_SYNTHETIC_INCOHERENT", actorUserId: actorId })).rejects.toThrow();
+    await recordKnowledgeRightsDecision(client, { sourceId, rightsStatus: "CLEARED", productionUseStatus: "PERMITTED", externalAiAllowed: false, formalArtifactAllowed: true, exportAllowed: true, attributionRequired: true, decisionSource: "TEST_SYNTHETIC_EXPIRED_REVIEW", actorUserId: actorId, reviewExpiresAt: "2025-01-01" });
+    await expect(retrieveExactKnowledge(client, request)).rejects.toMatchObject({ code: "RIGHTS_DENIED" });
+    await recordKnowledgeRightsDecision(client, { sourceId, rightsStatus: "CLEARED", productionUseStatus: "PERMITTED", externalAiAllowed: false, formalArtifactAllowed: true, exportAllowed: true, attributionRequired: true, decisionSource: "TEST_SYNTHETIC_CURRENT_REVIEW", actorUserId: actorId });
     await expect(retrieveExactKnowledge(client, { ...request, use: "EXTERNAL_AI" })).rejects.toMatchObject({ code: "RIGHTS_DENIED" });
     await recordKnowledgeRightsDecision(client, { sourceId, rightsStatus: "CLEARED", productionUseStatus: "PERMITTED", externalAiAllowed: true, formalArtifactAllowed: true, exportAllowed: true, attributionRequired: true, decisionSource: "TEST_SYNTHETIC_EXTERNAL_AI_REVIEW", actorUserId: actorId });
     expect(await retrieveExactKnowledge(client, { ...request, use: "EXTERNAL_AI" })).toHaveLength(1);
@@ -81,11 +95,31 @@ describe("central Academic Knowledge governance", () => {
   it("blocks open conflicts, wrong profiles, and superseded releases", async () => {
     await expect(client.query("UPDATE knowledge_curriculum_releases SET display_name='MUTATED' WHERE id=$1", [releaseId])).rejects.toThrow();
     await expect(client.query("UPDATE knowledge_profile_records SET ordering_key='002' WHERE release_id=$1", [releaseId])).rejects.toThrow();
+    await expect(client.query("INSERT INTO knowledge_release_sources (release_id,subject_profile_id,source_id,source_role,is_required,status,approved_at,approved_by) VALUES ($1,$2,$3,'SUBJECT_SYLLABUS',false,'APPROVED',now(),$4)", [releaseId, profileId, sourceId, actorId])).rejects.toThrow();
+    await expect(client.query("INSERT INTO knowledge_subject_profiles (release_id,governed_subject_id,profile_key,display_title,education_level,status) VALUES ($1,$2,'TEST-ACTIVE-NEW-PROFILE','TEST','lower-secondary','DRAFT')", [releaseId, subjectId])).rejects.toThrow();
+    await expect(client.query("INSERT INTO knowledge_profile_records (release_id,subject_profile_id,canonical_id,membership_role,status,approved_at,approved_by) VALUES ($1,$2,$3,'CURRICULUM','APPROVED',now(),$4)", [releaseId, profileId, canonicalId, actorId])).rejects.toThrow();
+    await expect(client.query("INSERT INTO knowledge_assessment_profiles (release_id,subject_profile_id,assessment_key,display_title,purpose,regime,status) VALUES ($1,$2,'TEST-ACTIVE-ASSESSMENT','TEST','TEST','TEST','DRAFT')", [releaseId, profileId])).rejects.toThrow();
+    await expect(client.query("UPDATE knowledge_sources SET checksum_sha256=$2 WHERE source_id=$1", [sourceId, "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"])).rejects.toThrow();
+    await expect(client.query("UPDATE knowledge_source_spans SET source_text='mutated' WHERE span_id=$1", [spanId])).rejects.toThrow();
+    await expect(client.query("UPDATE knowledge_source_spans SET locator='page:99' WHERE span_id=$1", [spanId])).rejects.toThrow();
+    await expect(client.query("UPDATE knowledge_records SET normalized='{}'::jsonb WHERE canonical_id=$1", [canonicalId])).rejects.toThrow();
+    await expect(client.query("UPDATE knowledge_records SET source_wording='mutated' WHERE canonical_id=$1", [canonicalId])).rejects.toThrow();
+    await expect(client.query("UPDATE knowledge_record_taxonomy SET authority_eligible=false WHERE record_type='topic'")).rejects.toThrow();
+    await client.query("INSERT INTO knowledge_relationships (relationship_id,relationship_type,from_canonical_id,to_canonical_id,source_id,span_id,verification_status) VALUES ('TEST-ACTIVE-REL','TOPIC_CONTAINS_OUTCOME',$1,$1,$2,$3,'UNVERIFIED')", [canonicalId, sourceId, spanId]);
+    await expect(client.query("UPDATE knowledge_relationships SET from_canonical_id='different' WHERE relationship_id='TEST-ACTIVE-REL'")).rejects.toThrow();
+    await expect(client.query("DELETE FROM knowledge_relationships WHERE relationship_id='TEST-ACTIVE-REL'")).rejects.toThrow();
     const conflictId = "00000000-0000-0000-0000-000000000105";
     await client.query("INSERT INTO knowledge_conflicts (id,release_id,subject_profile_id,category,status,summary) VALUES ($1,$2,$3,'WORDING','OPEN','TEST OPEN CONFLICT')", [conflictId, releaseId, profileId]);
     await client.query("INSERT INTO knowledge_conflict_items (conflict_id,item_type,canonical_id,item_role) VALUES ($1,'RECORD',$2,'CLAIM_A')", [conflictId, canonicalId]);
     await expect(retrieveExactKnowledge(client, { use: "PRODUCTION_APP", releaseId, subjectProfileId: profileId, effectiveOn: "2026-03-01", recordTypes: ["topic"] })).rejects.toMatchObject({ code: "CONFLICT_UNRESOLVED" });
-    await client.query("DELETE FROM knowledge_conflict_items WHERE conflict_id=$1", [conflictId]); await client.query("DELETE FROM knowledge_conflicts WHERE id=$1", [conflictId]);
+    await resolveKnowledgeConflict(client, { conflictId, status: "RESOLVED", actorUserId: actorId, reason: "Synthetic conflict review completed.", resolutionText: "Synthetic competing evidence retained; the reviewed source is accepted for this fixture." });
+    await expect(client.query("DELETE FROM knowledge_conflict_items WHERE conflict_id=$1", [conflictId])).rejects.toThrow();
+    await expect(client.query("DELETE FROM knowledge_conflicts WHERE id=$1", [conflictId])).rejects.toThrow();
+    const releaseConflictId = "00000000-0000-0000-0000-000000000107";
+    await client.query("INSERT INTO knowledge_conflicts (id,release_id,category,status,summary) VALUES ($1,$2,'RELEASE_SCOPE','OPEN','TEST RELEASE-WIDE OPEN CONFLICT')", [releaseConflictId, releaseId]);
+    await expect(retrieveExactKnowledge(client, { use: "PRODUCTION_APP", releaseId, subjectProfileId: profileId, effectiveOn: "2026-03-01", recordTypes: ["topic"] })).rejects.toMatchObject({ code: "CONFLICT_UNRESOLVED" });
+    await resolveKnowledgeConflict(client, { conflictId: releaseConflictId, status: "ACCEPTED_OVERRIDE", actorUserId: actorId, reason: "Synthetic release-wide review completed.", resolutionText: "The release-wide issue is explicitly accepted for this synthetic fixture." });
+    expect((await client.query<{ count: string }>("SELECT count(*)::text AS count FROM knowledge_conflict_items WHERE conflict_id=$1", [conflictId])).rows[0].count).toBe("1");
     const wrongProfile = "00000000-0000-0000-0000-000000000106";
     await expect(retrieveExactKnowledge(client, { use: "PRODUCTION_APP", releaseId, subjectProfileId: wrongProfile, effectiveOn: "2026-03-01", recordTypes: ["topic"] })).rejects.toMatchObject({ code: "PROFILE_MISMATCH" });
     await supersedeKnowledgeRelease(client, releaseId);

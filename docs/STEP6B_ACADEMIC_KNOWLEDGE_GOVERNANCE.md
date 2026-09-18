@@ -1,6 +1,6 @@
 # ATE v1 Step 6B — Academic Knowledge Governance
 
-Status: implemented as a central governance layer; no real curriculum release is active.
+Status: pre-apply hardened implementation; no real curriculum release is active and 0008 is not applied remotely.
 
 This document records the Step 6B production design and implementation boundary. Academic Knowledge is central governed reference data. It is not school-tenanted operational data, classroom evidence, or an LLM memory store.
 
@@ -29,7 +29,7 @@ Their source wording, normalized payload, spans, checksums, relationships, legac
 
 ## 3. Step 6B migration
 
-`drizzle/0008_academic_knowledge_governance.sql` is additive and remains unapplied to the remote test or production databases. It does not seed a real subject, release, source permission, verification decision, conflict resolution, or active profile.
+`drizzle/0008_academic_knowledge_governance.sql` is additive, registered after 0007 in `drizzle/meta/_journal.json`, and remains unapplied to the remote test or production databases. It does not seed a real subject, release, source permission, verification decision, conflict resolution, or active profile.
 
 It extends the original tables with source/schema/effective metadata, content hashes, record keys, payload schema versions, verification projections, import-run version/manifest/transaction metadata, and composite provenance constraints. Historical rows are preserved with `NOT VALID` constraints where necessary; new writes are held to the strengthened relationship rules.
 
@@ -47,14 +47,15 @@ The new central tables are:
 - `knowledge_verification_decisions`
 - `knowledge_rights_decisions`
 - `knowledge_record_identity_mappings`
+- `knowledge_release_activation_runs`
 
 The migration enables RLS and revokes browser-role privileges on every central table. There are no `anon` or ordinary `authenticated` write policies. Governance decision functions are security-definer database commands and their execute privilege is revoked from browser roles; the application server/database owner is the intended access boundary.
 
 ## 4. Canonical identity
 
-`canonical_id` is an immutable ATE-issued identifier for one source-version-specific normalized record. New imports use an ATE-generated UUID and persist the relationship between source checksum, importer candidate ID and canonical ID in `knowledge_record_identity_mappings`.
+`canonical_id` is an immutable ATE-issued identifier for one source-version-specific normalized record. New imports use an ATE-generated UUID and persist the relationship between source checksum, candidate ID, importer version, schema version, deterministic candidate-content hash and canonical ID in `knowledge_record_identity_mappings`.
 
-An extraction candidate ID is scoped to its source and checksum. It is not the production identity. A same-checksum re-import reuses the mapping. A changed checksum produces new candidates and new canonical IDs. Reprocessing, page order, parser order, array position, or mutable wording cannot silently rewrite an existing canonical ID.
+An extraction candidate ID is scoped to its source and checksum. It is not the production identity. A same-checksum re-import with the same importer/schema/content identity reuses the mapping. A changed checksum, importer/schema interpretation, or candidate-content hash produces a new candidate identity; an unexpected content change under the same mapping key fails closed. Reprocessing, page order, parser order, array position, or mutable wording cannot silently rewrite an existing canonical ID.
 
 `record_key` is nullable and is populated only when a printed source code or human-approved stable semantic key exists. Page or line order is never fabricated into a record key. Cross-version continuity is an explicit future mapping/supersession decision, not automatic fingerprint identity.
 
@@ -66,7 +67,7 @@ An extraction candidate ID is scoped to its source and checksum. It is not the p
 
 `DRAFT → REVIEW → ACTIVE → SUPERSEDED → RETIRED`
 
-Activation and consequential transitions run through narrow server commands. Direct insertion of an active release/profile/subject is rejected. Active academic meaning is immutable: changed source sets, wording, profile composition or regime identity requires a new release/profile rather than a silent edit.
+Activation and consequential transitions run through narrow server commands. Direct insertion of an active release/profile/subject is rejected. A release must follow `DRAFT → REVIEW → ACTIVE`; activation accepts only `REVIEW`, and an already active release cannot be activated again. Active academic meaning is immutable: changed source sets, wording, profile composition or regime identity requires a new release/profile rather than a silent edit. Inserts, updates and deletes for profiles, source memberships, profile-record memberships and assessment profiles are rejected once their release is active.
 
 `knowledge_subject_profiles` means “this governed subject offering under this release.” Composite foreign keys prevent incompatible release/profile/subject education-level combinations. A release can contain multiple profiles such as internally governed lower-secondary Physics or an advanced-secondary mathematics offering without relying on text equality.
 
@@ -88,7 +89,7 @@ Imported extraction is always a candidate. The importer maps incoming `VERIFIED`
 
 `VERIFIED` means ATE has established that the normalized record faithfully represents the cited source/version and its provenance, not merely that extraction returned text.
 
-`knowledge_verification_decisions` is append-only and records source, span, record or relationship decisions, actor, time, reason/evidence and source-version context. Existing status columns remain current projections. Database guards reject direct unaudited elevation to `VERIFIED`.
+`knowledge_verification_decisions` is append-only and records source, span, record or relationship decisions, actor, time, reason/evidence and source-version context. Existing status columns remain current projections. Database guards reject every direct verification-state transition, not only elevation to `VERIFIED`. Activation and governed retrieval require the latest applicable decision evidence to agree with the current projection.
 
 Activation requires the relevant source, span, record and required relationship path to be verified, and requires authority-eligible taxonomy membership. A verified record can still be blocked by rights or conflicts.
 
@@ -96,7 +97,7 @@ Activation requires the relevant source, span, record and required relationship 
 
 Rights are independent from verification. A source may be correctly extracted but restricted, or rights-cleared but academically unverified.
 
-`knowledge_rights_decisions` is append-only and captures checksum, rights status, production permission, external-AI permission, formal-artifact/export permissions, attribution, decision evidence, actor, time and optional expiry. Database guards reject direct elevation to `CLEARED`, `PERMITTED`, or any external/formal/export allowance without a rights decision.
+`knowledge_rights_decisions` is append-only and captures checksum, rights status, production permission, external-AI permission, formal-artifact/export permissions, attribution, decision evidence, actor, time and optional expiry. Database guards reject every rights projection transition without a rights decision, enforce coherent rights combinations, and make the current source-checksum decision (including expiry) part of activation and governed retrieval.
 
 The use gates are:
 
@@ -111,9 +112,9 @@ The use gates are:
 
 ## 9. Conflicts
 
-`knowledge_conflicts` and `knowledge_conflict_items` preserve competing records, sources or spans. The minimal lifecycle is `OPEN`, `RESOLVED`, `ACCEPTED_OVERRIDE`. Resolution stores actor, time, reason and resolution text. Complementary framework and subject guidance is not automatically a conflict.
+`knowledge_conflicts` and `knowledge_conflict_items` preserve competing records, sources or spans. Conflict evidence is append-only: conflicts and conflict items cannot be deleted or edited. The minimal lifecycle is `OPEN`, `RESOLVED`, `ACCEPTED_OVERRIDE`, and `resolveKnowledgeConflict` stores actor, time, reason and resolution text without erasing competing evidence. Complementary framework and subject guidance is not automatically a conflict.
 
-An open conflict scoped to a release/profile blocks activation and affected production retrieval. Resolving it never deletes competing evidence. No AI path can resolve or override a conflict.
+An open conflict scoped to a release/profile blocks activation and affected production retrieval. A release/profile-wide conflict with no items blocks the whole applicable scope; an item-scoped conflict blocks matching records, sources or spans. Resolving it never deletes competing evidence. No AI path can resolve or override a conflict.
 
 ## 10. Activation algorithm
 
@@ -122,24 +123,30 @@ An open conflict scoped to a release/profile blocks activation and affected prod
 - release state and effective-date overlap;
 - profile/release/subject regime compatibility;
 - required source membership and checksums;
+- source-role/profile compatibility and source education-level compatibility;
 - rights `CLEARED` + `PERMITTED`;
+- a current matching, unexpired rights decision for the source checksum;
 - verified source/span/record paths;
+- append-only verification evidence for source/span/record and required relationships;
 - authority-eligible taxonomy and approved profile membership;
+- approval actor/time for source and profile-record membership;
 - relationship endpoint/provenance/verification integrity;
 - open conflicts;
-- required assessment profiles.
+- required assessment profiles with complete applicable approved source-role composition;
+- profile-record and source effective windows;
+- no incompatible active effective-date overlap.
 
-On any blocker it rolls back and returns `activated: false`. On success it transitions the release and its profiles/subjects/required assessment profiles through the activation command and records the activating actor/time. Import completion never invokes this command.
+On any blocker it rolls back and returns `activated: false`. Every actor-bearing attempt is recorded in append-only `knowledge_release_activation_runs` with the deterministic report and hash. On success it transitions the release and its profiles/subjects/required assessment profiles through the activation command and records the activating actor/time. Import completion never invokes this command.
 
 ## 11. Retrieval contract
 
-The legacy exact path remains available for controlled development compatibility. Governed production/formal/external retrieval requires explicit release, subject profile, effective date and record types. It joins the profile membership and approved source set, validates active/effective release state, subject/profile regime, verification, rights, conflict state and complete span/source provenance. It returns canonical IDs plus source title, authority, version, checksum-backed locators, page/locator, hashes, rights and governance context.
+The legacy exact path remains available for controlled development compatibility. Governed production/formal/external retrieval requires explicit release, subject profile, effective date and record types. It joins the profile membership and approved source set, validates active/effective release state, subject/profile regime, verification evidence, rights decision expiry, conflict state, source/profile compatibility and complete span/source provenance. It returns canonical IDs plus source title, authority, version, the full `sourceChecksumSha256`, extracted `spanContentSha256`, normalized `recordContentSha256`, page/locator, rights and governance context.
 
-Governed retrieval fails closed with explicit errors including `NOT_FOUND`, `NOT_VERIFIED`, `RIGHTS_DENIED`, `PROFILE_MISMATCH`, `CONFLICT_UNRESOLVED`, `SOURCE_INACTIVE`, `RELEASE_SUPERSEDED`, `PROVENANCE_BROKEN` and `SUBJECT_PROFILE_MISMATCH`. It does not silently discard ineligible rows and present an incomplete result as authoritative.
+Governed retrieval fails closed with explicit errors including `NOT_FOUND`, `NOT_VERIFIED`, `RIGHTS_DENIED`, `PROFILE_MISMATCH`, `CONFLICT_UNRESOLVED`, `SOURCE_INACTIVE`, `RELEASE_SUPERSEDED`, `PROVENANCE_BROKEN`, `SUBJECT_PROFILE_MISMATCH` and `EFFECTIVE_DATE_MISMATCH`. It does not silently discard ineligible rows and present an incomplete result as authoritative.
 
 ## 12. Import boundary
 
-The importer is transactional and idempotent for mode + dataset checksum + importer version + schema version. It records manifest identity, outcome and report hash. It writes candidates only, never verification, rights elevation or activation. Source checksum changes for an existing source identity are rejected rather than silently overwriting version identity. The historical Biology workbench and the previously described 45-source corpus are not adapted or activated by Step 6B.
+The importer is transactional and idempotent for mode + dataset checksum + importer version + schema version. It records manifest identity, outcome and report hash. It writes candidates only, never verification, rights elevation or activation. Source checksum changes for an existing source identity are rejected rather than silently overwriting version identity. Legacy IDs are insert-only/idempotent and cannot silently repoint. The historical Biology workbench and the previously described 45-source corpus are not adapted or activated by Step 6B.
 
 ## 13. External AI boundary
 
@@ -149,7 +156,7 @@ Step 6B makes no model calls. It establishes only the deterministic eligibility 
 
 The governance tests use clearly labelled `TEST_SYNTHETIC_*` source/release/profile identities. They prove independent verification and rights gates, no direct elevation, provenance constraints, append-only decision history, activation blockers and success, stable governed retrieval, external-AI permission, conflicts, profile mismatch and supersession. No real source receives a rights or verification decision, and no real release is activated.
 
-Remote integration against `ATE_Security_Test` must be run only after external review and application of 0008. The local test applies 0000 and 0008 to an isolated PGlite database; this does not apply anything remotely.
+FACT: `public.knowledge_sources` does not currently exist in `ATE_Security_Test`; the 0000 Academic Knowledge foundation has not been applied there. Later live testing must first apply existing 0000, then corrected 0008, then run live integration/advisor checks. The local test applies 0000 and 0008 to an isolated PGlite database; this does not apply anything remotely.
 
 ## 15. Deferred Step 6C
 

@@ -1,11 +1,11 @@
 import { PGlite } from "@electric-sql/pglite";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { applyAcademicKnowledgeMigration } from "./db/migration";
 import type { KnowledgeSqlClient } from "./db/client";
-import { importAcademicKnowledge } from "./importer";
+import { ensureLegacyKnowledgeMapping, importAcademicKnowledge } from "./importer";
 
 function pgliteClient(database: PGlite): KnowledgeSqlClient { return { async query<Row extends Record<string, unknown>>(statement: string, parameters: unknown[] = []) { const result = await database.query(statement, parameters); return { rows: result.rows as Row[] }; }, async close() { await database.close(); } }; }
 
@@ -32,6 +32,13 @@ describe("candidate-only Academic Knowledge import", () => {
     expect((await client.query<{ count: string }>("SELECT count(*)::text AS count FROM knowledge_curriculum_releases WHERE status='ACTIVE'")).rows[0].count).toBe("0");
     const mapping = await client.query<{ canonical_id: string }>("SELECT canonical_id FROM knowledge_record_identity_mappings WHERE candidate_id=$1", ["TEST-SYNTHETIC-CANDIDATE-1"]);
     expect(mapping.rows).toHaveLength(1);
+    expect(await ensureLegacyKnowledgeMapping(client, { legacyId: "TEST-LEGACY-ID", canonicalId: mapping.rows[0].canonical_id, sourceId: "TEST_SYNTHETIC_IMPORT_SOURCE", mappingReason: "Synthetic test mapping." })).toBe(true);
+    await expect(ensureLegacyKnowledgeMapping(client, { legacyId: "TEST-LEGACY-ID", canonicalId: "DIFFERENT-CANONICAL", sourceId: "TEST_SYNTHETIC_IMPORT_SOURCE", mappingReason: "Unreviewed repoint." })).rejects.toThrow("different canonical");
+    const originalItem = await readFile(paths.curriculumItems, "utf8");
+    const changedItem = { ...JSON.parse(originalItem) as Record<string, unknown>, normalized: { subject: "physics", level: "lower-secondary", term: null, title: "CHANGED UNDER SAME IDENTITY", parentId: null } };
+    await writeFile(paths.curriculumItems, `${JSON.stringify(changedItem)}\n`);
+    await expect(importAcademicKnowledge(client, "DEVELOPMENT", paths)).rejects.toThrow("changed content");
+    await writeFile(paths.curriculumItems, originalItem);
     const second = await importAcademicKnowledge(client, "DEVELOPMENT", paths);
     expect(second.importRunId).toBe(report.importRunId);
     expect((await client.query<{ count: string }>("SELECT count(*)::text AS count FROM knowledge_records")).rows[0].count).toBe("1");
