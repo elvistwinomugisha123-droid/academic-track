@@ -292,6 +292,7 @@ alter table departments enable row level security;
 alter table role_grants enable row level security;
 alter table academic_periods enable row level security;
 alter table invitations enable row level security;
+alter table invitation_role_grants enable row level security;
 alter table audit_events enable row level security;
 alter table school_files enable row level security;
 
