@@ -215,4 +215,25 @@ describe("isolated Step 4 academic operations integration", () => {
     expect(overlaps.data).toEqual(expect.arrayContaining([expect.objectContaining({ event_id: event, target_scope: "TARGETED" })]));
     expect((await admin!.from("scheduled_lessons").select("schedule_status")).data ?? []).not.toContainEqual(expect.objectContaining({ schedule_status: "DELIVERED" }));
   });
+
+  it("limits the assignment directory to authorized active teachers and safe fields", async () => {
+    const directory = await dosA.client.rpc("list_assignable_teachers", { p_school_id: schoolA });
+    expect(directory.error).toBeNull();
+    expect(directory.data?.map((row: { membership_id: string }) => row.membership_id)).toEqual([teacherMembershipA, teacherMembershipB]);
+    expect(directory.data?.every((row: { membership_id: string; display_name: string }) => Object.keys(row).sort().join(",") === "display_name,membership_id")).toBe(true);
+    const adminDirectory = await adminA.client.rpc("list_assignable_teachers", { p_school_id: schoolA });
+    expect(adminDirectory.error).toBeNull();
+    expect(adminDirectory.data?.map((row: { membership_id: string }) => row.membership_id)).toEqual([teacherMembershipA, teacherMembershipB]);
+    expect((await dosA.client.rpc("list_assignable_teachers", { p_school_id: schoolB })).error).toBeTruthy();
+    expect((await teacherA.client.rpc("list_assignable_teachers", { p_school_id: schoolA })).error).toBeTruthy();
+
+    await admin!.from("memberships").update({ status: "INACTIVE" }).eq("id", teacherMembershipB);
+    const inactiveDirectory = await dosA.client.rpc("list_assignable_teachers", { p_school_id: schoolA });
+    expect(inactiveDirectory.data?.map((row: { membership_id: string }) => row.membership_id)).toEqual([teacherMembershipA]);
+    await admin!.from("memberships").update({ status: "ACTIVE" }).eq("id", teacherMembershipB);
+
+    await admin!.from("role_grants").update({ status: "REVOKED", revoked_at: new Date().toISOString() }).eq("membership_id", teacherMembershipB).eq("role", "TEACHER");
+    const revokedDirectory = await dosA.client.rpc("list_assignable_teachers", { p_school_id: schoolA });
+    expect(revokedDirectory.data?.map((row: { membership_id: string }) => row.membership_id)).toEqual([teacherMembershipA]);
+  });
 });

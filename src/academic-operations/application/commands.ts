@@ -54,3 +54,12 @@ export async function findProgrammeEventOverlaps(scheduledLessonId: string): Pro
   if (error) throwRpcError(error);
   return (data ?? []) as ProgrammeEventOverlap[];
 }
+
+export type AssignableTeacher = { membership_id: string; display_name: string };
+
+export async function listAssignableTeachers(schoolId: string): Promise<AssignableTeacher[]> {
+  const client = await createSupabaseServerClient();
+  const { data, error } = await client.rpc("list_assignable_teachers", { p_school_id: schoolId });
+  if (error) throwRpcError(error);
+  return (data ?? []) as AssignableTeacher[];
+}

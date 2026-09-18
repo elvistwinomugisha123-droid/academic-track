@@ -22,3 +22,10 @@ test("foundation exposes a keyboard skip link", async ({ page }) => {
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: /skip to content/i })).toBeFocused();
 });
+
+test("academic operations requires an authenticated school workspace", async ({ page }) => {
+  test.skip(!process.env.NEXT_PUBLIC_SUPABASE_URL, "requires the configured Supabase public environment");
+  await page.goto("/workspace/academic-operations");
+  await expect(page).toHaveURL(/\/sign-in\?next=%2Fworkspace%2Facademic-operations/);
+  await expect(page.getByRole("heading", { name: /sign in to your academic workspace/i })).toBeVisible();
+});
