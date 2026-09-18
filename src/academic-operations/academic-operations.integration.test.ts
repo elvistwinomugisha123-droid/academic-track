@@ -246,6 +246,7 @@ describe("isolated Step 4 academic operations integration", () => {
     await admin!.from("role_grants").update({ status: "REVOKED", revoked_at: new Date().toISOString() }).eq("membership_id", teacherMembershipB).eq("role", "TEACHER");
     const revokedDirectory = await dosA.client.rpc("list_assignable_teachers", { p_school_id: schoolA });
     expect(revokedDirectory.data?.map((row: { membership_id: string }) => row.membership_id)).toEqual([hodMembershipA, teacherMembershipA]);
+    await admin!.from("role_grants").update({ status: "ACTIVE", revoked_at: null }).eq("membership_id", teacherMembershipB).eq("role", "TEACHER");
   });
 
   it("creates programme events and targets atomically through the narrow command", async () => {
