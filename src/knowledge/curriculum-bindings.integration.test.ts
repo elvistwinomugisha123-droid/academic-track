@@ -191,6 +191,14 @@ describe("live Step 6 curriculum binding acceptance", () => {
 
   it("rejects an unassigned teacher while DOS can correct a position", async () => {
     await expectError(await teacherB.client.from("teaching_section_curriculum_position_events").insert({ school_id: schoolA, teaching_section_id: sectionA, subject_profile_id: profileId, canonical_id: canonicalId, position_kind: "TOPIC", confirmed_by: teacherB.id, supersedes_event_id: correctionEventId, correction_reason: "Cross-tenant actor." }));
+
+    await admin!.from("memberships").update({ status: "SUSPENDED" }).eq("id", teacherMembershipA);
+    await expectError(await admin!.from("teaching_section_curriculum_position_events").insert({ school_id: schoolA, teaching_section_id: sectionA, subject_profile_id: profileId, canonical_id: canonicalId, position_kind: "TOPIC", confirmed_by: teacherA.id, supersedes_event_id: correctionEventId, correction_reason: "Suspended assigned teacher." }));
+
+    await admin!.from("memberships").update({ status: "REVOKED" }).eq("id", teacherMembershipA);
+    await expectError(await admin!.from("teaching_section_curriculum_position_events").insert({ school_id: schoolA, teaching_section_id: sectionA, subject_profile_id: profileId, canonical_id: canonicalId, position_kind: "TOPIC", confirmed_by: teacherA.id, supersedes_event_id: correctionEventId, correction_reason: "Revoked assigned teacher." }));
+
+    await admin!.from("memberships").update({ status: "ACTIVE" }).eq("id", teacherMembershipA);
     const dosCorrection = await dosA.client.from("teaching_section_curriculum_position_events").insert({ school_id: schoolA, teaching_section_id: sectionA, subject_profile_id: profileId, canonical_id: canonicalId, position_kind: "TOPIC", confirmed_by: dosA.id, supersedes_event_id: correctionEventId, correction_reason: "DOS correction of the confirmed curriculum position." }).select("id").single();
     expect(dosCorrection.error).toBeNull();
   });
