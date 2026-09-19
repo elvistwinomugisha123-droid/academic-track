@@ -5,10 +5,27 @@ import { relationshipSchema } from "../../knowledge-tools/schemas/relationships.
 import { PGlite } from "@electric-sql/pglite";
 import { applyAcademicKnowledgeMigration } from "./db/migration";
 import { importAcademicKnowledge } from "./importer";
+import { sha256CanonicalText } from "./artifact-checksum";
 import { prepareRealBiologyCorpus } from "./real-corpus-adapter";
 import { createHistoricalBiologyPilot, verifyRealBiologyCleanSubset } from "./real-pilot";
 
+const EXPECTED_VALIDATION_REPORT_SHA256 = "0cf803db5c68727041173c304b4f17b2ac2619b65f818574be3e346ad0a83331";
+const EXPECTED_REVIEW_QUEUE_SHA256 = "7ff2589a821ba3d6b70c3826ab2a01e078dca6e4f1ab5a30d42a5c165835acce";
+
 describe("committed real Biology/framework corpus adapter", () => {
+  it("produces the same artifact hash for equivalent LF and CRLF text", () => {
+    const lfText = "first line\nsecond line\n";
+    const crlfText = lfText.replace(/\n/g, "\r\n");
+    expect(sha256CanonicalText(lfText)).toBe(sha256CanonicalText(crlfText));
+  });
+
+  it("preserves the committed validation-artifact checksum contract", async () => {
+    const validationReport = await readFile("curriculum-data/08_validation_report.md", "utf8");
+    const reviewQueue = await readFile("curriculum-data/09_human_review_queue.json", "utf8");
+    expect(sha256CanonicalText(validationReport)).toBe(EXPECTED_VALIDATION_REPORT_SHA256);
+    expect(sha256CanonicalText(reviewQueue)).toBe(EXPECTED_REVIEW_QUEUE_SHA256);
+  });
+
   it("preserves source identity and produces a review-excluding deterministic subset", async () => {
     const prepared = await prepareRealBiologyCorpus();
     try {

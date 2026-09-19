@@ -1,7 +1,7 @@
 import "server-only";
-import { createHash, randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import type { KnowledgeSqlClient } from "./db/client";
+import { sha256CanonicalTextFile } from "./artifact-checksum";
 import { sha256Canonical } from "./canonical-json";
 import { activateKnowledgeReleaseForControlledPilot, recordKnowledgeVerificationDecision, submitKnowledgeReleaseForReview } from "./governance";
 import { importAcademicKnowledge } from "./importer";
@@ -18,10 +18,6 @@ const EXPECTED_EXCLUSION_REPORT_SHA256 = "40c2922cee6df1c35d169142a12072043d65b9
 
 function sameMembers(actual: string[], expected: string[]): boolean {
   return actual.length === expected.length && actual.every((value, index) => value === expected[index]);
-}
-
-async function sha256File(filePath: string): Promise<string> {
-  return createHash("sha256").update(await readFile(filePath)).digest("hex");
 }
 
 type LatestVerificationDecision = { entity_id: string; resulting_status: string; evidence_reference: string | null; source_version_context: string | null };
@@ -75,8 +71,8 @@ export async function reconcileHistoricalBiologyPilotMemberships(client: Knowled
 export async function verifyRealBiologyCleanSubset(client: KnowledgeSqlClient, profileId: string, actorUserId: string) {
   const prepared = await prepareRealBiologyCorpus();
   try {
-    const validationReportSha256 = await sha256File("curriculum-data/08_validation_report.md");
-    const reviewQueueSha256 = await sha256File("curriculum-data/09_human_review_queue.json");
+    const validationReportSha256 = await sha256CanonicalTextFile("curriculum-data/08_validation_report.md");
+    const reviewQueueSha256 = await sha256CanonicalTextFile("curriculum-data/09_human_review_queue.json");
     const report = prepared.report;
     if (validationReportSha256 !== EXPECTED_VALIDATION_REPORT_SHA256 || reviewQueueSha256 !== EXPECTED_REVIEW_QUEUE_SHA256) throw new Error("Committed curriculum validation artifacts changed; clean-subset verification is blocked.");
     if (JSON.stringify(report.sourceChecksums) !== JSON.stringify(EXPECTED_BIOLOGY_SOURCE_CHECKSUMS)) throw new Error("Real Biology source checksums do not match the committed verification contract.");
