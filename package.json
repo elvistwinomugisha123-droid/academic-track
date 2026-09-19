@@ -11,6 +11,7 @@
     "test": "vitest run",
     "test:security:integration": "vitest run --config vitest.security.config.ts",
     "test:e2e": "playwright test",
+    "test:e2e:step7": "playwright test playwright/step7-acceptance.spec.ts",
     "step6:test-rollout": "tsx --tsconfig scripts/tsconfig.step6.json scripts/step6-test-rollout.ts",
     "db:knowledge:import": "tsx knowledge-tools/import/import-academic-knowledge.ts",
     "db:knowledge:import:production": "tsx knowledge-tools/import/import-academic-knowledge.ts --production-authorised"

@@ -1,0 +1,243 @@
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { mkdirSync } from "node:fs";
+import { randomUUID } from "node:crypto";
+import { expect, test, type Page } from "@playwright/test";
+
+type Row = Record<string, unknown>;
+type TestAdmin = SupabaseClient;
+
+const url = process.env.TEST_SUPABASE_URL;
+const publishableKey = process.env.TEST_SUPABASE_PUBLISHABLE_KEY;
+const serviceRoleKey = process.env.TEST_SUPABASE_SERVICE_ROLE_KEY;
+const admin = url && serviceRoleKey ? createClient(url, serviceRoleKey) : null;
+const suffix = `step7-${Date.now()}-${randomUUID().slice(0, 8)}`;
+
+type Fixture = {
+  userId: string;
+  email: string;
+  password: string;
+  schoolId: string;
+  sectionId: string;
+  currentLessonId: string;
+  nextLessonId: string;
+  currentCanonicalId: string;
+  nextCanonicalId: string;
+  currentTitle: string;
+  nextTitle: string;
+};
+
+let fixture: Fixture | null = null;
+
+function requireResult<T>(data: T | null, error: { message?: string } | null): T {
+  if (error || data === null) throw new Error(error?.message || "Acceptance fixture operation failed.");
+  return data;
+}
+
+async function insertOne(client: TestAdmin, table: string, values: Row): Promise<string> {
+  const result = await client.from(table).insert(values).select("id").single();
+  const row = requireResult(result.data as Row | null, result.error);
+  return String(row.id);
+}
+
+function dateInKampala(value: Date): string {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Kampala", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(value);
+  const fields = Object.fromEntries(parts.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
+  return `${fields.year}-${fields.month}-${fields.day}`;
+}
+
+function titleFromRecord(row: Row): string {
+  const normalized = row.normalized && typeof row.normalized === "object" && !Array.isArray(row.normalized) ? row.normalized as Row : {};
+  return String(normalized.title || normalized.name || row.source_wording || "Biology curriculum position").trim();
+}
+
+async function createFixture(client: TestAdmin): Promise<Fixture> {
+  if (!url || !publishableKey || !serviceRoleKey) throw new Error("Step 7 acceptance requires the isolated TEST Supabase secrets.");
+  if (!url.includes("lwbkxhimqlfuzzxilaga")) throw new Error("Step 7 acceptance refuses a non-test Supabase project.");
+
+  const email = `${suffix}-teacher@example.test`;
+  const password = `Ate-${suffix}-Password!`;
+  const userResult = await client.auth.admin.createUser({ email, password, email_confirm: true });
+  const user = requireResult(userResult.data.user, userResult.error);
+  let createdSchoolId: string | null = null;
+  const now = new Date();
+  const today = dateInKampala(now);
+  const tomorrow = dateInKampala(new Date(now.getTime() + 24 * 60 * 60 * 1000));
+  const periodStart = dateInKampala(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
+  const periodEnd = dateInKampala(new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000));
+
+  let schoolId = "";
+  try {
+  schoolId = await insertOne(client, "schools", { name: `Step 7 Acceptance School ${suffix}`, slug: suffix, timezone: "Africa/Kampala" });
+  createdSchoolId = schoolId;
+  const departmentId = await insertOne(client, "departments", { school_id: schoolId, name: `Biology Department ${suffix}`, code: `BIO-${suffix}` });
+  const membershipId = await insertOne(client, "memberships", { school_id: schoolId, user_id: user.id, status: "ACTIVE", display_name: `Step 7 Teacher ${suffix}`, joined_at: now.toISOString() });
+  await insertOne(client, "role_grants", { membership_id: membershipId, school_id: schoolId, role: "TEACHER", scope_type: "SCHOOL", granted_by: user.id });
+  const periodId = await insertOne(client, "academic_periods", { school_id: schoolId, name: `Step 7 Term ${suffix}`, period_type: "TERM", academic_year: now.getUTCFullYear(), starts_on: periodStart, ends_on: periodEnd, status: "CURRENT" });
+  const levelId = await insertOne(client, "class_levels", { school_id: schoolId, code: `S2-${suffix}`, name: `Senior 2 ${suffix}` });
+  const streamId = await insertOne(client, "streams", { school_id: schoolId, class_level_id: levelId, code: `BLUE-${suffix}`, name: `Blue ${suffix}` });
+  const subjectId = await insertOne(client, "school_subjects", { school_id: schoolId, department_id: departmentId, code: `BIO-${suffix}`, name: `Biology ${suffix}` });
+  const sectionId = await insertOne(client, "teaching_sections", {
+    school_id: schoolId,
+    academic_period_id: periodId,
+    teacher_membership_id: membershipId,
+    school_subject_id: subjectId,
+    class_level_id: levelId,
+    stream_id: streamId,
+    assignment_state: "CONFIRMED",
+    confirmed_at: now.toISOString(),
+    created_by: user.id,
+  });
+
+  const profile = requireResult((await client.from("knowledge_subject_profiles").select("id").eq("profile_key", "UG-LSC-BIOLOGY-2019-REFERENCE").eq("status", "ACTIVE").eq("runtime_status", "PILOT_ACTIVE").single()).data, null) as Row;
+  const profileId = String(profile.id);
+  const profileRows = requireResult((await client.from("knowledge_profile_records").select("canonical_id, ordering_key").eq("subject_profile_id", profileId).eq("status", "APPROVED").eq("runtime_status", "PILOT_ACTIVE").order("ordering_key", { ascending: true }).limit(200)).data, null) as Row[];
+  const recordRows = requireResult((await client.from("knowledge_records").select("canonical_id, record_type, normalized, source_wording").in("canonical_id", profileRows.map((row) => String(row.canonical_id)))).data, null) as Row[];
+  const recordById = new Map(recordRows.map((row) => [String(row.canonical_id), row]));
+  const topics = profileRows.map((row) => recordById.get(String(row.canonical_id))).filter((row): row is Row => Boolean(row && row.record_type === "topic"));
+  if (topics.length < 2) throw new Error("The active Biology profile does not contain two topic records for acceptance.");
+  const currentRecord = topics[0];
+  const nextRecord = topics[1];
+  const currentCanonicalId = String(currentRecord.canonical_id);
+  const nextCanonicalId = String(nextRecord.canonical_id);
+
+  await insertOne(client, "school_subject_curriculum_bindings", { school_id: schoolId, school_subject_id: subjectId, subject_profile_id: profileId, effective_from: periodStart, bound_by: user.id });
+  await insertOne(client, "teaching_section_curriculum_bindings", { school_id: schoolId, teaching_section_id: sectionId, subject_profile_id: profileId, effective_from: periodStart, bound_by: user.id });
+  await insertOne(client, "teaching_section_curriculum_position_events", { school_id: schoolId, teaching_section_id: sectionId, subject_profile_id: profileId, canonical_id: currentCanonicalId, position_kind: "TOPIC", confirmed_by: user.id, confirmed_at: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString() });
+
+  const versionId = await insertOne(client, "timetable_versions", { school_id: schoolId, academic_period_id: periodId, version_number: 1, name: `Step 7 Acceptance Draft ${suffix}`, status: "DRAFT", effective_from: periodStart, created_by: user.id });
+  const slotId = await insertOne(client, "timetable_slots", { school_id: schoolId, timetable_version_id: versionId, teaching_section_id: sectionId, day_of_week: 1, starts_at: "08:00", ends_at: "09:00", room_label: "Biology Lab" });
+  const currentLessonId = await insertOne(client, "scheduled_lessons", { school_id: schoolId, academic_period_id: periodId, teaching_section_id: sectionId, timetable_version_id: versionId, timetable_slot_id: slotId, scheduled_date: today, starts_at: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(), ends_at: new Date(now.getTime() - 60 * 60 * 1000).toISOString(), schedule_status: "SCHEDULED" });
+  const nextLessonId = await insertOne(client, "scheduled_lessons", { school_id: schoolId, academic_period_id: periodId, teaching_section_id: sectionId, timetable_version_id: versionId, timetable_slot_id: slotId, scheduled_date: tomorrow, starts_at: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(), ends_at: new Date(now.getTime() + 25 * 60 * 60 * 1000).toISOString(), schedule_status: "SCHEDULED" });
+
+  return { userId: user.id, email, password, schoolId, sectionId, currentLessonId, nextLessonId, currentCanonicalId, nextCanonicalId, currentTitle: titleFromRecord(currentRecord), nextTitle: titleFromRecord(nextRecord) };
+  } catch (error) {
+    if (createdSchoolId) await cleanupSchool(client, createdSchoolId, user.id);
+    else await client.auth.admin.deleteUser(user.id);
+    throw error;
+  }
+}
+
+async function cleanupSchool(client: TestAdmin, schoolId: string, userId: string) {
+  for (const [table, column] of [
+    ["lesson_preparations", "school_id"],
+    ["classroom_events", "school_id"],
+    ["audit_events", "school_id"],
+    ["teaching_section_curriculum_position_events", "school_id"],
+    ["teaching_section_curriculum_bindings", "school_id"],
+    ["school_subject_curriculum_bindings", "school_id"],
+    ["scheduled_lessons", "school_id"],
+    ["timetable_slots", "school_id"],
+    ["timetable_versions", "school_id"],
+    ["teaching_sections", "school_id"],
+    ["streams", "school_id"],
+    ["class_levels", "school_id"],
+    ["school_subjects", "school_id"],
+    ["academic_periods", "school_id"],
+    ["role_grants", "school_id"],
+    ["memberships", "school_id"],
+    ["departments", "school_id"],
+    ["schools", "id"],
+  ] as const) {
+    await client.from(table).delete().eq(column, schoolId);
+  }
+  await client.auth.admin.deleteUser(userId);
+}
+
+async function cleanupFixture(client: TestAdmin, value: Fixture) {
+  await cleanupSchool(client, value.schoolId, value.userId);
+}
+
+async function signIn(page: Page, value: Fixture) {
+  await page.goto("/sign-in");
+  await page.getByLabel("Email address").fill(value.email);
+  await page.getByLabel("Password").fill(value.password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.waitForURL("**/workspace", { timeout: 30_000 });
+}
+
+async function capture(page: Page, state: string, width: 390 | 1440) {
+  const height = width === 390 ? 844 : 900;
+  await page.setViewportSize({ width, height });
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  mkdirSync("output/playwright", { recursive: true });
+  await page.screenshot({ path: `output/playwright/step7-${state}-${width}x${height}.png`, fullPage: true });
+}
+
+test.describe("Step 7 authenticated teacher acceptance", () => {
+  test.beforeAll(async () => {
+    if (!admin || !url || !publishableKey || !serviceRoleKey) throw new Error("Step 7 acceptance requires TEST_SUPABASE_URL, TEST_SUPABASE_PUBLISHABLE_KEY, and TEST_SUPABASE_SERVICE_ROLE_KEY.");
+    fixture = await createFixture(admin);
+  });
+
+  test.afterAll(async () => {
+    if (admin && fixture) await cleanupFixture(admin, fixture);
+  });
+
+  test("completes preparation, classroom evidence, and continuity inheritance", async ({ page }) => {
+    const value = fixture!;
+    await page.setViewportSize({ width: 390, height: 844 });
+    await signIn(page, value);
+
+    await expect(page.getByRole("heading", { name: "Your teaching day." })).toBeVisible();
+    await expect(page.getByText(value.currentTitle, { exact: false })).toBeVisible();
+    await capture(page, "teacher-home", 390);
+    await capture(page, "teacher-home", 1440);
+
+    await page.goto(`/workspace/teacher/sections/${value.sectionId}`);
+    await expect(page.getByRole("heading", { name: value.currentTitle })).toBeVisible();
+    await expect(page.getByText(/Governed curriculum context/i)).toBeVisible();
+    await capture(page, "teaching-section", 390);
+    await capture(page, "teaching-section", 1440);
+
+    await page.goto(`/workspace/teacher/lessons/${value.currentLessonId}`);
+    await expect(page.getByRole("heading", { name: "Prepare with the class in view." })).toBeVisible();
+    await expect(page.getByText(value.currentTitle, { exact: false })).toBeVisible();
+    await capture(page, "lesson-readiness", 390);
+    await capture(page, "lesson-readiness", 1440);
+
+    await page.getByLabel("Lesson focus").fill("Cell structure and microscope observation");
+    await page.getByLabel("Intended coverage").fill("Identify cell structures and record one factual observation.");
+    await page.getByLabel("Teacher notes").fill("Bring the prepared slide set.");
+    await page.getByLabel("Preparation notes").fill("Start with the carry-forward diagram.");
+    await page.getByRole("button", { name: "Save preparation" }).click();
+    await expect(page.getByRole("status")).toContainText("Preparation saved");
+    await capture(page, "saved-preparation", 390);
+    await capture(page, "saved-preparation", 1440);
+
+    await page.reload();
+    await expect(page.getByLabel("Lesson focus")).toHaveValue("Cell structure and microscope observation");
+    await expect(page.getByText(/Saved version/i)).toBeVisible();
+
+    await page.getByRole("button", { name: "Partially delivered" }).click();
+    await page.getByLabel("Unfinished work or factual note").fill("Finish the microscope diagram in the next lesson.");
+    await page.getByRole("button", { name: "Record classroom outcome" }).click();
+    await expect(page.getByRole("status")).toContainText("Recorded: Partially delivered");
+    await expect(page.getByText(/Finish the microscope diagram/i)).toBeVisible();
+    await capture(page, "delivery-recording", 390);
+    await capture(page, "delivery-recording", 1440);
+
+    await page.getByLabel("Adjust proposal").selectOption(value.nextCanonicalId);
+    await page.getByRole("button", { name: "Confirm next position" }).click();
+    await expect(page.getByRole("status")).toContainText("Next curriculum position confirmed");
+    await capture(page, "next-position-confirmation", 390);
+    await capture(page, "next-position-confirmation", 1440);
+
+    const preparation = requireResult((await admin!.from("lesson_preparations").select("lesson_focus, teacher_notes, intended_coverage, preparation_notes").eq("scheduled_lesson_id", value.currentLessonId).single()).data, null) as Row;
+    expect(preparation.lesson_focus).toBe("Cell structure and microscope observation");
+    expect(preparation.intended_coverage).toContain("Identify cell structures");
+    const event = requireResult((await admin!.from("classroom_events").select("outcome, note").eq("scheduled_lesson_id", value.currentLessonId).single()).data, null) as Row;
+    expect(event.outcome).toBe("PARTIALLY_DELIVERED");
+    expect(event.note).toContain("Finish the microscope diagram");
+    const positions = requireResult((await admin!.from("teaching_section_curriculum_position_events").select("canonical_id, supersedes_event_id").eq("school_id", value.schoolId).eq("teaching_section_id", value.sectionId).order("confirmed_at", { ascending: true })).data, null) as Row[];
+    expect(positions).toHaveLength(2);
+    expect(positions[1].canonical_id).toBe(value.nextCanonicalId);
+    expect(positions[1].supersedes_event_id).toBe(positions[0].id);
+
+    await page.goto(`/workspace/teacher/lessons/${value.nextLessonId}`);
+    await expect(page.getByText(value.nextTitle, { exact: false })).toBeVisible();
+    await expect(page.getByText(/Partially delivered/i)).toBeVisible();
+    await expect(page.getByText(/Finish the microscope diagram/i)).toBeVisible();
+    await capture(page, "next-lesson-inherited-continuity", 390);
+    await capture(page, "next-lesson-inherited-continuity", 1440);
+  });
+});
