@@ -1,4 +1,4 @@
 import { AppShell } from "@/components/foundation/AppShell";
-import { SignOutButton } from "@/components/auth/SignOutButton";
-import { requireWorkspaceAccess } from "@/lib/auth/access";
-export default async function WorkspacePage() { const access = await requireWorkspaceAccess(); return <AppShell access={access}><section className="foundation-intro"><p className="eyebrow">Authenticated workspace</p><h1>Ready for governed academic work.</h1><p className="lede">You are signed in as {access.displayName}. Academic workflows are available through the governed operational workspace.</p><div className="foundation-note" role="status"><span className="status-dot" />Active membership · {access.roles.length ? access.roles.join(" · ") : "No role grants"}<span className="auth-action"><SignOutButton /></span></div></section></AppShell>; }
+import { loadTeacherHomeData } from "@/teacher/application/queries";
+import { TeacherHome } from "@/components/teacher/TeacherHome";
+export default async function WorkspacePage() { const data = await loadTeacherHomeData(); return <AppShell activePath="/workspace" access={data.access}><TeacherHome data={data} /></AppShell>; }
