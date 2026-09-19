@@ -14,6 +14,8 @@ describe("canonical JSON identity hashing", () => {
 
   it("registers the additive migration after the applied foundation", async () => {
     const journal = JSON.parse(await readFile(path.join(process.cwd(), "drizzle", "meta", "_journal.json"), "utf8")) as { entries: Array<{ idx: number; tag: string }> };
-    expect(journal.entries.slice(-2).map(({ idx, tag }) => ({ idx, tag }))).toEqual([{ idx: 7, tag: "0007_classroom_rpc_privileges" }, { idx: 8, tag: "0008_academic_knowledge_governance" }]);
+    const governanceIndex = journal.entries.findIndex(({ tag }) => tag === "0008_academic_knowledge_governance");
+    expect(journal.entries[governanceIndex - 1]).toMatchObject({ idx: 7, tag: "0007_classroom_rpc_privileges" });
+    expect(journal.entries[governanceIndex]).toMatchObject({ idx: 8, tag: "0008_academic_knowledge_governance" });
   });
 });

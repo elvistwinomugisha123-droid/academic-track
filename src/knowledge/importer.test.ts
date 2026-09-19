@@ -43,4 +43,44 @@ describe("candidate-only Academic Knowledge import", () => {
     expect(second.importRunId).toBe(report.importRunId);
     expect((await client.query<{ count: string }>("SELECT count(*)::text AS count FROM knowledge_records")).rows[0].count).toBe("1");
   });
+
+  it("resolves cross-source relationship endpoints and rejects ambiguous fallback IDs", async () => {
+    const paths = { registry: path.join(fixtureDirectory, "registry.json"), datasetManifest: path.join(fixtureDirectory, "datasetManifest.json"), sourceSpans: path.join(fixtureDirectory, "sourceSpans.jsonl"), curriculumItems: path.join(fixtureDirectory, "curriculumItems.jsonl"), assessmentItems: path.join(fixtureDirectory, "assessmentItems.jsonl"), relationships: path.join(fixtureDirectory, "relationships.jsonl"), legacyEntities: path.join(fixtureDirectory, "legacyEntities.jsonl") };
+    const sourceA = JSON.parse(await readFile(paths.registry, "utf8")) as { records: Array<Record<string, unknown>> };
+    const sourceB = { source_id: "TEST_SYNTHETIC_IMPORT_SOURCE_B", authority: "TEST", title: "TEST Synthetic Import Source B", document_type: "TEST", education_level: "lower-secondary", subject: "physics", publication_year: 2026, effective_year: 2026, version: "test-1", checksum_sha256: "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", rights_status: "CLEARED", production_use_status: "PERMITTED", processing_status: "IMPORTED", verification_status: "VERIFIED", local_path: "synthetic://import-b", duplicate_of: null };
+    sourceA.records.push(sourceB);
+    const sourceSpanA = JSON.parse((await readFile(paths.sourceSpans, "utf8")).split(/\r?\n/).filter(Boolean)[0]) as Record<string, unknown>;
+    const sourceSpanB = { ...sourceSpanA, id: "TEST_SYNTHETIC_IMPORT_SOURCE_B:P1", source: { ...(sourceSpanA.source as Record<string, unknown>), sourceId: sourceB.source_id, title: sourceB.title, checksumSha256: sourceB.checksum_sha256, sourcePath: sourceB.local_path }, text: "Synthetic cross-source target wording" };
+    const itemA = JSON.parse((await readFile(paths.curriculumItems, "utf8")).split(/\r?\n/).filter(Boolean)[0]) as Record<string, unknown>;
+    const itemB = { ...itemA, id: "TEST-CROSS-SOURCE-CANDIDATE-B", sourceWording: { text: "Synthetic cross-source target wording", language: "en" }, normalized: { ...(itemA.normalized as Record<string, unknown>), title: "Synthetic cross-source target" }, provenance: { ...(itemA.provenance as Record<string, unknown>), sourceId: sourceB.source_id, spanId: sourceSpanB.id } };
+    const crossSourceRelationship = { id: "TEST-CROSS-SOURCE-RELATIONSHIP", relationshipType: "SOURCE_DEFINES_ENTITY", fromId: itemA.id, toId: itemB.id, verificationStatus: "REVIEW_REQUIRED", provenance: { ...(itemA.provenance as Record<string, unknown>), sourceId: sourceA.records[0].source_id, spanId: sourceSpanA.id } };
+    await writeFile(paths.registry, JSON.stringify(sourceA));
+    await writeFile(paths.sourceSpans, `${JSON.stringify(sourceSpanA)}\n${JSON.stringify(sourceSpanB)}\n`);
+    await writeFile(paths.curriculumItems, `${JSON.stringify(itemA)}\n${JSON.stringify(itemB)}\n`);
+    await writeFile(paths.relationships, `${JSON.stringify(crossSourceRelationship)}\n`);
+    await writeFile(paths.datasetManifest, JSON.stringify({ datasetChecksumSha256: "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }));
+    const report = await importAcademicKnowledge(client, "DEVELOPMENT", paths);
+    expect(report.relationshipsImported).toBe(1);
+    const endpoints = await client.query<{ from_canonical_id: string; to_canonical_id: string }>("select rel.from_canonical_id, rel.to_canonical_id from knowledge_relationships rel where rel.relationship_id=$1", [crossSourceRelationship.id]);
+    const expectedFrom = await client.query<{ canonical_id: string }>("select canonical_id from knowledge_record_identity_mappings where source_id=$1 and candidate_id=$2", [sourceA.records[0].source_id, itemA.id]);
+    const expectedTo = await client.query<{ canonical_id: string }>("select canonical_id from knowledge_record_identity_mappings where source_id=$1 and candidate_id=$2", [sourceB.source_id, itemB.id]);
+    expect(endpoints.rows).toEqual([{ from_canonical_id: expectedFrom.rows[0].canonical_id, to_canonical_id: expectedTo.rows[0].canonical_id }]);
+    const rerun = await importAcademicKnowledge(client, "DEVELOPMENT", paths);
+    expect(rerun.importRunId).toBe(report.importRunId);
+    expect(rerun.relationshipsImported).toBe(1);
+    expect((await client.query<{ count: string }>("select count(*)::text as count from knowledge_relationships where relationship_id=$1", [crossSourceRelationship.id])).rows[0].count).toBe("1");
+
+    const sourceC = { ...sourceB, source_id: "TEST_SYNTHETIC_IMPORT_SOURCE_C", title: "TEST Synthetic Import Source C", checksum_sha256: "1111111111111111111111111111111111111111111111111111111111111111", local_path: "synthetic://import-c" };
+    const sourceD = { ...sourceB, source_id: "TEST_SYNTHETIC_IMPORT_SOURCE_D", title: "TEST Synthetic Import Source D", checksum_sha256: "2222222222222222222222222222222222222222222222222222222222222222", local_path: "synthetic://import-d" };
+    sourceA.records.push(sourceC, sourceD);
+    const ambiguousItem = (source: typeof sourceC) => ({ ...itemB, id: "AMBIGUOUS-CANDIDATE", sourceWording: { text: `Ambiguous ${source.source_id}`, language: "en" }, provenance: { ...(itemB.provenance as Record<string, unknown>), sourceId: source.source_id, spanId: `${source.source_id}:P1` } });
+    const spanFor = (source: typeof sourceC) => ({ ...sourceSpanB, id: `${source.source_id}:P1`, source: { ...(sourceSpanB.source as Record<string, unknown>), sourceId: source.source_id, title: source.title, checksumSha256: source.checksum_sha256, sourcePath: source.local_path }, text: `Ambiguous ${source.source_id}` });
+    const ambiguousRelationship = { ...crossSourceRelationship, id: "TEST-AMBIGUOUS-RELATIONSHIP", fromId: "AMBIGUOUS-CANDIDATE" };
+    await writeFile(paths.registry, JSON.stringify(sourceA));
+    await writeFile(paths.sourceSpans, `${JSON.stringify(sourceSpanA)}\n${JSON.stringify(sourceSpanB)}\n${JSON.stringify(spanFor(sourceC))}\n${JSON.stringify(spanFor(sourceD))}\n`);
+    await writeFile(paths.curriculumItems, `${JSON.stringify(itemA)}\n${JSON.stringify(itemB)}\n${JSON.stringify(ambiguousItem(sourceC))}\n${JSON.stringify(ambiguousItem(sourceD))}\n`);
+    await writeFile(paths.relationships, `${JSON.stringify(crossSourceRelationship)}\n${JSON.stringify(ambiguousRelationship)}\n`);
+    await writeFile(paths.datasetManifest, JSON.stringify({ datasetChecksumSha256: "3333333333333333333333333333333333333333333333333333333333333333" }));
+    await expect(importAcademicKnowledge(client, "DEVELOPMENT", paths)).rejects.toThrow("Ambiguous from endpoint AMBIGUOUS-CANDIDATE");
+  });
 });
