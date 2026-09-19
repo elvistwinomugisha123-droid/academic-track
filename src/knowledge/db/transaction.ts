@@ -1,6 +1,7 @@
 import type { KnowledgeSqlClient } from "./client";
 
 export async function withKnowledgeTransaction<T>(client: KnowledgeSqlClient, work: () => Promise<T>): Promise<T> {
+  if (client.transaction) return client.transaction(work);
   await client.query("BEGIN");
   try {
     const result = await work();

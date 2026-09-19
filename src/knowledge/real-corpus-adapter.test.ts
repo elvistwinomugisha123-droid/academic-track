@@ -6,6 +6,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { applyAcademicKnowledgeMigration } from "./db/migration";
 import { importAcademicKnowledge } from "./importer";
 import { prepareRealBiologyCorpus } from "./real-corpus-adapter";
+import { createHistoricalBiologyPilot, verifyRealBiologyCleanSubset } from "./real-pilot";
 
 describe("committed real Biology/framework corpus adapter", () => {
   it("preserves source identity and produces a review-excluding deterministic subset", async () => {
@@ -54,4 +55,29 @@ describe("committed real Biology/framework corpus adapter", () => {
       await client.close();
     }
   }, 60_000);
+
+  it("classifies source interpretation as supporting and makes clean-subset verification resumable", async () => {
+    const database = new PGlite();
+    const client = { query: async <Row extends Record<string, unknown>>(statement: string, parameters: unknown[] = []) => ({ rows: (await database.query(statement, parameters)).rows as Row[] }), close: async () => { await database.close(); } };
+    const actor = "00000000-0000-0000-0000-000000000401";
+    await applyAcademicKnowledgeMigration(client);
+    const prepared = await prepareRealBiologyCorpus();
+    try {
+      await importAcademicKnowledge(client, "DEVELOPMENT", prepared.paths);
+      const pilot = await createHistoricalBiologyPilot(client, actor, prepared.report.datasetChecksumSha256);
+      expect((await client.query<{ count: string }>("select count(*)::text as count from knowledge_profile_records pr join knowledge_records r on r.canonical_id=pr.canonical_id join knowledge_record_taxonomy t on t.record_type=r.record_type where pr.subject_profile_id=$1 and pr.membership_role='SUPPORTING' and t.authority_eligible=false", [pilot.profileId])).rows[0].count).toBe("18");
+      const first = await verifyRealBiologyCleanSubset(client, pilot.profileId, actor);
+      const firstCount = (await client.query<{ count: string }>("select count(*)::text as count from knowledge_verification_decisions")).rows[0].count;
+      const second = await verifyRealBiologyCleanSubset(client, pilot.profileId, actor);
+      const secondCount = (await client.query<{ count: string }>("select count(*)::text as count from knowledge_verification_decisions")).rows[0].count;
+      expect(first.records).toBe(700);
+      expect(first.relationships).toBe(601);
+      expect(second.records).toBe(700);
+      expect(second.relationships).toBe(601);
+      expect(secondCount).toBe(firstCount);
+    } finally {
+      await prepared.cleanup();
+      await client.close();
+    }
+  }, 180_000);
 });

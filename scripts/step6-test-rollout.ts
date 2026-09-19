@@ -4,6 +4,7 @@ import {
   activateRealBiologyPilot,
   createHistoricalBiologyPilot,
   importRealBiologyCandidates,
+  reconcileHistoricalBiologyPilotMemberships,
   verifyRealBiologyCleanSubset,
 } from "../src/knowledge/real-pilot";
 import { retrieveExactKnowledge } from "../src/knowledge/retrieval";
@@ -73,6 +74,9 @@ async function main() {
       profileId = pilot.profileId;
       console.log({ resumed: false, ...pilot });
     }
+
+    const reconciledMemberships = await reconcileHistoricalBiologyPilotMemberships(client, profileId);
+    console.log({ reconciledSupportingMemberships: reconciledMemberships });
 
     existing = await client.query(`
       select r.id as release_id,

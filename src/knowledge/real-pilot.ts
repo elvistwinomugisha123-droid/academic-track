@@ -24,6 +24,24 @@ async function sha256File(filePath: string): Promise<string> {
   return createHash("sha256").update(await readFile(filePath)).digest("hex");
 }
 
+type LatestVerificationDecision = { entity_id: string; resulting_status: string; evidence_reference: string | null; source_version_context: string | null };
+
+async function latestVerificationDecisions(client: KnowledgeSqlClient, entityType: string, entityIds: string[]): Promise<Map<string, LatestVerificationDecision>> {
+  if (!entityIds.length) return new Map();
+  const result = await client.query<LatestVerificationDecision>(`select distinct on (entity_id) entity_id, resulting_status, evidence_reference, source_version_context from knowledge_verification_decisions where entity_type=$1 and entity_id = any($2::text[]) order by entity_id, decided_at desc, decision_id desc`, [entityType, entityIds]);
+  return new Map(result.rows.map((row) => [row.entity_id, row]));
+}
+
+function decisionAlreadyMatches(latest: LatestVerificationDecision | undefined, evidenceReference: string, sourceVersionContext?: string): boolean {
+  return latest?.resulting_status === "VERIFIED" && latest.evidence_reference === evidenceReference && (sourceVersionContext === undefined || latest.source_version_context === sourceVersionContext);
+}
+
+function assertDecisionIsCurrentOrMissing(latest: LatestVerificationDecision | undefined, entityType: string, entityId: string, evidenceReference: string, sourceVersionContext?: string): boolean {
+  if (!latest) return false;
+  if (decisionAlreadyMatches(latest, evidenceReference, sourceVersionContext)) return true;
+  throw new Error(`Stale or contrary ${entityType} verification decision for ${entityId}; committed clean-subset evidence no longer matches.`);
+}
+
 export async function importRealBiologyCandidates(client: KnowledgeSqlClient) {
   const prepared = await prepareRealBiologyCorpus();
   try { return { report: await importAcademicKnowledge(client, "DEVELOPMENT", prepared.paths), corpus: prepared.report }; } finally { await prepared.cleanup(); }
@@ -36,10 +54,22 @@ export async function createHistoricalBiologyPilot(client: KnowledgeSqlClient, a
   await client.query(`insert into knowledge_curriculum_releases(id,release_key,authority,display_name,education_level,version_label,effective_from,effective_to,status,manifest_checksum_sha256,created_by) values($1,'UG-LSC-2019-REFERENCE-PILOT','National Curriculum Development Centre (source-labelled; not independently currentness-verified)','Lower Secondary Biology/framework — historical 2019 reference pilot','lower-secondary','2019 historical reference pilot','2019-01-01','2019-12-31','DRAFT',$2,$3)`, [releaseId, datasetChecksumSha256, actorUserId]);
   await client.query(`insert into knowledge_subject_profiles(id,release_id,governed_subject_id,profile_key,display_title,education_level,programme_track,status,display_order,requires_assessment_profile) values($1,$2,$3,'UG-LSC-BIOLOGY-2019-REFERENCE','Biology — Lower Secondary (2019 reference pilot) — not currentness or endorsement claim','lower-secondary','Lower Secondary','DRAFT',1,false)`, [profileId, releaseId, subjectId]);
   await client.query(`insert into knowledge_release_sources(release_id,subject_profile_id,source_id,source_role,is_required,precedence_order,status,approved_at,approved_by) values($1,null,'ncdc-framework-2019','FRAMEWORK',true,10,'APPROVED',now(),$2),($1,$3,'ncdc-biology-2019','SUBJECT_SYLLABUS',true,20,'APPROVED',now(),$2)`, [releaseId, actorUserId, profileId]);
-  const records = await client.query<{ canonical_id: string; source_id: string }>(`select r.canonical_id,r.source_id from knowledge_records r join knowledge_record_identity_mappings m on m.canonical_id=r.canonical_id where r.source_id in ('ncdc-framework-2019','ncdc-biology-2019')`);
-  for (const record of records.rows) await client.query(`insert into knowledge_profile_records(release_id,subject_profile_id,canonical_id,membership_role,ordering_key,status,effective_from,effective_to,approved_at,approved_by) values($1,$2,$3,$4,$3,'APPROVED','2019-01-01','2019-12-31',now(),$5)`, [releaseId, profileId, record.canonical_id, record.source_id === "ncdc-biology-2019" ? "CURRICULUM" : "SUPPORTING", actorUserId]);
+  const records = await client.query<{ canonical_id: string; source_id: string; authority_eligible: boolean }>(`select r.canonical_id,r.source_id,coalesce(rt.authority_eligible,false) as authority_eligible from knowledge_records r join knowledge_record_identity_mappings m on m.canonical_id=r.canonical_id left join knowledge_record_taxonomy rt on rt.record_type=r.record_type where r.source_id in ('ncdc-framework-2019','ncdc-biology-2019')`);
+  for (const record of records.rows) {
+    const membershipRole = record.source_id === "ncdc-biology-2019" && record.authority_eligible ? "CURRICULUM" : "SUPPORTING";
+    await client.query(`insert into knowledge_profile_records(release_id,subject_profile_id,canonical_id,membership_role,ordering_key,status,effective_from,effective_to,approved_at,approved_by) values($1,$2,$3,$4,$3,'APPROVED','2019-01-01','2019-12-31',now(),$5)`, [releaseId, profileId, record.canonical_id, membershipRole, actorUserId]);
+  }
   await submitKnowledgeReleaseForReview(client, releaseId);
+  await reconcileHistoricalBiologyPilotMemberships(client, profileId);
   return { releaseId, subjectId, profileId };
+}
+
+export async function reconcileHistoricalBiologyPilotMemberships(client: KnowledgeSqlClient, profileId: string): Promise<number> {
+  const profile = await client.query<{ release_status: string }>(`select r.status as release_status from knowledge_subject_profiles p join knowledge_curriculum_releases r on r.id=p.release_id where p.id=$1`, [profileId]);
+  if (!profile.rows[0]) throw new Error("Biology pilot profile not found.");
+  if (profile.rows[0].release_status === "ACTIVE") throw new Error("An ACTIVE historical Biology pilot cannot be reclassified in place.");
+  const result = await client.query<{ count: string }>(`update knowledge_profile_records pr set membership_role='SUPPORTING' from knowledge_records r left join knowledge_record_taxonomy rt on rt.record_type=r.record_type where pr.subject_profile_id=$1 and pr.canonical_id=r.canonical_id and coalesce(rt.authority_eligible,false)=false and pr.membership_role <> 'SUPPORTING' returning pr.id`, [profileId]);
+  return result.rows.length;
 }
 
 export async function verifyRealBiologyCleanSubset(client: KnowledgeSqlClient, profileId: string, actorUserId: string) {
@@ -65,11 +95,18 @@ export async function verifyRealBiologyCleanSubset(client: KnowledgeSqlClient, p
     if (!sameMembers(relationshipIds, report.includedRelationshipIds) || relationshipIds.some((id) => report.excludedRelationshipIds.includes(id))) throw new Error("The governed Biology profile contains a relationship outside the clean adapter subset.");
 
     const sources = await client.query<{ source_id: string }>(`select distinct r.source_id from knowledge_records r join knowledge_profile_records pr on pr.canonical_id=r.canonical_id where pr.subject_profile_id=$1 order by r.source_id`, [profileId]);
-    for (const source of sources.rows) await recordKnowledgeVerificationDecision(client, { entityType: "SOURCE", entityId: source.source_id, resultingStatus: "VERIFIED", actorUserId, reason: "Committed clean-subset validation report, source checksums, adapter exclusion report, and open review queue matched exactly.", evidenceReference, sourceVersionContext: EXPECTED_BIOLOGY_SOURCE_CHECKSUMS[source.source_id as keyof typeof EXPECTED_BIOLOGY_SOURCE_CHECKSUMS] });
+    const sourceDecisions = await latestVerificationDecisions(client, "SOURCE", sources.rows.map((source) => source.source_id));
+    for (const source of sources.rows) {
+      const sourceVersionContext = EXPECTED_BIOLOGY_SOURCE_CHECKSUMS[source.source_id as keyof typeof EXPECTED_BIOLOGY_SOURCE_CHECKSUMS];
+      if (!assertDecisionIsCurrentOrMissing(sourceDecisions.get(source.source_id), "SOURCE", source.source_id, evidenceReference, sourceVersionContext)) await recordKnowledgeVerificationDecision(client, { entityType: "SOURCE", entityId: source.source_id, resultingStatus: "VERIFIED", actorUserId, reason: "Committed clean-subset validation report, source checksums, adapter exclusion report, and open review queue matched exactly.", evidenceReference, sourceVersionContext });
+    }
     const spans = await client.query<{ span_id: string }>(`select distinct span_id from (select r.span_id from knowledge_records r join knowledge_profile_records pr on pr.canonical_id=r.canonical_id where pr.subject_profile_id=$1 union select rel.span_id from knowledge_relationships rel where rel.relationship_id = any($2::text[])) selected order by span_id`, [profileId, report.includedRelationshipIds]);
-    for (const span of spans.rows) await recordKnowledgeVerificationDecision(client, { entityType: "SPAN", entityId: span.span_id, resultingStatus: "VERIFIED", actorUserId, reason: "Committed clean-subset validation report and exact source-span comparison matched the adapter output.", evidenceReference });
-    for (const record of profileRecords.rows) await recordKnowledgeVerificationDecision(client, { entityType: "RECORD", entityId: record.canonical_id, resultingStatus: "VERIFIED", actorUserId, reason: "Normalized record matches the committed source wording and explicit hierarchy with no open review dependency.", evidenceReference, sourceVersionContext: record.checksum_sha256 });
-    for (const relationship of relationships.rows) await recordKnowledgeVerificationDecision(client, { entityType: "RELATIONSHIP", entityId: relationship.relationship_id, resultingStatus: "VERIFIED", actorUserId, reason: "Relationship endpoints and cited source span are included in the committed clean adapter subset.", evidenceReference });
+    const spanDecisions = await latestVerificationDecisions(client, "SPAN", spans.rows.map((span) => span.span_id));
+    for (const span of spans.rows) if (!assertDecisionIsCurrentOrMissing(spanDecisions.get(span.span_id), "SPAN", span.span_id, evidenceReference)) await recordKnowledgeVerificationDecision(client, { entityType: "SPAN", entityId: span.span_id, resultingStatus: "VERIFIED", actorUserId, reason: "Committed clean-subset validation report and exact source-span comparison matched the adapter output.", evidenceReference });
+    const recordDecisions = await latestVerificationDecisions(client, "RECORD", profileRecords.rows.map((record) => record.canonical_id));
+    for (const record of profileRecords.rows) if (!assertDecisionIsCurrentOrMissing(recordDecisions.get(record.canonical_id), "RECORD", record.canonical_id, evidenceReference, record.checksum_sha256)) await recordKnowledgeVerificationDecision(client, { entityType: "RECORD", entityId: record.canonical_id, resultingStatus: "VERIFIED", actorUserId, reason: "Normalized record matches the committed source wording and explicit hierarchy with no open review dependency.", evidenceReference, sourceVersionContext: record.checksum_sha256 });
+    const relationshipDecisions = await latestVerificationDecisions(client, "RELATIONSHIP", relationships.rows.map((relationship) => relationship.relationship_id));
+    for (const relationship of relationships.rows) if (!assertDecisionIsCurrentOrMissing(relationshipDecisions.get(relationship.relationship_id), "RELATIONSHIP", relationship.relationship_id, evidenceReference)) await recordKnowledgeVerificationDecision(client, { entityType: "RELATIONSHIP", entityId: relationship.relationship_id, resultingStatus: "VERIFIED", actorUserId, reason: "Relationship endpoints and cited source span are included in the committed clean adapter subset.", evidenceReference });
     return { sources: sources.rows.length, spans: spans.rows.length, records: profileRecords.rows.length, relationships: relationships.rows.length, evidenceReference };
   } finally {
     await prepared.cleanup();
