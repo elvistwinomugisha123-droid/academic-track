@@ -17,5 +17,7 @@ describe("canonical JSON identity hashing", () => {
     const governanceIndex = journal.entries.findIndex(({ tag }) => tag === "0008_academic_knowledge_governance");
     expect(journal.entries[governanceIndex - 1]).toMatchObject({ idx: 7, tag: "0007_classroom_rpc_privileges" });
     expect(journal.entries[governanceIndex]).toMatchObject({ idx: 8, tag: "0008_academic_knowledge_governance" });
+    expect(journal.entries[governanceIndex + 1]).toMatchObject({ idx: 9, tag: "0009_knowledge_runtime_rpc_privileges" });
+    expect(journal.entries[governanceIndex + 2]).toMatchObject({ idx: 10, tag: "0010_curriculum_binding_hardening" });
   });
 });

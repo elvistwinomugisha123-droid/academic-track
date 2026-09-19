@@ -1,6 +1,6 @@
 # ATE v1 Step 6B — Academic Knowledge Governance
 
-Status: Step 6 completion implementation; the committed real corpus is available only as a historical Lower Secondary Biology/framework controlled-pilot candidate. 0008 remains unapplied remotely.
+Status: Step 6 completion implementation; the committed real corpus is available only as a historical Lower Secondary Biology/framework controlled-pilot candidate. The TEST project has the 0000–0009 foundation; the forward-only 0010 binding hardening remains pending live application.
 
 This document records the Step 6B production design and implementation boundary. Academic Knowledge is central governed reference data. It is not school-tenanted operational data, classroom evidence, or an LLM memory store.
 
@@ -27,9 +27,9 @@ The six original tables remain the source registry and extraction foundation:
 
 Their source wording, normalized payload, spans, checksums, relationships, legacy mappings, import audit and deterministic exact-retrieval concepts are preserved. `normalized` remains JSONB as a versioned payload envelope; production code must validate its shape with the existing Zod schemas and a record taxonomy. It is not a substitute for release/profile membership or provenance.
 
-## 3. Step 6B migration
+## 3. Step 6B migrations
 
-`drizzle/0008_academic_knowledge_governance.sql` is additive, registered after 0007 in `drizzle/meta/_journal.json`, and remains unapplied to the remote test or production databases. It does not seed a real subject, release, source permission, verification decision, conflict resolution, or active profile.
+`drizzle/0008_academic_knowledge_governance.sql` is additive and registered after 0007 in `drizzle/meta/_journal.json`. It does not seed a real subject, release, source permission, verification decision, conflict resolution, or active profile. `0009_knowledge_runtime_rpc_privileges.sql` preserves the server-only runtime RPC boundary.
 
 It extends the original tables with source/schema/effective metadata, content hashes, record keys, payload schema versions, verification projections, import-run version/manifest/transaction metadata, and composite provenance constraints. Historical rows are preserved with `NOT VALID` constraints where necessary; new writes are held to the strengthened relationship rules.
 
@@ -54,6 +54,8 @@ The new central tables are:
 - `teaching_section_curriculum_position_events`
 
 The migration enables RLS and revokes browser-role privileges on every central table. There are no `anon` or ordinary `authenticated` write policies. Governance decision functions are security-definer database commands and their execute privilege is revoked from browser roles; the application server/database owner is the intended access boundary.
+
+`0010_curriculum_binding_hardening.sql` is the forward-only live-acceptance hardening migration. It repairs the table-specific binding trigger path, requires each school subject to carry an explicit central `curriculum_subject_id` and `curriculum_education_level` before an active profile binding, and validates binding/position actors against active school memberships and school-scoped `DOS`/`SCHOOL_ADMIN` authority. It does not edit `0008` or `0009` and must be applied only after them in the isolated TEST project.
 
 ## 4. Canonical identity
 
@@ -169,7 +171,7 @@ FACT: `public.knowledge_sources` does not currently exist in `ATE_Security_Test`
 
 ## 15. School binding and teacher position history
 
-School-owned bindings reference central profile UUIDs and are tenant-scoped. A school subject can bind only to a `PILOT_ACTIVE` compatible profile. A Teaching Section can bind only to the profile selected for its school subject. Teacher position events reference a `PILOT_ACTIVE` topic/outcome membership, record actor/time and correction/successor history, and resolve the latest non-superseded event with full provenance. No `teaching_sections.current_topic` is introduced; no timetable inference or scheme-of-work upload is required. Classroom continuity remains separate and a classroom event does not create a curriculum position automatically.
+School-owned bindings reference central profile UUIDs and are tenant-scoped. A school subject must first carry an explicit central subject identity and education regime; display names are not authority. It can bind only to a `PILOT_ACTIVE` compatible profile. A Teaching Section can bind only to the profile selected for its school subject. Teacher position events reference a `PILOT_ACTIVE` topic/outcome membership, record actor/time and correction/successor history, and resolve the latest non-superseded event with full provenance. No `teaching_sections.current_topic` is introduced; no timetable inference or scheme-of-work upload is required. Classroom continuity remains separate and a classroom event does not create a curriculum position automatically.
 
 The school tables are guarded by RLS and school-role policies when the full tenancy foundation is present. The local knowledge-only PGlite harness conditionally omits tenancy FKs/policies because it does not install 0001/0002; full live testing must run against the complete migration sequence.
 
@@ -183,7 +185,7 @@ The Biology pilot is therefore a controlled historical reference runtime only. I
 
 ## 17. Required live test-database sequence
 
-FACT: `public.knowledge_sources` does not currently exist in `ATE_Security_Test`; the 0000 Academic Knowledge foundation has not been applied there. Later live testing must first apply existing `0000_academic_knowledge.sql`, then corrected `0008_academic_knowledge_governance.sql`, then run live migration/RLS/governance/real-corpus/binding tests and Supabase advisor checks. No remote database was modified by this implementation pass.
+FACT: ATE_Security_Test has the 0000–0009 Academic Knowledge foundation and the real Biology controlled pilot is active. The remaining live acceptance sequence is to apply `0010_curriculum_binding_hardening.sql`, then run the RLS/governance/binding integration suite and Supabase advisor checks. This implementation pass did not modify any remote database because isolated TEST credentials were not present in the workspace.
 
 ## 18. Deferred Step 7
 

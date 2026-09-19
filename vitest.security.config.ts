@@ -10,7 +10,7 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["src/security/security.integration.test.ts", "src/academic-operations/academic-operations.integration.test.ts"],
+    include: ["src/security/security.integration.test.ts", "src/academic-operations/academic-operations.integration.test.ts", "src/knowledge/curriculum-bindings.integration.test.ts"],
     testTimeout: 15_000,
     hookTimeout: 30_000,
   },
