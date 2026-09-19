@@ -68,8 +68,8 @@ jobs:
       - name: Production build
         run: npm run build
 
-      - name: Live security and integration tests
-        run: npm run test:security:integration
+      - name: Step 7 live integration tests
+        run: npx vitest run --config vitest.security.config.ts src/academic-operations/academic-operations.integration.test.ts src/knowledge/curriculum-bindings.integration.test.ts
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
