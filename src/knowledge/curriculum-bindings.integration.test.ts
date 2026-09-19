@@ -189,17 +189,33 @@ describe("live Step 6 curriculum binding acceptance", () => {
     expect(terminal[0].id).toBe(correctionEventId);
   });
 
-  it("rejects an unassigned teacher while DOS can correct a position", async () => {
+  it("rejects unrelated or inactive teachers while DOS and SCHOOL_ADMIN retain override authority", async () => {
     await expectError(await teacherB.client.from("teaching_section_curriculum_position_events").insert({ school_id: schoolA, teaching_section_id: sectionA, subject_profile_id: profileId, canonical_id: canonicalId, position_kind: "TOPIC", confirmed_by: teacherB.id, supersedes_event_id: correctionEventId, correction_reason: "Cross-tenant actor." }));
 
-    await admin!.from("memberships").update({ status: "SUSPENDED" }).eq("id", teacherMembershipA);
-    await expectError(await admin!.from("teaching_section_curriculum_position_events").insert({ school_id: schoolA, teaching_section_id: sectionA, subject_profile_id: profileId, canonical_id: canonicalId, position_kind: "TOPIC", confirmed_by: teacherA.id, supersedes_event_id: correctionEventId, correction_reason: "Suspended assigned teacher." }));
+    const eventRows = requireResult((await admin!.from("teaching_section_curriculum_position_events").select("id, supersedes_event_id").eq("school_id", schoolA).eq("teaching_section_id", sectionA)).data, null);
+    const supersededIds = new Set(eventRows.map((event) => event.supersedes_event_id).filter(Boolean));
+    const terminal = eventRows.find((event) => !supersededIds.has(event.id));
+    expect(terminal).toBeTruthy();
 
-    await admin!.from("memberships").update({ status: "REVOKED" }).eq("id", teacherMembershipA);
-    await expectError(await admin!.from("teaching_section_curriculum_position_events").insert({ school_id: schoolA, teaching_section_id: sectionA, subject_profile_id: profileId, canonical_id: canonicalId, position_kind: "TOPIC", confirmed_by: teacherA.id, supersedes_event_id: correctionEventId, correction_reason: "Revoked assigned teacher." }));
+    try {
+      await admin!.from("memberships").update({ status: "SUSPENDED" }).eq("id", teacherMembershipA);
+      await expectError(await admin!.from("teaching_section_curriculum_position_events").insert({ school_id: schoolA, teaching_section_id: sectionA, subject_profile_id: profileId, canonical_id: canonicalId, position_kind: "TOPIC", confirmed_by: teacherA.id, supersedes_event_id: terminal!.id, correction_reason: "Suspended assigned teacher." }));
 
-    await admin!.from("memberships").update({ status: "ACTIVE" }).eq("id", teacherMembershipA);
-    const dosCorrection = await dosA.client.from("teaching_section_curriculum_position_events").insert({ school_id: schoolA, teaching_section_id: sectionA, subject_profile_id: profileId, canonical_id: canonicalId, position_kind: "TOPIC", confirmed_by: dosA.id, supersedes_event_id: correctionEventId, correction_reason: "DOS correction of the confirmed curriculum position." }).select("id").single();
-    expect(dosCorrection.error).toBeNull();
+      const dosSuspendedCorrection = await admin!.from("teaching_section_curriculum_position_events").insert({ school_id: schoolA, teaching_section_id: sectionA, subject_profile_id: profileId, canonical_id: canonicalId, position_kind: "TOPIC", confirmed_by: dosA.id, supersedes_event_id: terminal!.id, correction_reason: "DOS correction while assigned teacher is suspended." }).select("id").single();
+      const dosSuspendedEvent = requireResult(dosSuspendedCorrection.data as Row | null, dosSuspendedCorrection.error);
+
+      await admin!.from("memberships").update({ status: "REVOKED" }).eq("id", teacherMembershipA);
+      await expectError(await admin!.from("teaching_section_curriculum_position_events").insert({ school_id: schoolA, teaching_section_id: sectionA, subject_profile_id: profileId, canonical_id: canonicalId, position_kind: "TOPIC", confirmed_by: teacherA.id, supersedes_event_id: dosSuspendedEvent.id, correction_reason: "Revoked assigned teacher." }));
+
+      const dosRevokedCorrection = await admin!.from("teaching_section_curriculum_position_events").insert({ school_id: schoolA, teaching_section_id: sectionA, subject_profile_id: profileId, canonical_id: canonicalId, position_kind: "TOPIC", confirmed_by: dosA.id, supersedes_event_id: dosSuspendedEvent.id, correction_reason: "DOS correction while assigned teacher is revoked." }).select("id").single();
+      const dosRevokedEvent = requireResult(dosRevokedCorrection.data as Row | null, dosRevokedCorrection.error);
+
+      const schoolAdminCorrection = await admin!.from("teaching_section_curriculum_position_events").insert({ school_id: schoolA, teaching_section_id: sectionA, subject_profile_id: profileId, canonical_id: canonicalId, position_kind: "TOPIC", confirmed_by: adminA.id, supersedes_event_id: dosRevokedEvent.id, correction_reason: "SCHOOL_ADMIN correction while assigned teacher is revoked." }).select("id").single();
+      const schoolAdminEvent = requireResult(schoolAdminCorrection.data as Row | null, schoolAdminCorrection.error);
+
+      await expectError(await admin!.from("teaching_section_curriculum_position_events").insert({ school_id: schoolA, teaching_section_id: sectionA, subject_profile_id: profileId, canonical_id: canonicalId, position_kind: "TOPIC", confirmed_by: teacherB.id, supersedes_event_id: schoolAdminEvent.id, correction_reason: "Unrelated teacher." }));
+    } finally {
+      await admin!.from("memberships").update({ status: "ACTIVE" }).eq("id", teacherMembershipA);
+    }
   });
 });
