@@ -14,6 +14,7 @@ const suffix = `step7-${Date.now()}-${randomUUID().slice(0, 8)}`;
 
 type Fixture = {
   userId: string;
+  adminUserId: string;
   email: string;
   password: string;
   schoolId: string;
@@ -58,6 +59,18 @@ async function createFixture(client: TestAdmin): Promise<Fixture> {
   const password = `Ate-${suffix}-Password!`;
   const userResult = await client.auth.admin.createUser({ email, password, email_confirm: true });
   const user = requireResult(userResult.data.user, userResult.error);
+  const adminEmail = `${suffix}-admin@example.test`;
+  const adminPassword = `Ate-${suffix}-Admin-Password!`;
+  let adminUserId: string | null = null;
+  try {
+    const adminUserResult = await client.auth.admin.createUser({ email: adminEmail, password: adminPassword, email_confirm: true });
+    adminUserId = String(requireResult(adminUserResult.data.user, adminUserResult.error).id);
+  } catch (error) {
+    await client.auth.admin.deleteUser(user.id);
+    throw error;
+  }
+  if (!adminUserId) throw new Error("Step 7 acceptance admin fixture user was not created.");
+  const adminId = adminUserId;
   let createdSchoolId: string | null = null;
   const now = new Date();
   const today = dateInKampala(now);
@@ -71,11 +84,22 @@ async function createFixture(client: TestAdmin): Promise<Fixture> {
   createdSchoolId = schoolId;
   const departmentId = await insertOne(client, "departments", { school_id: schoolId, name: `Biology Department ${suffix}`, code: `BIO-${suffix}` });
   const membershipId = await insertOne(client, "memberships", { school_id: schoolId, user_id: user.id, status: "ACTIVE", display_name: `Step 7 Teacher ${suffix}`, joined_at: now.toISOString() });
-  await insertOne(client, "role_grants", { membership_id: membershipId, school_id: schoolId, role: "TEACHER", scope_type: "SCHOOL", granted_by: user.id });
+  const adminMembershipId = await insertOne(client, "memberships", { school_id: schoolId, user_id: adminId, status: "ACTIVE", display_name: `Step 7 School Admin ${suffix}`, joined_at: now.toISOString() });
+  await insertOne(client, "role_grants", { membership_id: adminMembershipId, school_id: schoolId, role: "SCHOOL_ADMIN", scope_type: "SCHOOL", granted_by: adminId });
+  await insertOne(client, "role_grants", { membership_id: membershipId, school_id: schoolId, role: "TEACHER", scope_type: "SCHOOL", granted_by: adminId });
   const periodId = await insertOne(client, "academic_periods", { school_id: schoolId, name: `Step 7 Term ${suffix}`, period_type: "TERM", academic_year: now.getUTCFullYear(), starts_on: periodStart, ends_on: periodEnd, status: "CURRENT" });
   const levelId = await insertOne(client, "class_levels", { school_id: schoolId, code: `S2-${suffix}`, name: `Senior 2 ${suffix}` });
   const streamId = await insertOne(client, "streams", { school_id: schoolId, class_level_id: levelId, code: `BLUE-${suffix}`, name: `Blue ${suffix}` });
-  const subjectId = await insertOne(client, "school_subjects", { school_id: schoolId, department_id: departmentId, code: `BIO-${suffix}`, name: `Biology ${suffix}` });
+  const profile = requireResult((await client.from("knowledge_subject_profiles").select("id, governed_subject_id, education_level").eq("profile_key", "UG-LSC-BIOLOGY-2019-REFERENCE").eq("status", "ACTIVE").eq("runtime_status", "PILOT_ACTIVE").single()).data, null) as Row;
+  const profileId = String(profile.id);
+  const subjectId = await insertOne(client, "school_subjects", {
+    school_id: schoolId,
+    department_id: departmentId,
+    code: `BIO-${suffix}`,
+    name: `Biology ${suffix}`,
+    curriculum_subject_id: String(profile.governed_subject_id),
+    curriculum_education_level: String(profile.education_level),
+  });
   const sectionId = await insertOne(client, "teaching_sections", {
     school_id: schoolId,
     academic_period_id: periodId,
@@ -88,8 +112,6 @@ async function createFixture(client: TestAdmin): Promise<Fixture> {
     created_by: user.id,
   });
 
-  const profile = requireResult((await client.from("knowledge_subject_profiles").select("id").eq("profile_key", "UG-LSC-BIOLOGY-2019-REFERENCE").eq("status", "ACTIVE").eq("runtime_status", "PILOT_ACTIVE").single()).data, null) as Row;
-  const profileId = String(profile.id);
   const profileRows = requireResult((await client.from("knowledge_profile_records").select("canonical_id, ordering_key").eq("subject_profile_id", profileId).eq("status", "APPROVED").eq("runtime_status", "PILOT_ACTIVE").order("ordering_key", { ascending: true }).limit(200)).data, null) as Row[];
   const recordRows = requireResult((await client.from("knowledge_records").select("canonical_id, record_type, normalized, source_wording").in("canonical_id", profileRows.map((row) => String(row.canonical_id)))).data, null) as Row[];
   const recordById = new Map(recordRows.map((row) => [String(row.canonical_id), row]));
@@ -100,8 +122,8 @@ async function createFixture(client: TestAdmin): Promise<Fixture> {
   const currentCanonicalId = String(currentRecord.canonical_id);
   const nextCanonicalId = String(nextRecord.canonical_id);
 
-  await insertOne(client, "school_subject_curriculum_bindings", { school_id: schoolId, school_subject_id: subjectId, subject_profile_id: profileId, effective_from: periodStart, bound_by: user.id });
-  await insertOne(client, "teaching_section_curriculum_bindings", { school_id: schoolId, teaching_section_id: sectionId, subject_profile_id: profileId, effective_from: periodStart, bound_by: user.id });
+  await insertOne(client, "school_subject_curriculum_bindings", { school_id: schoolId, school_subject_id: subjectId, subject_profile_id: profileId, effective_from: periodStart, bound_by: adminId });
+  await insertOne(client, "teaching_section_curriculum_bindings", { school_id: schoolId, teaching_section_id: sectionId, subject_profile_id: profileId, effective_from: periodStart, bound_by: adminId });
   await insertOne(client, "teaching_section_curriculum_position_events", { school_id: schoolId, teaching_section_id: sectionId, subject_profile_id: profileId, canonical_id: currentCanonicalId, position_kind: "TOPIC", confirmed_by: user.id, confirmed_at: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString() });
 
   const versionId = await insertOne(client, "timetable_versions", { school_id: schoolId, academic_period_id: periodId, version_number: 1, name: `Step 7 Acceptance Draft ${suffix}`, status: "DRAFT", effective_from: periodStart, created_by: user.id });
@@ -109,15 +131,18 @@ async function createFixture(client: TestAdmin): Promise<Fixture> {
   const currentLessonId = await insertOne(client, "scheduled_lessons", { school_id: schoolId, academic_period_id: periodId, teaching_section_id: sectionId, timetable_version_id: versionId, timetable_slot_id: slotId, scheduled_date: today, starts_at: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(), ends_at: new Date(now.getTime() - 60 * 60 * 1000).toISOString(), schedule_status: "SCHEDULED" });
   const nextLessonId = await insertOne(client, "scheduled_lessons", { school_id: schoolId, academic_period_id: periodId, teaching_section_id: sectionId, timetable_version_id: versionId, timetable_slot_id: slotId, scheduled_date: tomorrow, starts_at: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(), ends_at: new Date(now.getTime() + 25 * 60 * 60 * 1000).toISOString(), schedule_status: "SCHEDULED" });
 
-  return { userId: user.id, email, password, schoolId, sectionId, currentLessonId, nextLessonId, currentCanonicalId, nextCanonicalId, currentTitle: titleFromRecord(currentRecord), nextTitle: titleFromRecord(nextRecord) };
+  return { userId: user.id, adminUserId: adminId, email, password, schoolId, sectionId, currentLessonId, nextLessonId, currentCanonicalId, nextCanonicalId, currentTitle: titleFromRecord(currentRecord), nextTitle: titleFromRecord(nextRecord) };
   } catch (error) {
-    if (createdSchoolId) await cleanupSchool(client, createdSchoolId, user.id);
-    else await client.auth.admin.deleteUser(user.id);
+    if (createdSchoolId) await cleanupSchool(client, createdSchoolId, [user.id, adminId]);
+    else {
+      await client.auth.admin.deleteUser(user.id);
+      await client.auth.admin.deleteUser(adminId);
+    }
     throw error;
   }
 }
 
-async function cleanupSchool(client: TestAdmin, schoolId: string, userId: string) {
+async function cleanupSchool(client: TestAdmin, schoolId: string, userIds: string[]) {
   for (const [table, column] of [
     ["lesson_preparations", "school_id"],
     ["classroom_events", "school_id"],
@@ -140,11 +165,11 @@ async function cleanupSchool(client: TestAdmin, schoolId: string, userId: string
   ] as const) {
     await client.from(table).delete().eq(column, schoolId);
   }
-  await client.auth.admin.deleteUser(userId);
+  for (const userId of userIds) await client.auth.admin.deleteUser(userId);
 }
 
 async function cleanupFixture(client: TestAdmin, value: Fixture) {
-  await cleanupSchool(client, value.schoolId, value.userId);
+  await cleanupSchool(client, value.schoolId, [value.userId, value.adminUserId]);
 }
 
 async function signIn(page: Page, value: Fixture) {
