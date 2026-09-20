@@ -14,11 +14,6 @@ const lessonArtifactType = z.enum(lessonArtifactTypes as [LessonArtifactType, ..
 const artifactInput = z.object({ scheduledLessonId: uuid, artifactType: lessonArtifactType, content: z.unknown(), expectedVersion: z.number().int().positive().nullable().optional() });
 type ActionResult = { ok: true; id: string; version: number } | { ok: false; error: string };
 
-function provenanceFor(data: Awaited<ReturnType<typeof loadLessonReadinessData>>) {
-  const current = data.curriculum.current;
-  return current ? [{ category: "CURRICULUM_ANCHOR", label: current.title, sourceId: current.canonicalId, sourceLocation: current.sourceLocator, rightsState: current.rightsStatus }] : [{ category: "TEACHER", label: "Teacher-authored planning context" }];
-}
-
 function defaultPackPayload(type: Exclude<LessonArtifactType, "FORMAL_LESSON_PLAN">, plan: FormalLessonPlanPayload) {
   const resources = plan.resources.filter(Boolean);
   const tasks = plan.teachingSequence.map((step) => step.learnerActivity).filter(Boolean);
@@ -43,7 +38,7 @@ export async function createFormalLessonPlan(scheduledLessonId: string): Promise
     const data = await loadLessonReadinessData(uuid.parse(scheduledLessonId));
     const content = createInitialFormalLessonPlan(data);
     const client = await createSupabaseServerClient();
-    const result = await client.rpc("create_lesson_artifact", { p_scheduled_lesson_id: scheduledLessonId, p_artifact_type: "FORMAL_LESSON_PLAN", p_content_json: content, p_curriculum_profile_id: data.curriculum.subjectProfileId, p_curriculum_position_event_id: data.curriculum.current?.eventId ?? null, p_curriculum_canonical_id: data.curriculum.current?.canonicalId ?? null, p_provenance: provenanceFor(data), p_rights_state: content.curriculumAnchor?.rightsState ?? "UNKNOWN" });
+    const result = await client.rpc("create_lesson_artifact", { p_scheduled_lesson_id: scheduledLessonId, p_artifact_type: "FORMAL_LESSON_PLAN", p_content_json: content });
     if (result.error || !result.data) throw new Error(result.error?.message || "Formal Lesson Plan could not be created.");
     refreshLesson(scheduledLessonId, data.lesson.section.id);
     const response = result.data as { artifactId: string; versionId: string; versionNumber: number };
@@ -63,7 +58,7 @@ export async function createTeachingPackArtifact(input: unknown): Promise<Action
     const parsedPlan = parseLessonPayload("FORMAL_LESSON_PLAN", plan.currentContent);
     const content = defaultPackPayload(value.artifactType, parsedPlan);
     const client = await createSupabaseServerClient();
-    const result = await client.rpc("create_lesson_artifact", { p_scheduled_lesson_id: value.scheduledLessonId, p_artifact_type: value.artifactType, p_content_json: content, p_parent_artifact_id: plan.id, p_parent_version_id: plan.currentVersionId, p_curriculum_profile_id: data.curriculum.subjectProfileId, p_curriculum_position_event_id: data.curriculum.current?.eventId ?? null, p_curriculum_canonical_id: data.curriculum.current?.canonicalId ?? null, p_provenance: provenanceFor(data), p_rights_state: parsedPlan.curriculumAnchor?.rightsState ?? "UNKNOWN" });
+    const result = await client.rpc("create_lesson_artifact", { p_scheduled_lesson_id: value.scheduledLessonId, p_artifact_type: value.artifactType, p_content_json: content, p_parent_artifact_id: plan.id, p_parent_version_id: plan.currentVersionId });
     if (result.error || !result.data) throw new Error(result.error?.message || "Teaching Pack material could not be created.");
     refreshLesson(value.scheduledLessonId, data.lesson.section.id);
     const response = result.data as { artifactId: string; versionNumber: number };
@@ -82,7 +77,7 @@ export async function saveLessonArtifactVersion(input: unknown): Promise<ActionR
     if (!artifact.currentVersionId) throw new Error("Create the artifact before saving a new version.");
     const content = parseLessonPayload(value.artifactType, value.content);
     const client = await createSupabaseServerClient();
-    const result = await client.rpc("create_lesson_artifact_version", { p_artifact_id: artifact.id, p_content_json: content, p_expected_version: value.expectedVersion ?? artifact.currentVersionNumber, p_change_source: "TEACHER", p_change_summary: "Teacher edited structured lesson artifact" });
+    const result = await client.rpc("create_lesson_artifact_version", { p_artifact_id: artifact.id, p_content_json: content, p_expected_version: value.expectedVersion ?? artifact.currentVersionNumber, p_change_summary: "Teacher edited structured lesson artifact" });
     if (result.error || !result.data) throw new Error(result.error?.message || "Lesson artifact version could not be saved.");
     refreshLesson(value.scheduledLessonId, data.lesson.section.id);
     const response = result.data as { artifactId: string; versionNumber: number };
