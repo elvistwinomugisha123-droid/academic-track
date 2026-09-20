@@ -24,6 +24,11 @@ export type CurrentPosition = PositionOption & {
   sourcePageStart: number;
   sourcePageEnd: number;
   sourceChecksum: string;
+  rightsStatus?: "CLEARED" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN";
+  productionUseStatus?: "PERMITTED" | "PERMISSION_PENDING" | "BLOCKED";
+  formalArtifactAllowed?: boolean;
+  exportAllowed?: boolean;
+  attributionRequired?: boolean;
 };
 
 export type NextPositionProposal = {

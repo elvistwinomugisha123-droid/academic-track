@@ -10,6 +10,7 @@ describe("canonical artifact rendering boundary", () => {
   it("creates a typed immutable-version input for renderers", () => {
     const artifact = assessmentToCanonicalArtifact(assessment, "assessment-test-v2");
     expect(artifact).toMatchObject({ artifactId: "assessment-test", versionId: "assessment-test-v2", artifactType: "ASSESSMENT", status: "DRAFT", curriculumAnchorIds: ["outcome-test"] });
+    if (artifact.artifactType !== "ASSESSMENT") throw new Error("Expected an assessment artifact");
     expect(artifact.payload.questions[0].text).toBe("Name one plant tissue.");
     expect(() => assertCanonicalArtifactVersion({ ...artifact, versionId: undefined })).toThrow();
   });
