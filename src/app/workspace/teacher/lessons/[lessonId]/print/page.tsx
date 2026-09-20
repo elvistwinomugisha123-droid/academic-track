@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { assertCanonicalArtifactVersion } from "@/artifacts/types";
-import { loadLessonReadinessData } from "@/teacher/application/queries";
+import { lessonArtifactRenderModel } from "@/artifacts/lesson-render";
+import { resolveLessonArtifactExport } from "@/teacher/application/export-actions";
+import { PrintButton } from "@/components/teacher/PrintButton";
 
 export default async function LessonArtifactPrintPage({ params, searchParams }: { params: Promise<{ lessonId: string }>; searchParams: Promise<{ artifactId?: string }> }) {
-  const { lessonId } = await params; const { artifactId } = await searchParams; const data = await loadLessonReadinessData(lessonId); const artifact = data.artifacts.find((item) => item.id === artifactId);
-  if (!artifact?.currentContent) return <main className="print-page"><p>Saved artifact not found.</p></main>;
-  const canonical = assertCanonicalArtifactVersion({ artifactId: artifact.id, versionId: artifact.currentVersionId || "current", artifactType: artifact.artifactType, status: "DRAFT", ownerScope: data.lesson.section.id, curriculumAnchorIds: [], rightsState: artifact.rightsState, provenance: artifact.provenance, payload: artifact.currentContent });
-  const payload = canonical.payload;
-  return <main className="print-page"><header><p>{data.schoolName}</p><h1>{payload.title}</h1><span>{data.lesson.section.subjectName} · {data.lesson.section.classLevelName} {data.lesson.section.streamName} · {data.lesson.scheduledDate}</span></header><section className="print-content"><pre>{JSON.stringify(payload, null, 2)}</pre></section><footer><Link href={`/workspace/teacher/lessons/${lessonId}`}>Return to lesson</Link><button type="button" onClick={() => window.print()}>Print this page</button></footer></main>;
+  const { lessonId } = await params; const { artifactId } = await searchParams; const result = artifactId ? await resolveLessonArtifactExport(lessonId, artifactId) : { ok: false as const, error: "Saved artifact not found." };
+  if (!result.ok) return <main className="print-page"><h1>Export unavailable</h1><p>{result.error}</p><Link href={`/workspace/teacher/lessons/${lessonId}`}>Return to lesson</Link></main>;
+  const { data, artifact, canonical } = result; const model = lessonArtifactRenderModel(canonical);
+  return <main className="print-page"><header><p>{data.schoolName}</p><h1>{model.title}</h1><span>{data.lesson.section.subjectName} · {data.lesson.section.classLevelName} {data.lesson.section.streamName} · {data.lesson.scheduledDate}</span></header><section className="print-content">{model.sections.map((section) => <section className="print-section" key={section.heading}><h2>{section.heading}</h2>{section.paragraphs?.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}{section.items && <ul>{section.items.map((item) => <li key={item}>{item}</li>)}</ul>}{section.sequence?.map((step, index) => <article className="print-sequence" key={step.label + index}><h3>{index + 1}. {step.label} <span>{step.minutes} minutes</span></h3><p><strong>Teacher:</strong> {step.teacherActivity}</p><p><strong>Learners:</strong> {step.learnerActivity}</p>{step.prompts.length > 0 && <ul>{step.prompts.map((prompt) => <li key={prompt}>{prompt}</li>)}</ul>}{step.formativeCheck && <p><strong>Formative check:</strong> {step.formativeCheck}</p>}</article>)}</section>)}</section><footer><Link href={`/workspace/teacher/lessons/${lessonId}`}>Return to lesson</Link><PrintButton /></footer><small className="print-version">Saved version {artifact.currentVersionNumber ?? "current"}</small></main>;
 }

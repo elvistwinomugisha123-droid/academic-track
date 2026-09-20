@@ -85,7 +85,7 @@ export function canUseExternalAI(context: TrustedLessonAIContext): boolean {
   return context.anchor === null || context.anchor.externalAiAllowed;
 }
 
-export function safeModelContext(context: TrustedLessonAIContext) {
+export function safeModelContext(context: TrustedLessonAIContext, currentArtifact: unknown | null = null, instruction: string | null = null, selectedField: string | null = null) {
   return {
     lesson: {
       subject: context.subjectName,
@@ -109,7 +109,13 @@ export function safeModelContext(context: TrustedLessonAIContext) {
       sourcePageStart: context.anchor.sourcePageStart,
       sourcePageEnd: context.anchor.sourcePageEnd,
       rightsState: context.anchor.rightsState,
+      externalAiAllowed: context.anchor.externalAiAllowed,
+      formalArtifactAllowed: context.anchor.formalArtifactAllowed,
+      exportAllowed: context.anchor.exportAllowed,
     } : null,
+    currentArtifact,
+    teacherInstruction: instruction,
+    selectedField,
   };
 }
 
@@ -144,6 +150,9 @@ export const AIProposalInputSchema = z.object({
   parentVersionId: z.string().uuid().nullable(),
   content: z.unknown(),
   contextFingerprint: z.string().min(16),
+  outputFingerprint: z.string().regex(/^[0-9a-f]{64}$/),
+  instruction: z.string().nullable().optional(),
+  selectedField: z.string().nullable().optional(),
   changeSummary: z.string().max(500).optional(),
 });
 

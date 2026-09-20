@@ -122,6 +122,9 @@ export type LessonArtifactRecord = {
   currentContent: unknown | null;
   parentArtifactId: string | null;
   parentVersionId: string | null;
+  curriculumProfileId: string | null;
+  curriculumPositionEventId: string | null;
+  curriculumCanonicalId: string | null;
   updatedAt: string;
   rightsState: "CLEARED" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN";
   provenance: unknown[];
@@ -343,7 +346,7 @@ export async function loadLessonReadinessData(lessonId: string): Promise<LessonR
   const previousLesson = lesson.previousLessonId ? model.lessons.find((item) => item.id === lesson.previousLessonId) ?? null : null;
   const proposal = lesson.outcome ? deriveNextPosition({ outcome: lesson.outcome, current: curriculum.current, options: curriculum.options }) : null;
   const client = await createSupabaseServerClient();
-  const artifactRows = requiredRows(await client.from("lesson_artifacts").select("id, artifact_type, status, current_version_id, parent_artifact_id, parent_version_id, updated_at, rights_state, provenance").eq("school_id", model.access.schoolId).eq("scheduled_lesson_id", lessonId).eq("teaching_section_id", lesson.sectionId).order("updated_at", { ascending: false }), "Lesson artifacts could not be loaded.");
+  const artifactRows = requiredRows(await client.from("lesson_artifacts").select("id, artifact_type, status, current_version_id, parent_artifact_id, parent_version_id, curriculum_profile_id, curriculum_position_event_id, curriculum_canonical_id, updated_at, rights_state, provenance").eq("school_id", model.access.schoolId).eq("scheduled_lesson_id", lessonId).eq("teaching_section_id", lesson.sectionId).order("updated_at", { ascending: false }), "Lesson artifacts could not be loaded.");
   const artifactIds = artifactRows.map((row) => stringValue(row, "id"));
   const versionRows = artifactIds.length ? requiredRows(await client.from("lesson_artifact_versions").select("id, artifact_id, version_number, content_json").eq("school_id", model.access.schoolId).in("artifact_id", artifactIds), "Lesson artifact versions could not be loaded.") : [];
   const versionById = new Map(versionRows.map((row) => [stringValue(row, "id"), row]));
@@ -353,7 +356,7 @@ export async function loadLessonReadinessData(lessonId: string): Promise<LessonR
     const currentVersionId = nullableString(row, "current_version_id");
     const currentVersion = currentVersionId ? versionById.get(currentVersionId) : undefined;
     return {
-      id: stringValue(row, "id"), artifactType: stringValue(row, "artifact_type") as LessonArtifactRecord["artifactType"], status: stringValue(row, "status"), currentVersionId, currentVersionNumber: currentVersion ? Number(currentVersion.version_number) : null, currentContent: currentVersion?.content_json ?? null, parentArtifactId: nullableString(row, "parent_artifact_id"), parentVersionId: nullableString(row, "parent_version_id"), updatedAt: stringValue(row, "updated_at"), rightsState: (stringValue(row, "rights_state") || "UNKNOWN") as LessonArtifactRecord["rightsState"], provenance: Array.isArray(row.provenance) ? row.provenance as unknown[] : [], potentiallyStale: stringValue(row, "artifact_type") !== "FORMAL_LESSON_PLAN" && Boolean(planVersionId && nullableString(row, "parent_version_id") && planVersionId !== nullableString(row, "parent_version_id")),
+      id: stringValue(row, "id"), artifactType: stringValue(row, "artifact_type") as LessonArtifactRecord["artifactType"], status: stringValue(row, "status"), currentVersionId, currentVersionNumber: currentVersion ? Number(currentVersion.version_number) : null, currentContent: currentVersion?.content_json ?? null, parentArtifactId: nullableString(row, "parent_artifact_id"), parentVersionId: nullableString(row, "parent_version_id"), curriculumProfileId: nullableString(row, "curriculum_profile_id"), curriculumPositionEventId: nullableString(row, "curriculum_position_event_id"), curriculumCanonicalId: nullableString(row, "curriculum_canonical_id"), updatedAt: stringValue(row, "updated_at"), rightsState: (stringValue(row, "rights_state") || "UNKNOWN") as LessonArtifactRecord["rightsState"], provenance: Array.isArray(row.provenance) ? row.provenance as unknown[] : [], potentiallyStale: stringValue(row, "artifact_type") !== "FORMAL_LESSON_PLAN" && Boolean(planVersionId && nullableString(row, "parent_version_id") && planVersionId !== nullableString(row, "parent_version_id")),
     } satisfies LessonArtifactRecord;
   });
   return { access: model.access, schoolName: model.schoolName, schoolTimezone: model.schoolTimezone, lesson, curriculum, previousLesson, recommendedFocus: recommendedFocus({ current: curriculum.current, previousOutcome: previousLesson?.outcome ?? null, unfinishedWork: lesson.unfinishedWork, scheduledSubject: lesson.section.subjectName }), proposal, artifacts };

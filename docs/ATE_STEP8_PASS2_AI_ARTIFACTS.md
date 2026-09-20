@@ -14,7 +14,7 @@ Every generation action reconstructs the assigned lesson, Teaching Section, curr
 
 Accepted AI content is written through the server-only `accept_ai_lesson_artifact_version` database function as `change_source = AI`, attributed to the accepting teacher membership. The applied 0015 teacher RPC cannot be used to forge AI authorship. Rejection creates no artifact version.
 
-Generation runs store operation, provider/model, prompt version, context fingerprint, token counts, latency, validation status and rights state. Raw prompts, protected source text and secrets are not persisted.
+Generation runs store operation, provider/model, prompt version, a canonical safe-model-context fingerprint, an immutable SHA-256 fingerprint of the normalized generated output, token counts, latency, validation status and rights state. The same deterministic safe context builder feeds both the provider payload and the context fingerprint. Raw prompts, protected source text and secrets are not persisted. Acceptance recomputes the output fingerprint in the server action and again in the service-only database RPC, so browser-modified content cannot be recorded as AI-authored.
 
 ## Prompt versions
 
@@ -23,8 +23,8 @@ Generation runs store operation, provider/model, prompt version, context fingerp
 - `artifact-patch-v1`
 - `ask-ate-v1`
 
-Ask ATE is contextual to the selected artifact and produces a complete typed replacement preview. It never changes unrelated artifacts or saves automatically. Acceptance is rejected if the lesson, anchor, parent version or current artifact version changed while the proposal was open.
+Ask ATE is contextual to the selected artifact and produces a complete typed replacement preview recorded as `ASK_ATE` / `ask-ate-v1`. It shares the patch engine with the lower-level patch operation, never changes unrelated artifacts or saves automatically. Acceptance is rejected if the lesson, safe model context, anchor, parent version or current artifact version changed while the proposal was open.
 
 ## Export
 
-Saved lesson artifacts have a browser print view and a PDF route. Export renders the saved canonical version and never calls AI. Restricted artifacts are not exported.
+Saved lesson artifacts have a browser print view and a PDF route. Export renders the saved canonical version and never calls AI. Export authorization reconstructs the current governed source decision at request time; restricted artifacts and protected source wording without an explicit export decision are not exported. Safe teacher-authored content can remain exportable when the trusted policy permits it.

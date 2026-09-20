@@ -1,5 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { createHash } from "node:crypto";
+import { canonicalJson } from "@/ai/canonical-json";
 
 const url = process.env.TEST_SUPABASE_URL;
 const publishableKey = process.env.TEST_SUPABASE_PUBLISHABLE_KEY;
@@ -83,9 +85,11 @@ describe("isolated lesson artifact integration", () => {
   });
 
   it("enforces teacher ownership, real cross-tenant isolation, lineage, immutable history, governed metadata and teacher authorship", async () => {
-    const createdResult = await teacherA.client.rpc("create_lesson_artifact", { p_scheduled_lesson_id: lessonA, p_artifact_type: "FORMAL_LESSON_PLAN", p_content_json: planContent("Teacher plan") });
+    const manuallyEnteredPlan = { ...planContent("Teacher plan"), teacherNotes: "Entered before the first save" };
+    const createdResult = await teacherA.client.rpc("create_lesson_artifact", { p_scheduled_lesson_id: lessonA, p_artifact_type: "FORMAL_LESSON_PLAN", p_content_json: manuallyEnteredPlan });
     const created = required(createdResult.data, createdResult.error) as { artifactId: string; versionId: string; versionNumber: number };
     expect(created.versionNumber).toBe(1);
+    expect((await teacherA.client.from("lesson_artifact_versions").select("content_json").eq("id", created.versionId).single()).data?.content_json).toMatchObject({ teacherNotes: "Entered before the first save" });
     expect((await teacherA.client.from("lesson_artifacts").select("rights_state, provenance").eq("id", created.artifactId).single()).data).toMatchObject({ rights_state: "UNKNOWN", provenance: [{ category: "TEACHER" }] });
     expect((await teacherB.client.from("lesson_artifacts").select("id").eq("id", created.artifactId)).data).toEqual([]);
     expect((await teacherA.client.from("lesson_artifact_versions").update({ content_json: { forged: true } }).eq("id", created.versionId)).error).toBeTruthy();
@@ -116,13 +120,21 @@ describe("isolated lesson artifact integration", () => {
     const savedVersion = required((await teacherA.client.from("lesson_artifact_versions").select("change_source").eq("artifact_id", created.artifactId).eq("version_number", 2).single()).data, null);
     expect(savedVersion.change_source).toBe("TEACHER");
 
-    const aiRun = required((await admin!.from("ai_generation_runs").insert({ school_id: schoolA, created_by_user_id: teacherA.id, created_by_membership_id: teacherMembershipA, scheduled_lesson_id: lessonA, artifact_id: created.artifactId, artifact_type: "FORMAL_LESSON_PLAN", operation: "PATCH_ARTIFACT", provider: "anthropic", model: "test-model", prompt_version: "artifact-patch-v1", context_fingerprint: "a".repeat(64), status: "SUCCEEDED", validation_status: "PASSED", rights_state: "UNKNOWN" }).select("id").single()).data, null);
-    const acceptedAI = await admin!.rpc("accept_ai_lesson_artifact_version", { p_generation_run_id: aiRun.id, p_scheduled_lesson_id: lessonA, p_artifact_id: created.artifactId, p_artifact_type: "FORMAL_LESSON_PLAN", p_parent_artifact_id: null, p_parent_version_id: null, p_content_json: planContent("Accepted AI plan"), p_expected_version: 2, p_change_summary: "Teacher accepted AI proposal", p_actor_user_id: teacherA.id, p_actor_membership_id: teacherMembershipA });
+    const aiContent = planContent("Accepted AI plan");
+    const outputFingerprint = createHash("sha256").update(canonicalJson(aiContent)).digest("hex");
+    const aiRun = required((await admin!.from("ai_generation_runs").insert({ school_id: schoolA, created_by_user_id: teacherA.id, created_by_membership_id: teacherMembershipA, scheduled_lesson_id: lessonA, artifact_id: created.artifactId, artifact_type: "FORMAL_LESSON_PLAN", operation: "PATCH_ARTIFACT", provider: "anthropic", model: "test-model", prompt_version: "artifact-patch-v1", context_fingerprint: "a".repeat(64), output_fingerprint: outputFingerprint, status: "SUCCEEDED", validation_status: "PASSED", rights_state: "UNKNOWN" }).select("id").single()).data, null);
+    const acceptedAI = await admin!.rpc("accept_ai_lesson_artifact_version", { p_generation_run_id: aiRun.id, p_scheduled_lesson_id: lessonA, p_artifact_id: created.artifactId, p_artifact_type: "FORMAL_LESSON_PLAN", p_parent_artifact_id: null, p_parent_version_id: null, p_content_json: aiContent, p_output_fingerprint: outputFingerprint, p_expected_version: 2, p_change_summary: "Teacher accepted AI proposal", p_actor_user_id: teacherA.id, p_actor_membership_id: teacherMembershipA });
     const acceptedPayload = required(acceptedAI.data, acceptedAI.error) as { versionNumber: number };
     expect(acceptedPayload.versionNumber).toBe(3);
     const aiVersion = required((await admin!.from("lesson_artifact_versions").select("change_source, created_by_membership_id").eq("artifact_id", created.artifactId).eq("version_number", 3).single()).data, null);
     expect(aiVersion).toMatchObject({ change_source: "AI", created_by_membership_id: teacherMembershipA });
-    expect((await teacherA.client.rpc("accept_ai_lesson_artifact_version", { p_generation_run_id: aiRun.id, p_scheduled_lesson_id: lessonA, p_artifact_id: created.artifactId, p_artifact_type: "FORMAL_LESSON_PLAN", p_parent_artifact_id: null, p_parent_version_id: null, p_content_json: planContent("Browser forged AI"), p_expected_version: 3, p_change_summary: "forged", p_actor_user_id: teacherA.id, p_actor_membership_id: teacherMembershipA })).error).toBeTruthy();
+    expect((await teacherA.client.rpc("accept_ai_lesson_artifact_version", { p_generation_run_id: aiRun.id, p_scheduled_lesson_id: lessonA, p_artifact_id: created.artifactId, p_artifact_type: "FORMAL_LESSON_PLAN", p_parent_artifact_id: null, p_parent_version_id: null, p_content_json: aiContent, p_output_fingerprint: outputFingerprint, p_expected_version: 3, p_change_summary: "forged", p_actor_user_id: teacherA.id, p_actor_membership_id: teacherMembershipA })).error).toBeTruthy();
+
+    const reordered = Object.fromEntries(Object.entries(aiContent).reverse());
+    const reorderedRun = required((await admin!.from("ai_generation_runs").insert({ school_id: schoolA, created_by_user_id: teacherA.id, created_by_membership_id: teacherMembershipA, scheduled_lesson_id: lessonA, artifact_id: created.artifactId, artifact_type: "FORMAL_LESSON_PLAN", operation: "ASK_ATE", provider: "anthropic", model: "test-model", prompt_version: "ask-ate-v1", context_fingerprint: "b".repeat(64), output_fingerprint: outputFingerprint, status: "SUCCEEDED", validation_status: "PASSED", rights_state: "UNKNOWN" }).select("id").single()).data, null);
+    expect((await admin!.rpc("accept_ai_lesson_artifact_version", { p_generation_run_id: reorderedRun.id, p_scheduled_lesson_id: lessonA, p_artifact_id: created.artifactId, p_artifact_type: "FORMAL_LESSON_PLAN", p_parent_artifact_id: null, p_parent_version_id: null, p_content_json: reordered, p_output_fingerprint: outputFingerprint, p_expected_version: 3, p_change_summary: "Key order is not semantic", p_actor_user_id: teacherA.id, p_actor_membership_id: teacherMembershipA })).error).toBeNull();
+    const tamperedRun = required((await admin!.from("ai_generation_runs").insert({ school_id: schoolA, created_by_user_id: teacherA.id, created_by_membership_id: teacherMembershipA, scheduled_lesson_id: lessonA, artifact_id: created.artifactId, artifact_type: "FORMAL_LESSON_PLAN", operation: "ASK_ATE", provider: "anthropic", model: "test-model", prompt_version: "ask-ate-v1", context_fingerprint: "c".repeat(64), output_fingerprint: outputFingerprint, status: "SUCCEEDED", validation_status: "PASSED", rights_state: "UNKNOWN" }).select("id").single()).data, null);
+    expect((await admin!.rpc("accept_ai_lesson_artifact_version", { p_generation_run_id: tamperedRun.id, p_scheduled_lesson_id: lessonA, p_artifact_id: created.artifactId, p_artifact_type: "FORMAL_LESSON_PLAN", p_parent_artifact_id: null, p_parent_version_id: null, p_content_json: { ...aiContent, title: "Browser modified" }, p_output_fingerprint: outputFingerprint, p_expected_version: 4, p_change_summary: "tampered", p_actor_user_id: teacherA.id, p_actor_membership_id: teacherMembershipA })).error).toBeTruthy();
 
     const governanceBase = { p_scheduled_lesson_id: lessonA, p_artifact_type: "FORMAL_LESSON_PLAN", p_content_json: planContent("Governance attack") };
     for (const attack of [

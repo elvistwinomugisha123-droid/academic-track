@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { parseLessonPayload, splitLines } from "@/artifacts/lesson";
-import { createInitialFormalLessonPlan } from "@/artifacts/lesson-defaults";
 import { lessonArtifactTypes, type FormalLessonPlanPayload, type LessonArtifactType } from "@/artifacts/types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireWorkspaceAccess } from "@/lib/auth/access";
@@ -31,16 +30,17 @@ function defaultPackPayload(type: Exclude<LessonArtifactType, "FORMAL_LESSON_PLA
 
 function refreshLesson(lessonId: string, sectionId: string) { revalidatePath(`/workspace/teacher/lessons/${lessonId}`); revalidatePath(`/workspace/teacher/sections/${sectionId}`); revalidatePath("/workspace"); }
 
-export async function createFormalLessonPlan(scheduledLessonId: string): Promise<ActionResult> {
+export async function createFormalLessonPlan(input: unknown): Promise<ActionResult> {
   try {
+    const value = artifactInput.pick({ scheduledLessonId: true, content: true }).parse(input);
     const access = await requireWorkspaceAccess();
     if (!access.roles.includes("TEACHER")) throw new Error("An active TEACHER role is required to create a lesson plan.");
-    const data = await loadLessonReadinessData(uuid.parse(scheduledLessonId));
-    const content = createInitialFormalLessonPlan(data);
+    const data = await loadLessonReadinessData(value.scheduledLessonId);
+    const content = parseLessonPayload("FORMAL_LESSON_PLAN", value.content);
     const client = await createSupabaseServerClient();
-    const result = await client.rpc("create_lesson_artifact", { p_scheduled_lesson_id: scheduledLessonId, p_artifact_type: "FORMAL_LESSON_PLAN", p_content_json: content });
+    const result = await client.rpc("create_lesson_artifact", { p_scheduled_lesson_id: value.scheduledLessonId, p_artifact_type: "FORMAL_LESSON_PLAN", p_content_json: content });
     if (result.error || !result.data) throw new Error(result.error?.message || "Formal Lesson Plan could not be created.");
-    refreshLesson(scheduledLessonId, data.lesson.section.id);
+    refreshLesson(value.scheduledLessonId, data.lesson.section.id);
     const response = result.data as { artifactId: string; versionId: string; versionNumber: number };
     return { ok: true, id: response.artifactId, version: response.versionNumber };
   } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Formal Lesson Plan could not be created." }; }
