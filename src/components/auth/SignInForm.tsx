@@ -9,9 +9,16 @@ export function SignInForm() {
   const [email, setEmail] = useState(""); const [password, setPassword] = useState(""); const [error, setError] = useState<string | null>(null); const [busy, setBusy] = useState(false);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError(null);
-    const { error: signInError } = await createSupabaseBrowserClient().auth.signInWithPassword({ email, password });
-    if (signInError) { setError("We could not sign you in. Check your details and try again."); setBusy(false); return; }
-    const next = searchParams.get("next"); router.replace(next?.startsWith("/") ? next : "/workspace"); router.refresh();
+    try {
+      const { error: signInError } = await createSupabaseBrowserClient().auth.signInWithPassword({ email, password });
+      if (signInError) { setError("We could not sign you in. Check your details and try again."); return; }
+      const next = searchParams.get("next"); router.replace(next?.startsWith("/") ? next : "/workspace"); router.refresh();
+    } catch (caughtError) {
+      if (process.env.NODE_ENV !== "production") console.error("Sign-in failed", caughtError);
+      setError("We could not sign you in right now. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   }
   return <form className="auth-form" onSubmit={submit}>{searchParams.get("reason") === "session-expired" ? <p className="auth-notice" role="status">Please sign in again to continue.</p> : null}<label htmlFor="email">Email address</label><input id="email" name="email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} /><label htmlFor="password">Password</label><input id="password" name="password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} />{error ? <p className="auth-error" role="alert">{error}</p> : null}<button className="button button-primary" type="submit" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button></form>;
 }

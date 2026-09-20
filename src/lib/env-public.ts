@@ -11,5 +11,14 @@ export const PublicEnvironmentSchema = PublicEnvironmentBaseSchema.superRefine((
   if (!value.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY && !value.NEXT_PUBLIC_SUPABASE_ANON_KEY) context.addIssue({ code: z.ZodIssueCode.custom, path: ["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"], message: "A Supabase publishable or anon key is required." });
 });
 export type PublicEnvironment = z.infer<typeof PublicEnvironmentSchema>;
+export function getBrowserPublicEnvironment(): PublicEnvironment {
+  return PublicEnvironmentSchema.parse({
+    NODE_ENV: process.env.NODE_ENV,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  });
+}
 export const supabasePublicKey = (input: NodeJS.ProcessEnv = process.env) => { const environment = PublicEnvironmentSchema.parse(input); return environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? environment.NEXT_PUBLIC_SUPABASE_ANON_KEY!; };
 export const hasSupabasePublicEnvironment = (input: NodeJS.ProcessEnv = process.env) => Boolean(input.NEXT_PUBLIC_SUPABASE_URL && (input.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || input.NEXT_PUBLIC_SUPABASE_ANON_KEY));
