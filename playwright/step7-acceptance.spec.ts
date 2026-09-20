@@ -273,7 +273,7 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
     await page.getByLabel("Unfinished work or factual note").fill("Finish the microscope diagram in the next lesson.");
     await page.getByRole("button", { name: "Record classroom outcome" }).click();
     await expect(page.getByRole("status")).toContainText("Recorded: Partially delivered");
-    await expect(page.getByText(/Finish the microscope diagram/i)).toBeVisible();
+    await expect(page.locator(".recorded-outcome").getByText(/Finish the microscope diagram/i)).toBeVisible();
     await captureResponsive(page, "delivery-recording");
 
     await page.getByLabel("Adjust proposal").selectOption(value.nextCanonicalId);
@@ -294,8 +294,8 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
 
     await page.goto(`/workspace/teacher/lessons/${value.nextLessonId}`);
     await expect(page.getByRole("heading", { name: value.nextTitle, exact: true })).toBeVisible();
-    await expect(page.getByText(/Partially delivered/i)).toBeVisible();
-    await expect(page.getByText(/Finish the microscope diagram/i)).toBeVisible();
+    await expect(page.locator(".readiness-card").filter({ hasText: "Last lesson" }).getByRole("heading", { name: "Partially delivered", exact: true })).toBeVisible();
+    await expect(page.locator(".carry-forward-box").getByText(/Finish the microscope diagram/i)).toBeVisible();
     await captureResponsive(page, "next-lesson-inherited-continuity");
   });
 });
