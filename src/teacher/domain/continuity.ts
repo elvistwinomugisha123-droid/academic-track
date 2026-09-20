@@ -18,6 +18,7 @@ export type PositionOption = {
 export type CurrentPosition = PositionOption & {
   eventId: string;
   confirmedAt: string;
+  sourceId?: string;
   sourceTitle: string;
   sourceAuthority: string;
   sourceLocator: string;
@@ -27,6 +28,7 @@ export type CurrentPosition = PositionOption & {
   rightsStatus?: "CLEARED" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN";
   productionUseStatus?: "PERMITTED" | "PERMISSION_PENDING" | "BLOCKED";
   formalArtifactAllowed?: boolean;
+  externalAiAllowed?: boolean;
   exportAllowed?: boolean;
   attributionRequired?: boolean;
 };

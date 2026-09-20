@@ -169,6 +169,7 @@ function currentFromKnowledgeRow(row: Row | null): CurrentPosition | null {
     ...option,
     eventId: stringValue(row, "id"),
     confirmedAt: stringValue(row, "confirmed_at"),
+    sourceId: stringValue(row, "source_id"),
     sourceTitle: stringValue(row, "title"),
     sourceAuthority: stringValue(row, "authority"),
     sourceLocator: stringValue(row, "locator"),
@@ -178,6 +179,7 @@ function currentFromKnowledgeRow(row: Row | null): CurrentPosition | null {
     rightsStatus: (stringValue(row, "rights_status") || "UNKNOWN") as CurrentPosition["rightsStatus"],
     productionUseStatus: (stringValue(row, "production_use_status") || "BLOCKED") as CurrentPosition["productionUseStatus"],
     formalArtifactAllowed: Boolean(row.formal_artifact_allowed),
+    externalAiAllowed: Boolean(row.external_ai_allowed),
     exportAllowed: Boolean(row.export_allowed),
     attributionRequired: Boolean(row.attribution_required),
   };

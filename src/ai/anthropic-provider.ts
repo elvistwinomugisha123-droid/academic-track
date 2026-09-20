@@ -24,6 +24,10 @@ export type AnthropicResult<T> = {
   requestId?: string;
 };
 
+export async function generateAnthropicStructured<T>(input: { system: string; payload: unknown; maxTokens: number; validate: (value: unknown) => T }): Promise<AnthropicResult<T>> {
+  return generate(input.system, input.payload, input.maxTokens, input.validate);
+}
+
 function modelName() {
   return process.env.ANTHROPIC_MODEL?.trim() || DEFAULT_ANTHROPIC_MODEL;
 }

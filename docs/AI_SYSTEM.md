@@ -1,5 +1,7 @@
 # AI System — Academic Track Engine
 
+Step 8 Pass 2 lesson-artifact generation, rights gating and trusted acceptance are specified in [`ATE_STEP8_PASS2_AI_ARTIFACTS.md`](./ATE_STEP8_PASS2_AI_ARTIFACTS.md).
+
 ## 1. Principle
 
 AI is a probabilistic subsystem inside deterministic academic controls.

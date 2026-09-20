@@ -76,7 +76,7 @@ describe("isolated lesson artifact integration", () => {
   afterAll(async () => {
     if (!admin) return;
     for (const school of [schoolA, schoolB].filter(Boolean)) {
-      for (const table of ["lesson_artifact_versions", "lesson_artifacts", "audit_events", "scheduled_lessons", "timetable_slots", "timetable_versions", "teaching_sections", "streams", "class_levels", "school_subjects", "academic_periods", "role_grants", "memberships", "departments"]) await admin.from(table).delete().eq("school_id", school);
+      for (const table of ["ai_generation_runs", "lesson_artifact_versions", "lesson_artifacts", "audit_events", "scheduled_lessons", "timetable_slots", "timetable_versions", "teaching_sections", "streams", "class_levels", "school_subjects", "academic_periods", "role_grants", "memberships", "departments"]) await admin.from(table).delete().eq("school_id", school);
       await admin.from("schools").delete().eq("id", school);
     }
     for (const value of [teacherA?.id, teacherB?.id, teacherB2?.id].filter(Boolean)) await admin.auth.admin.deleteUser(value);
@@ -115,6 +115,14 @@ describe("isolated lesson artifact integration", () => {
     }
     const savedVersion = required((await teacherA.client.from("lesson_artifact_versions").select("change_source").eq("artifact_id", created.artifactId).eq("version_number", 2).single()).data, null);
     expect(savedVersion.change_source).toBe("TEACHER");
+
+    const aiRun = required((await admin!.from("ai_generation_runs").insert({ school_id: schoolA, created_by_user_id: teacherA.id, created_by_membership_id: teacherMembershipA, scheduled_lesson_id: lessonA, artifact_id: created.artifactId, artifact_type: "FORMAL_LESSON_PLAN", operation: "PATCH_ARTIFACT", provider: "anthropic", model: "test-model", prompt_version: "artifact-patch-v1", context_fingerprint: "a".repeat(64), status: "SUCCEEDED", validation_status: "PASSED", rights_state: "UNKNOWN" }).select("id").single()).data, null);
+    const acceptedAI = await admin!.rpc("accept_ai_lesson_artifact_version", { p_generation_run_id: aiRun.id, p_scheduled_lesson_id: lessonA, p_artifact_id: created.artifactId, p_artifact_type: "FORMAL_LESSON_PLAN", p_parent_artifact_id: null, p_parent_version_id: null, p_content_json: planContent("Accepted AI plan"), p_expected_version: 2, p_change_summary: "Teacher accepted AI proposal", p_actor_user_id: teacherA.id, p_actor_membership_id: teacherMembershipA });
+    const acceptedPayload = required(acceptedAI.data, acceptedAI.error) as { versionNumber: number };
+    expect(acceptedPayload.versionNumber).toBe(3);
+    const aiVersion = required((await admin!.from("lesson_artifact_versions").select("change_source, created_by_membership_id").eq("artifact_id", created.artifactId).eq("version_number", 3).single()).data, null);
+    expect(aiVersion).toMatchObject({ change_source: "AI", created_by_membership_id: teacherMembershipA });
+    expect((await teacherA.client.rpc("accept_ai_lesson_artifact_version", { p_generation_run_id: aiRun.id, p_scheduled_lesson_id: lessonA, p_artifact_id: created.artifactId, p_artifact_type: "FORMAL_LESSON_PLAN", p_parent_artifact_id: null, p_parent_version_id: null, p_content_json: planContent("Browser forged AI"), p_expected_version: 3, p_change_summary: "forged", p_actor_user_id: teacherA.id, p_actor_membership_id: teacherMembershipA })).error).toBeTruthy();
 
     const governanceBase = { p_scheduled_lesson_id: lessonA, p_artifact_type: "FORMAL_LESSON_PLAN", p_content_json: planContent("Governance attack") };
     for (const attack of [
