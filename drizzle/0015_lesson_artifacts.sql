@@ -64,6 +64,19 @@ returns trigger language plpgsql security definer set search_path = '' as $$
 declare
   parent_record record;
 begin
+  if tg_op = 'UPDATE' then
+    if new.school_id is distinct from old.school_id
+       or new.scheduled_lesson_id is distinct from old.scheduled_lesson_id
+       or new.teaching_section_id is distinct from old.teaching_section_id
+       or new.artifact_type is distinct from old.artifact_type
+       or new.parent_artifact_id is distinct from old.parent_artifact_id
+       or new.parent_version_id is distinct from old.parent_version_id
+    then
+      raise exception 'lesson artifact lineage is immutable after creation';
+    end if;
+    return new;
+  end if;
+
   if new.artifact_type = 'FORMAL_LESSON_PLAN' and (new.parent_artifact_id is not null or new.parent_version_id is not null) then
     raise exception 'formal lesson plans cannot have a parent artifact';
   end if;
@@ -230,9 +243,18 @@ begin
          end as rights_state,
          jsonb_build_array(jsonb_strip_nulls(jsonb_build_object(
            'category', 'CURRICULUM_ANCHOR',
-           'label', coalesce(nullif(event_record.normalized->>'title', ''), nullif(event_record.normalized->>'name', ''), event_record.source_wording),
-           'sourceId', event.canonical_id,
+           'label', case
+             when source.formal_artifact_allowed
+               and source.rights_status = 'CLEARED'
+               and source.production_use_status = 'PERMITTED'
+             then coalesce(nullif(event_record.normalized->>'title', ''), nullif(event_record.normalized->>'name', ''), 'Current confirmed curriculum position')
+             else 'Current confirmed curriculum position'
+           end,
+           'sourceId', event_record.source_id,
+           'sourceTitle', source.title,
            'sourceLocation', span.locator,
+           'sourcePageStart', span.page_start,
+           'sourcePageEnd', span.page_end,
            'rightsState', case
              when source.rights_status = 'CLEARED'
                and source.production_use_status = 'PERMITTED'

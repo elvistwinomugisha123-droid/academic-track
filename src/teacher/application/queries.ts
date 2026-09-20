@@ -4,7 +4,7 @@ import { getCurrentTeachingSectionCurriculumPosition } from "@/knowledge/curricu
 import { createPostgresKnowledgeClient } from "@/knowledge/db/client";
 import { requireWorkspaceAccess } from "@/lib/auth/access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { deriveNextPosition, positionKindForRecordType, recommendedFocus, type CurrentPosition, type NextPositionProposal, type PositionOption, type TeacherOutcome } from "@/teacher/domain/continuity";
+import { deriveNextPosition, positionKindForRecordType, recommendedFocus, safeCurrentPositionTitle, safeCurriculumPositionLabel, type CurrentPosition, type NextPositionProposal, type PositionOption, type TeacherOutcome } from "@/teacher/domain/continuity";
 
 type Row = Record<string, unknown>;
 
@@ -137,12 +137,13 @@ function stringValue(row: Row | undefined, key: string): string { return String(
 function nullableString(row: Row | undefined, key: string): string | null { const value = row?.[key]; return value == null || value === "" ? null : String(value); }
 function objectValue(value: unknown): Record<string, unknown> { return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {}; }
 
-function recordTitle(normalized: unknown, sourceWording: string): string {
+function recordTitle(normalized: unknown, sourceWording: string, allowSourceWording = true): string {
+  if (!allowSourceWording) return safeCurriculumPositionLabel;
   const value = objectValue(normalized);
   return String(value.title ?? value.name ?? sourceWording).trim() || sourceWording;
 }
 
-function optionFromKnowledgeRow(row: Row): PositionOption | null {
+function optionFromKnowledgeRow(row: Row, allowSourceWording = true): PositionOption | null {
   const recordType = stringValue(row, "record_type");
   const positionKind = positionKindForRecordType(recordType);
   if (!positionKind) return null;
@@ -151,7 +152,7 @@ function optionFromKnowledgeRow(row: Row): PositionOption | null {
     canonicalId: stringValue(row, "canonical_id"),
     recordType: recordType as PositionOption["recordType"],
     positionKind,
-    title: recordTitle(normalized, stringValue(row, "source_wording")),
+    title: recordTitle(normalized, stringValue(row, "source_wording"), allowSourceWording),
     sourceWording: stringValue(row, "source_wording"),
     orderingKey: nullableString(row, "ordering_key"),
     topicCode: normalized.topic_code == null ? null : String(normalized.topic_code),
@@ -162,9 +163,9 @@ function optionFromKnowledgeRow(row: Row): PositionOption | null {
 
 function currentFromKnowledgeRow(row: Row | null): CurrentPosition | null {
   if (!row) return null;
-  const option = optionFromKnowledgeRow(row);
+  const option = optionFromKnowledgeRow(row, false);
   if (!option) return null;
-  return {
+  const current = {
     ...option,
     eventId: stringValue(row, "id"),
     confirmedAt: stringValue(row, "confirmed_at"),
@@ -180,6 +181,7 @@ function currentFromKnowledgeRow(row: Row | null): CurrentPosition | null {
     exportAllowed: Boolean(row.export_allowed),
     attributionRequired: Boolean(row.attribution_required),
   };
+  return { ...current, title: safeCurrentPositionTitle(current) };
 }
 
 async function loadGovernedContext(client: ReturnType<typeof createPostgresKnowledgeClient>, schoolId: string, sectionId: string, effectiveOn: string): Promise<GovernedCurriculumContext> {
@@ -201,7 +203,7 @@ async function loadGovernedContext(client: ReturnType<typeof createPostgresKnowl
       and (pr.effective_from is null or pr.effective_from <= $2::date)
       and (pr.effective_to is null or pr.effective_to >= $2::date)
     order by coalesce(pr.ordering_key, ''), r.canonical_id limit 300`, [stringValue(profile, "subject_profile_id"), effectiveOn]);
-  const options = optionsResult.rows.map(optionFromKnowledgeRow).filter((option): option is PositionOption => Boolean(option));
+  const options = optionsResult.rows.map((row) => optionFromKnowledgeRow(row)).filter((option): option is PositionOption => Boolean(option));
   return {
     subjectProfileId: stringValue(profile, "subject_profile_id"),
     profileTitle: stringValue(profile, "profile_title"),

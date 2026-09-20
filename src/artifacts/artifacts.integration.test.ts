@@ -90,9 +90,25 @@ describe("isolated lesson artifact integration", () => {
     expect((await teacherB.client.from("lesson_artifacts").select("id").eq("id", created.artifactId)).data).toEqual([]);
     expect((await teacherA.client.from("lesson_artifact_versions").update({ content_json: { forged: true } }).eq("id", created.versionId)).error).toBeTruthy();
 
+    const currentParent = created.versionId;
+    const childResult = await teacherA.client.rpc("create_lesson_artifact", { p_scheduled_lesson_id: lessonA, p_artifact_type: "BOARD_NOTES", p_parent_artifact_id: created.artifactId, p_parent_version_id: currentParent, p_content_json: { title: "Board notes", keyPoints: [], examples: [], equations: [], prompts: [] } });
+    const child = required(childResult.data, childResult.error) as { artifactId: string; versionNumber: number };
+    expect(child.versionNumber).toBe(1);
+
     const nextResult = await teacherA.client.rpc("create_lesson_artifact_version", { p_artifact_id: created.artifactId, p_expected_version: 1, p_content_json: planContent("Teacher plan v2"), p_change_summary: "Teacher edited the plan" });
-    const next = required(nextResult.data, nextResult.error) as { versionNumber: number };
+    const next = required(nextResult.data, nextResult.error) as { versionId: string; versionNumber: number };
     expect(next.versionNumber).toBe(2);
+    const staleBeforeEdit = required((await teacherA.client.from("lesson_artifacts").select("parent_version_id").eq("id", child.artifactId).single()).data, null);
+    expect(staleBeforeEdit.parent_version_id).toBe(currentParent);
+    expect(staleBeforeEdit.parent_version_id).not.toBe(next.versionId);
+
+    const childNextResult = await teacherA.client.rpc("create_lesson_artifact_version", { p_artifact_id: child.artifactId, p_expected_version: 1, p_content_json: { title: "Board notes v2", keyPoints: ["Reviewed after the plan changed"], examples: [], equations: [], prompts: [] }, p_change_summary: "Teacher reviewed the stale material" });
+    const childNext = required(childNextResult.data, childNextResult.error) as { versionNumber: number };
+    expect(childNext.versionNumber).toBe(2);
+    const staleAfterEdit = required((await teacherA.client.from("lesson_artifacts").select("parent_version_id, current_version_id").eq("id", child.artifactId).single()).data, null);
+    expect(staleAfterEdit.parent_version_id).toBe(currentParent);
+    expect(staleAfterEdit.parent_version_id).not.toBe(staleAfterEdit.current_version_id);
+    expect(staleAfterEdit.parent_version_id).not.toBe(next.versionId);
     for (const forgedSource of ["AI", "SYSTEM"]) {
       const forged = await teacherA.client.rpc("create_lesson_artifact_version", { p_artifact_id: created.artifactId, p_expected_version: 2, p_content_json: planContent(`Forged ${forgedSource}`), p_change_source: forgedSource, p_change_summary: "Forged source" });
       expect(forged.error).toBeTruthy();
@@ -112,10 +128,6 @@ describe("isolated lesson artifact integration", () => {
       expect(result.error).toBeTruthy();
     }
 
-    const currentParent = required((await teacherA.client.from("lesson_artifacts").select("current_version_id").eq("id", created.artifactId).single()).data, null).current_version_id;
-    const childResult = await teacherA.client.rpc("create_lesson_artifact", { p_scheduled_lesson_id: lessonA, p_artifact_type: "BOARD_NOTES", p_parent_artifact_id: created.artifactId, p_parent_version_id: currentParent, p_content_json: { title: "Board notes", keyPoints: [], examples: [], equations: [], prompts: [] } });
-    const child = required(childResult.data, childResult.error) as { artifactId: string; versionNumber: number };
-    expect(child.versionNumber).toBe(1);
     expect((await teacherB.client.from("lesson_artifacts").select("id").eq("id", child.artifactId)).data).toEqual([]);
 
     const sameSchoolWrongSection = await teacherB.client.rpc("create_lesson_artifact", { p_scheduled_lesson_id: lessonOtherSection, p_artifact_type: "BOARD_NOTES", p_parent_artifact_id: created.artifactId, p_parent_version_id: currentParent, p_content_json: { title: "Wrong section parent", keyPoints: [], examples: [], equations: [], prompts: [] } });

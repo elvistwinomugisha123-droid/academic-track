@@ -31,6 +31,22 @@ export type CurrentPosition = PositionOption & {
   attributionRequired?: boolean;
 };
 
+export const safeCurriculumPositionLabel = "Current confirmed curriculum position";
+
+export function safeCurrentPositionTitle(current: Pick<CurrentPosition, "title" | "rightsStatus" | "productionUseStatus" | "formalArtifactAllowed">): string {
+  const sourceWordedArtifactUseAllowed = current.formalArtifactAllowed !== false
+    && (current.rightsStatus === undefined || current.rightsStatus === "CLEARED")
+    && (current.productionUseStatus === undefined || current.productionUseStatus === "PERMITTED");
+  return sourceWordedArtifactUseAllowed ? current.title : safeCurriculumPositionLabel;
+}
+
+export function formalArtifactRightsState(current: Pick<CurrentPosition, "rightsStatus" | "productionUseStatus" | "formalArtifactAllowed">): "CLEARED" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN" {
+  if (current.rightsStatus === "RESTRICTED") return "RESTRICTED";
+  if (current.rightsStatus === "CLEARED" && current.productionUseStatus === "PERMITTED" && current.formalArtifactAllowed) return "CLEARED";
+  if (current.rightsStatus === "REVIEW_REQUIRED" || current.rightsStatus === "CLEARED") return "REVIEW_REQUIRED";
+  return current.rightsStatus ?? "UNKNOWN";
+}
+
 export type NextPositionProposal = {
   position: PositionOption | null;
   reason: "CONTINUE_UNFINISHED" | "ADVANCE_TO_NEXT_VALID_POSITION" | "NO_DETERMINISTIC_SUCCESSOR";
@@ -70,7 +86,7 @@ export function recommendedFocus(input: { current: CurrentPosition | null; previ
   if (input.previousOutcome === "NOT_DELIVERED") return "Re-establish the planned lesson context before introducing new work.";
   if (input.previousOutcome === "CHANGED") return "Reconnect the changed lesson with the confirmed curriculum position.";
   if (input.previousOutcome === "PARTIALLY_DELIVERED") return "Continue from the stopping point recorded in the previous lesson.";
-  if (input.current) return `Continue ${input.scheduledSubject} from ${input.current.title}.`;
+  if (input.current) return `Continue ${input.scheduledSubject} from ${safeCurrentPositionTitle(input.current)}.`;
   return `Set the starting point for this ${input.scheduledSubject} lesson.`;
 }
 
