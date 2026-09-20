@@ -180,12 +180,52 @@ async function signIn(page: Page, value: Fixture) {
   await page.waitForURL("**/workspace", { timeout: 30_000 });
 }
 
-async function capture(page: Page, state: string, width: 390 | 1440) {
-  const height = width === 390 ? 844 : 900;
+type ViewportWidth = 360 | 390 | 430 | 1440;
+
+type OverflowDiagnostic = {
+  selector: string;
+  text: string;
+  left: number;
+  right: number;
+  width: number;
+};
+
+async function findOverflow(page: Page): Promise<{ clientWidth: number; scrollWidth: number; offenders: OverflowDiagnostic[] }> {
+  return page.evaluate(() => {
+    const viewport = document.documentElement.clientWidth;
+    const selectorFor = (element: Element) => {
+      const node = element as HTMLElement;
+      if (node.id) return `#${node.id}`;
+      const classes = typeof node.className === "string" ? node.className.trim().split(/\s+/).filter(Boolean).slice(0, 3) : [];
+      return `${node.tagName.toLowerCase()}${classes.length ? `.${classes.join(".")}` : ""}`;
+    };
+    const offenders = Array.from(document.querySelectorAll<HTMLElement>("body *")).flatMap((element) => {
+      const rect = element.getBoundingClientRect();
+      if (rect.width === 0 || (rect.right <= viewport + 1 && rect.left >= -1)) return [];
+      return [{
+        selector: selectorFor(element),
+        text: (element.innerText || "").replace(/\s+/g, " ").trim().slice(0, 160),
+        left: Math.round(rect.left),
+        right: Math.round(rect.right),
+        width: Math.round(rect.width),
+      }];
+    });
+    return { clientWidth: viewport, scrollWidth: document.documentElement.scrollWidth, offenders };
+  });
+}
+
+async function capture(page: Page, state: string, width: ViewportWidth) {
+  const height = width === 1440 ? 900 : 844;
   await page.setViewportSize({ width, height });
-  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  await page.waitForTimeout(50);
+  const diagnostic = await findOverflow(page);
+  expect(diagnostic.scrollWidth, `Horizontal overflow at ${width}px: ${JSON.stringify(diagnostic.offenders)}`).toBeLessThanOrEqual(width);
   mkdirSync("output/playwright", { recursive: true });
   await page.screenshot({ path: `output/playwright/step7-${state}-${width}x${height}.png`, fullPage: true });
+}
+
+async function captureResponsive(page: Page, state: string) {
+  for (const width of [360, 390, 430, 1440] as const) await capture(page, state, width);
 }
 
 test.describe("Step 7 authenticated teacher acceptance", () => {
@@ -205,20 +245,17 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
 
     await expect(page.getByRole("heading", { name: "Your teaching day." })).toBeVisible();
     await expect(page.getByText(value.currentTitle, { exact: false })).toBeVisible();
-    await capture(page, "teacher-home", 390);
-    await capture(page, "teacher-home", 1440);
+    await captureResponsive(page, "teacher-home");
 
     await page.goto(`/workspace/teacher/sections/${value.sectionId}`);
     await expect(page.getByRole("heading", { name: value.currentTitle })).toBeVisible();
     await expect(page.getByText(/Governed curriculum context/i)).toBeVisible();
-    await capture(page, "teaching-section", 390);
-    await capture(page, "teaching-section", 1440);
+    await captureResponsive(page, "teaching-section");
 
     await page.goto(`/workspace/teacher/lessons/${value.currentLessonId}`);
     await expect(page.getByRole("heading", { name: "Prepare with the class in view." })).toBeVisible();
     await expect(page.getByText(value.currentTitle, { exact: false })).toBeVisible();
-    await capture(page, "lesson-readiness", 390);
-    await capture(page, "lesson-readiness", 1440);
+    await captureResponsive(page, "lesson-readiness");
 
     await page.getByLabel("Lesson focus").fill("Cell structure and microscope observation");
     await page.getByLabel("Intended coverage").fill("Identify cell structures and record one factual observation.");
@@ -226,8 +263,7 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
     await page.getByLabel("Preparation notes").fill("Start with the carry-forward diagram.");
     await page.getByRole("button", { name: "Save preparation" }).click();
     await expect(page.getByRole("status")).toContainText("Preparation saved");
-    await capture(page, "saved-preparation", 390);
-    await capture(page, "saved-preparation", 1440);
+    await captureResponsive(page, "saved-preparation");
 
     await page.reload();
     await expect(page.getByLabel("Lesson focus")).toHaveValue("Cell structure and microscope observation");
@@ -238,14 +274,12 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
     await page.getByRole("button", { name: "Record classroom outcome" }).click();
     await expect(page.getByRole("status")).toContainText("Recorded: Partially delivered");
     await expect(page.getByText(/Finish the microscope diagram/i)).toBeVisible();
-    await capture(page, "delivery-recording", 390);
-    await capture(page, "delivery-recording", 1440);
+    await captureResponsive(page, "delivery-recording");
 
     await page.getByLabel("Adjust proposal").selectOption(value.nextCanonicalId);
     await page.getByRole("button", { name: "Confirm next position" }).click();
     await expect(page.getByRole("status")).toContainText("Next curriculum position confirmed");
-    await capture(page, "next-position-confirmation", 390);
-    await capture(page, "next-position-confirmation", 1440);
+    await captureResponsive(page, "next-position-confirmation");
 
     const preparation = requireResult((await admin!.from("lesson_preparations").select("lesson_focus, teacher_notes, intended_coverage, preparation_notes").eq("scheduled_lesson_id", value.currentLessonId).single()).data, null) as Row;
     expect(preparation.lesson_focus).toBe("Cell structure and microscope observation");
@@ -262,7 +296,6 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
     await expect(page.getByText(value.nextTitle, { exact: false })).toBeVisible();
     await expect(page.getByText(/Partially delivered/i)).toBeVisible();
     await expect(page.getByText(/Finish the microscope diagram/i)).toBeVisible();
-    await capture(page, "next-lesson-inherited-continuity", 390);
-    await capture(page, "next-lesson-inherited-continuity", 1440);
+    await captureResponsive(page, "next-lesson-inherited-continuity");
   });
 });
