@@ -245,7 +245,7 @@
 .section-identity strong,.section-identity small,.readiness-meta strong,.readiness-meta small,.readiness-meta span { display:block; }
 .section-identity strong,.readiness-meta strong { font-size:13px; }
 .section-identity small,.readiness-meta small,.readiness-meta span { margin-top:3px; color:var(--ate-muted); font-size:11px; }
-.back-link { display:inline-flex; align-items:center; gap:7px; width:max-content; color:var(--ate-blue); font-size:12px; font-weight:700; }
+.back-link { display:inline-flex; align-items:center; gap:7px; width:max-content; max-width:100%; min-width:0; color:var(--ate-blue); font-size:12px; font-weight:700; }
 .back-link:hover { color:var(--ate-navy); text-decoration:underline; text-underline-offset:3px; }
 .section-overview { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:20px; align-items:start; padding:25px 28px; background:var(--ate-surface); border:1px solid var(--ate-border); border-radius:var(--ate-radius-panel); }
 .section-overview-main h2 { margin-top:6px; font-size:28px; letter-spacing:-.035em; }
@@ -361,6 +361,7 @@
   .next-lesson-label { align-items:flex-start; flex-wrap:wrap; }
   .next-lesson-date { overflow-wrap:anywhere; }
   .next-lesson-action .button { width:100%; }
+  .readiness-topline .back-link,.side-panel .quiet-link { width:100%; white-space:normal; overflow-wrap:anywhere; }
   .teacher-attention-item { align-items:flex-start; }
   .teacher-attention-item > span { flex:1 1 auto; }
   .schedule-detail strong { overflow-wrap:anywhere; white-space:normal; }
