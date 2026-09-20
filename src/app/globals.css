@@ -337,6 +337,38 @@
 .carry-forward-confirmed { display:inline-flex; align-items:center; gap:7px; min-height:40px; color:var(--ate-success); font-size:12px; }
 .carry-forward-confirmed svg { flex:0 0 auto; }
 
+/* Step 7 responsive hardening: teacher context must shrink before its copy wraps. */
+.teacher-page,.teacher-page > *,
+.teacher-heading > div,.section-overview-main,.section-overview-action,
+.section-panel,.section-title,.next-lesson-main,.next-lesson-action,
+.readiness-heading > div,.readiness-meta,.context-strip > div,
+.readiness-card,.preparation-editor,.side-panel,.proposal-panel,
+.proposal-heading > div,.proposal-actions,.proposal-actions label { min-width:0; }
+.section-overview-action { max-width:100%; }
+.section-overview-action .status,.section-identity,.readiness-meta,
+.teacher-attention-item > span,.next-context-grid > div,.context-strip .provenance,
+.side-heading > span,.editor-footer .provenance { min-width:0; max-width:100%; }
+.section-overview-action .status,.context-strip .provenance,
+.side-heading small,.proposal-grid strong { overflow-wrap:anywhere; }
+.proposal-grid strong { overflow:visible; text-overflow:clip; }
+
+@media (max-width:767px) {
+  .section-overview-action { width:100%; }
+  .section-overview-action .status { align-items:flex-start; white-space:normal; }
+  .section-next-lesson { align-items:flex-start; flex-wrap:wrap; }
+  .section-next-lesson > div { flex:1 1 150px; min-width:0; }
+  .section-next-lesson > .button { width:100%; flex:1 0 100%; }
+  .next-lesson-label { align-items:flex-start; flex-wrap:wrap; }
+  .next-lesson-date { overflow-wrap:anywhere; }
+  .next-lesson-action .button { width:100%; }
+  .teacher-attention-item { align-items:flex-start; }
+  .teacher-attention-item > span { flex:1 1 auto; }
+  .schedule-detail strong { overflow-wrap:anywhere; white-space:normal; }
+  .schedule-row .status { width:fit-content; max-width:100%; white-space:normal; overflow-wrap:anywhere; }
+  .context-strip .provenance { align-items:flex-start; overflow-wrap:anywhere; }
+  .editor-footer .provenance { align-items:flex-start; overflow-wrap:anywhere; }
+}
+
 @media (max-width:1000px) { .readiness-layout { grid-template-columns:1fr; } .readiness-side { grid-template-columns:repeat(2,minmax(0,1fr)); } .side-panel { align-content:start; } }
 @media (max-width:900px) { .teacher-heading,.section-heading,.readiness-heading { display:block; } .teacher-heading-note,.section-identity,.readiness-meta { margin-top:18px; width:max-content; max-width:100%; } .next-lesson { grid-template-columns:1fr; } .next-lesson-action { border-top:1px solid rgb(232 242 251 / .12); border-left:0; } .teacher-attention { grid-template-columns:1fr; } .section-columns,.readiness-context-grid { grid-template-columns:1fr; } .section-overview { grid-template-columns:1fr; } .section-overview-action { justify-items:start; } }
 @media (max-width:767px) { .teacher-page { gap:21px; } .teacher-heading { padding-bottom:19px; } .teacher-heading h1 { font-size:clamp(2.25rem,11vw,3.25rem); } .next-lesson-main { padding:22px 18px 23px; } .next-lesson-action { padding:20px 18px 22px; } .next-lesson h2 { margin-top:21px; font-size:2rem; } .next-context-grid { grid-template-columns:1fr; gap:14px; margin-top:23px; } .schedule-row { grid-template-columns:62px minmax(0,1fr) 16px; gap:10px; } .schedule-row .status { grid-column:2; grid-row:2; width:max-content; } .schedule-row > svg { grid-column:3; grid-row:1 / span 2; } .teacher-today .section-title { display:block; } .teacher-today .section-title .quiet-link { margin-top:12px; } .teacher-attention { padding:16px; } .teacher-attention-list { gap:6px; } .section-panel,.position-history,.preparation-editor,.proposal-panel { padding:18px; } .context-strip { display:block; padding:18px; } .context-strip .provenance { display:flex; margin-top:14px; } .form-grid-two { grid-template-columns:1fr; } .editor-footer,.proposal-heading { display:block; } .editor-footer .button { width:100%; margin-top:14px; } .proposal-heading .status { margin-top:13px; } .proposal-grid { grid-template-columns:1fr; } .proposal-actions { display:grid; align-items:stretch; } .proposal-actions label { width:100%; } .proposal-actions .button { width:100%; } .readiness-side { grid-template-columns:1fr; } .readiness-topline { align-items:flex-start; flex-direction:column; } .readiness-meta { width:100%; } .skeleton-title { width:78%; } }
