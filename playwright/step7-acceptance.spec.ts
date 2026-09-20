@@ -254,7 +254,7 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
 
     await page.goto(`/workspace/teacher/lessons/${value.currentLessonId}`);
     await expect(page.getByRole("heading", { name: "Prepare with the class in view." })).toBeVisible();
-    await expect(page.getByText(value.currentTitle, { exact: false })).toBeVisible();
+    await expect(page.getByRole("heading", { name: value.currentTitle, exact: true })).toBeVisible();
     await captureResponsive(page, "lesson-readiness");
 
     await page.getByLabel("Lesson focus").fill("Cell structure and microscope observation");
@@ -293,7 +293,7 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
     expect(positions[1].supersedes_event_id).toBe(positions[0].id);
 
     await page.goto(`/workspace/teacher/lessons/${value.nextLessonId}`);
-    await expect(page.getByText(value.nextTitle, { exact: false })).toBeVisible();
+    await expect(page.getByRole("heading", { name: value.nextTitle, exact: true })).toBeVisible();
     await expect(page.getByText(/Partially delivered/i)).toBeVisible();
     await expect(page.getByText(/Finish the microscope diagram/i)).toBeVisible();
     await captureResponsive(page, "next-lesson-inherited-continuity");
