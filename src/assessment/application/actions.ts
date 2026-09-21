@@ -97,3 +97,32 @@ export async function finalizeAssessment(workspaceId: string, expectedVersion: n
     return { ok: true };
   } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Assessment could not be finalised." }; }
 }
+
+export async function submitAssessmentForReview(workspaceId: string, expectedVersion: number): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const client = await createSupabaseServerClient();
+    const response = await client.rpc("submit_assessment_for_review", { p_workspace_id: uuid.parse(workspaceId), p_expected_version: expectedVersion });
+    if (response.error) return { ok: false, error: response.error.message };
+    revalidatePath(`/workspace/teacher/assessments/${workspaceId}`);
+    revalidatePath("/workspace/teacher/assessments");
+    revalidatePath("/workspace/leadership/hod");
+    revalidatePath("/workspace/leadership/dos");
+    revalidatePath("/workspace/leadership/principal");
+    return { ok: true };
+  } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Assessment could not be submitted for review." }; }
+}
+
+export async function reviewAssessmentWorkspace(workspaceId: string, decision: "APPROVE" | "RETURN", reason?: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const client = await createSupabaseServerClient();
+    const response = await client.rpc("review_assessment_workspace", { p_workspace_id: uuid.parse(workspaceId), p_decision: decision, p_reason: reason?.trim() || null });
+    if (response.error) return { ok: false, error: response.error.message };
+    revalidatePath(`/workspace/leadership/assessments/${workspaceId}`);
+    revalidatePath("/workspace/leadership/hod");
+    revalidatePath("/workspace/leadership/dos");
+    revalidatePath("/workspace/leadership/principal");
+    revalidatePath(`/workspace/teacher/assessments/${workspaceId}`);
+    revalidatePath("/workspace/teacher/assessments");
+    return { ok: true };
+  } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Assessment review could not be recorded." }; }
+}
