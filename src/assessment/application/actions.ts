@@ -31,13 +31,19 @@ export async function createAssessmentWorkspace(input: unknown): Promise<{ ok: t
     if (sectionResult.data.some((section) => section.school_subject_id !== value.schoolSubjectId || section.academic_period_id !== value.academicPeriodId)) return { ok: false, error: "Participating Teaching Sections must share the selected subject and academic period." };
     const profileResult = await client.from("knowledge_assessment_profiles").select("id, purpose, subject_profile_id, status").eq("id", value.assessmentProfileId).eq("purpose", value.purpose).eq("status", "ACTIVE").maybeSingle();
     if (profileResult.error || !profileResult.data || (profileResult.data.subject_profile_id && profileResult.data.subject_profile_id !== value.curriculumSubjectProfileId)) return { ok: false, error: "No active assessment profile applies to this purpose and subject." };
-    const positions = await client.from("teaching_section_curriculum_position_events").select("id, teaching_section_id, canonical_id").eq("school_id", access.schoolId).in("teaching_section_id", value.sectionIds).order("confirmed_at", { ascending: false });
-    if (positions.error) return { ok: false, error: "Confirmed curriculum position could not be resolved." };
-    const bySection = value.sectionIds.map((sectionId) => [...new Set((positions.data ?? []).filter((item) => item.teaching_section_id === sectionId).map((item) => item.canonical_id))]);
+    const [positions, classroomEvents] = await Promise.all([
+      client.from("teaching_section_curriculum_position_events").select("id, teaching_section_id, canonical_id, supersedes_event_id").eq("school_id", access.schoolId).in("teaching_section_id", value.sectionIds).order("confirmed_at", { ascending: false }),
+      client.from("classroom_events").select("id, teaching_section_id, outcome, occurred_at, supersedes_event_id").eq("school_id", access.schoolId).in("teaching_section_id", value.sectionIds).order("occurred_at", { ascending: false }),
+    ]);
+    if (positions.error || classroomEvents.error) return { ok: false, error: "Confirmed curriculum position could not be resolved." };
+    const supersededPositionIds = new Set((positions.data ?? []).map((item) => item.supersedes_event_id).filter(Boolean));
+    const supersededClassroomIds = new Set((classroomEvents.data ?? []).map((event) => event.supersedes_event_id).filter(Boolean));
+    const latestPartialSections = new Set((classroomEvents.data ?? []).filter((event) => !supersededClassroomIds.has(event.id) && event.outcome === "PARTIALLY_DELIVERED").map((event) => event.teaching_section_id));
+    const bySection = value.sectionIds.map((sectionId) => [...new Set((positions.data ?? []).filter((item) => item.teaching_section_id === sectionId && !supersededPositionIds.has(item.id) && !latestPartialSections.has(sectionId)).map((item) => item.canonical_id))]);
     const eligible = value.purpose === "COMMON_STREAM_TEST" ? [...new Set(bySection[0] ?? [])].filter((id) => bySection.every((items) => items.includes(id))) : [...new Set(bySection.flat())];
-    if (!eligible.length) return { ok: false, error: "No confirmed curriculum scope is available yet. Confirm classroom position before creating this assessment." };
+    if (!eligible.length && !latestPartialSections.size) return { ok: false, error: "No confirmed curriculum scope is available yet. Confirm classroom position before creating this assessment." };
     const content = { title: value.title, purpose: value.purpose, durationMinutes: value.durationMinutes, totalMarks: value.totalMarks, instructions: ["Answer all questions unless instructed otherwise."], blueprint: { participatingSectionIds: value.sectionIds, scopeCanonicalIds: eligible, expectedEvidence: "Teacher-marked responses", itemDistribution: {}, difficultyDistribution: { LOW: 0, MEDIUM: 0, HIGH: 0 }, marksDistribution: {}, totalMarks: value.totalMarks, durationMinutes: value.durationMinutes, practicalRequirements: [], accessibilityConstraints: [], subjectConstraints: [], teacherNotes: "" }, questions: [] };
-    const scopeItems = (positions.data ?? []).filter((item) => eligible.includes(item.canonical_id)).map((item) => ({ canonicalId: item.canonical_id, scopeState: "CONFIRMED_ELIGIBLE", evidenceType: "CONFIRMED_DELIVERY", evidenceReferenceId: item.id, sectionId: item.teaching_section_id }));
+    const scopeItems = (positions.data ?? []).filter((item) => eligible.includes(item.canonical_id) && !supersededPositionIds.has(item.id) && !latestPartialSections.has(item.teaching_section_id)).map((item) => ({ canonicalId: item.canonical_id, scopeState: "CONFIRMED_ELIGIBLE", evidenceType: "CONFIRMED_DELIVERY", evidenceReferenceId: item.id, sectionId: item.teaching_section_id }));
     const response = await client.rpc("create_assessment_workspace", { p_academic_period_id: value.academicPeriodId, p_school_subject_id: value.schoolSubjectId, p_curriculum_subject_profile_id: value.curriculumSubjectProfileId, p_assessment_profile_id: value.assessmentProfileId, p_purpose: value.purpose, p_title: value.title, p_duration_minutes: value.durationMinutes, p_total_marks: value.totalMarks, p_section_ids: value.sectionIds, p_scope_items: scopeItems, p_content_json: content });
     if (response.error || !response.data) return { ok: false, error: response.error?.message || "Assessment workspace could not be created." };
     revalidatePath("/workspace/teacher/assessments");
@@ -50,13 +56,25 @@ export async function saveAssessmentVersion(workspaceId: string, content: unknow
     const access = await requireWorkspaceAccess();
     const payload = AssessmentPayloadSchema.parse(content);
     const client = await createSupabaseServerClient();
-    const response = await client.rpc("create_assessment_version", { p_workspace_id: uuid.parse(workspaceId), p_content_json: payload, p_expected_version: expectedVersion, p_change_source: "TEACHER", p_change_summary: "Teacher edited assessment draft" });
+    const response = await client.rpc("create_assessment_version", { p_workspace_id: uuid.parse(workspaceId), p_content_json: payload, p_expected_version: expectedVersion, p_change_summary: "Teacher edited assessment draft" });
     if (response.error) return { ok: false, error: response.error.message };
     revalidatePath(`/workspace/teacher/assessments/${workspaceId}`);
     revalidatePath("/workspace/teacher/assessments");
     void access;
     return { ok: true };
   } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Assessment draft could not be saved." }; }
+}
+
+export async function confirmPartialAssessmentScope(workspaceId: string, sectionId: string, canonicalId: string, evidenceReferenceId: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    await requireWorkspaceAccess();
+    const client = await createSupabaseServerClient();
+    const response = await client.rpc("confirm_assessment_partial_scope", { p_workspace_id: uuid.parse(workspaceId), p_section_id: uuid.parse(sectionId), p_canonical_id: z.string().trim().min(1).parse(canonicalId), p_evidence_reference_id: uuid.parse(evidenceReferenceId), p_reason: "Teacher confirmed this partially covered curricular portion is assessable." });
+    if (response.error) return { ok: false, error: response.error.message };
+    revalidatePath(`/workspace/teacher/assessments/${workspaceId}`);
+    revalidatePath("/workspace/teacher/assessments");
+    return { ok: true };
+  } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Partial scope could not be confirmed." }; }
 }
 
 export async function finalizeAssessment(workspaceId: string, expectedVersion: number): Promise<{ ok: boolean; error?: string }> {

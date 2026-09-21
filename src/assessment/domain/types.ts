@@ -34,7 +34,7 @@ export type AssessmentQuestion = z.infer<typeof AssessmentQuestionSchema>;
 
 export const AssessmentBlueprintSchema = z.object({
   participatingSectionIds: z.array(z.string().uuid()).min(1),
-  scopeCanonicalIds: z.array(z.string().min(1)).min(1),
+  scopeCanonicalIds: z.array(z.string().min(1)),
   expectedEvidence: z.string().trim().min(1),
   itemDistribution: z.record(z.string(), z.number().int().nonnegative()),
   difficultyDistribution: z.record(z.enum(assessmentDifficulties), z.number().int().nonnegative()),
@@ -76,7 +76,18 @@ export type AssessmentProfile = {
   effectiveFrom: string;
   effectiveTo: string | null;
   allowsBroaderScope: boolean;
+  allowsPartialScope?: boolean;
   requiresReview: boolean;
+  productionUseStatus?: "PERMITTED" | "PERMISSION_PENDING" | "BLOCKED";
+  formalArtifactAllowed?: boolean;
+  releaseStatus?: "ACTIVE" | "DRAFT" | "REVIEW" | "SUPERSEDED" | "RETIRED";
+  subjectProfileStatus?: "ACTIVE" | "DRAFT" | "RETIRED";
+  subjectProfileRuntimeStatus?: "PILOT_ACTIVE" | "ACADEMICALLY_VERIFIED" | "CANDIDATE" | "RETIRED";
+  applicable?: boolean;
+  assessmentDate?: string;
+  subjectProfileId?: string | null;
+  subjectId?: string;
+  educationLevel?: string;
 };
 
 export type ProfileResolution =

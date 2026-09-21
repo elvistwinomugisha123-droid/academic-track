@@ -7,6 +7,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export async function resolveAssessmentExport(workspaceId: string) {
   const data = await loadAssessmentWorkspace(workspaceId);
   if (data.workspace.status !== "FINAL") return { ok: false as const, error: "Only a finalised assessment can be exported." };
+  if (data.profileResolution.state !== "RESOLVED" || !data.runtimeProfile?.exportAllowed || data.runtimeProfile.rightsState !== "CLEARED" || data.runtimeProfile.formalArtifactAllowed !== true) {
+    return { ok: false as const, error: "The current governed assessment sources do not permit formal export." };
+  }
   const client = await createSupabaseServerClient();
   const [school, subject, sections] = await Promise.all([
     client.from("schools").select("name").eq("id", data.access.schoolId).single(),
@@ -22,6 +25,6 @@ export async function resolveAssessmentExport(workspaceId: string) {
   ]);
   if (classLevels.error || streams.error) return { ok: false as const, error: "Assessment class identity could not be verified for export." };
   const classLabel = [...new Set([...(classLevels.data ?? []).map((item) => String(item.name)), ...(streams.data ?? []).map((item) => String(item.name))])].join(" · ");
-  const canonical = assessmentPayloadToCanonicalArtifact({ id: String(data.workspace.id), versionId: String(data.version.id), status: "FINAL", ownerScope: data.sections.map((section) => String(section.teaching_section_id)), curriculumAnchorIds: data.scopeItems.map((item) => String(item.canonical_id)), provenance: [{ category: "CURRICULUM", label: String(data.profile?.display_title || "Active assessment profile"), sourceId: String(data.profile?.id || "") }], payload: data.version.content_json });
+  const canonical = assessmentPayloadToCanonicalArtifact({ id: String(data.workspace.id), versionId: String(data.version.id), status: "FINAL", ownerScope: data.sections.map((section) => String(section.teaching_section_id)), curriculumAnchorIds: data.scopeItems.map((item) => String(item.canonical_id)), provenance: [{ category: "CURRICULUM", label: `${data.runtimeProfile.displayTitle} · ${data.runtimeProfile.authority}`, sourceId: data.runtimeProfile.sourceId || data.runtimeProfile.id, rightsState: data.runtimeProfile.rightsState }], payload: data.version.content_json });
   return { ok: true as const, canonical, schoolName: String(school.data.name), subjectName: String(subject.data.name), classLabel, workspace: data.workspace };
 }
