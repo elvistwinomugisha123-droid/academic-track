@@ -23,6 +23,7 @@ export type RuntimeAssessmentProfileInput = {
   };
   subjectProfile: {
     id: string;
+    releaseId: string;
     governedSubjectId: string;
     educationLevel: string;
     status: string;
@@ -59,7 +60,7 @@ function isDateApplicable(assessmentDate: string, effectiveFrom: string, effecti
 export function resolveRuntimeAssessmentProfile(input: RuntimeAssessmentProfileInput): ProfileResolution {
   const releaseApplicable = input.release.status === "ACTIVE" && isDateApplicable(input.assessmentDate, input.release.effectiveFrom, input.release.effectiveTo);
   const profileApplicable = input.profile.status === "ACTIVE" && input.profile.releaseId === input.release.id;
-  const subjectProfileApplicable = input.subjectProfile.id === input.subjectProfileId && input.subjectProfile.status === "ACTIVE" && input.subjectProfile.runtimeStatus === "PILOT_ACTIVE";
+  const subjectProfileApplicable = input.subjectProfile.id === input.subjectProfileId && input.subjectProfile.releaseId === input.profile.releaseId && input.subjectProfile.status === "ACTIVE" && input.subjectProfile.runtimeStatus === "PILOT_ACTIVE";
   const subjectBindingApplicable = input.subjectBinding?.status === "ACTIVE" && isDateApplicable(input.assessmentDate, input.subjectBinding.effectiveFrom, input.subjectBinding.effectiveTo);
   const sectionBindingsApplicable = input.sectionIds.length > 0 && input.sectionIds.every((sectionId) => input.sectionBindings.some((binding) => binding.sectionId === sectionId && binding.status === "ACTIVE" && isDateApplicable(input.assessmentDate, binding.effectiveFrom, binding.effectiveTo)));
   const allRightsCleared = input.sources.length > 0 && input.sources.every((source) => source.rightsStatus === "CLEARED" && source.productionUseStatus === "PERMITTED");

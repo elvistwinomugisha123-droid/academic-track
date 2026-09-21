@@ -17,6 +17,7 @@ const createSchema = z.object({
   durationMinutes: z.coerce.number().int().positive().max(600),
   totalMarks: z.coerce.number().int().positive().max(1000),
   sectionIds: z.array(uuid).min(1).max(12),
+  assessmentDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Assessment date must be YYYY-MM-DD."),
 });
 
 function result(error: { message?: string } | null, fallback: string) { return error ? { ok: false as const, error: error.message || fallback } : { ok: true as const }; }
@@ -31,20 +32,29 @@ export async function createAssessmentWorkspace(input: unknown): Promise<{ ok: t
     if (sectionResult.data.some((section) => section.school_subject_id !== value.schoolSubjectId || section.academic_period_id !== value.academicPeriodId)) return { ok: false, error: "Participating Teaching Sections must share the selected subject and academic period." };
     const profileResult = await client.from("knowledge_assessment_profiles").select("id, purpose, subject_profile_id, status").eq("id", value.assessmentProfileId).eq("purpose", value.purpose).eq("status", "ACTIVE").maybeSingle();
     if (profileResult.error || !profileResult.data || (profileResult.data.subject_profile_id && profileResult.data.subject_profile_id !== value.curriculumSubjectProfileId)) return { ok: false, error: "No active assessment profile applies to this purpose and subject." };
-    const [positions, classroomEvents] = await Promise.all([
-      client.from("teaching_section_curriculum_position_events").select("id, teaching_section_id, canonical_id, supersedes_event_id").eq("school_id", access.schoolId).in("teaching_section_id", value.sectionIds).order("confirmed_at", { ascending: false }),
-      client.from("classroom_events").select("id, teaching_section_id, outcome, occurred_at, supersedes_event_id").eq("school_id", access.schoolId).in("teaching_section_id", value.sectionIds).order("occurred_at", { ascending: false }),
+    const [classroomEvents, preparations, scheduledLessons] = await Promise.all([
+      client.from("classroom_events").select("id, scheduled_lesson_id, teaching_section_id, outcome, occurred_at, supersedes_event_id").eq("school_id", access.schoolId).in("teaching_section_id", value.sectionIds).order("occurred_at", { ascending: false }),
+      client.from("lesson_preparations").select("scheduled_lesson_id, teaching_section_id, curriculum_position_event_id, curriculum_canonical_id, curriculum_profile_id").eq("school_id", access.schoolId).in("teaching_section_id", value.sectionIds),
+      client.from("scheduled_lessons").select("id, academic_period_id, scheduled_date").eq("school_id", access.schoolId).in("teaching_section_id", value.sectionIds).eq("academic_period_id", value.academicPeriodId).lte("scheduled_date", value.assessmentDate),
     ]);
-    if (positions.error || classroomEvents.error) return { ok: false, error: "Confirmed curriculum position could not be resolved." };
-    const supersededPositionIds = new Set((positions.data ?? []).map((item) => item.supersedes_event_id).filter(Boolean));
+    if (classroomEvents.error || preparations.error || scheduledLessons.error) return { ok: false, error: "Classroom delivery evidence could not be resolved." };
+    const scheduledLessonIds = new Set((scheduledLessons.data ?? []).map((lesson) => lesson.id));
     const supersededClassroomIds = new Set((classroomEvents.data ?? []).map((event) => event.supersedes_event_id).filter(Boolean));
-    const latestPartialSections = new Set((classroomEvents.data ?? []).filter((event) => !supersededClassroomIds.has(event.id) && event.outcome === "PARTIALLY_DELIVERED").map((event) => event.teaching_section_id));
-    const bySection = value.sectionIds.map((sectionId) => [...new Set((positions.data ?? []).filter((item) => item.teaching_section_id === sectionId && !supersededPositionIds.has(item.id) && !latestPartialSections.has(sectionId)).map((item) => item.canonical_id))]);
+    const preparationByLesson = new Map((preparations.data ?? []).map((preparation) => [preparation.scheduled_lesson_id, preparation]));
+    const deliveryRows = (classroomEvents.data ?? []).filter((event) => !supersededClassroomIds.has(event.id) && scheduledLessonIds.has(event.scheduled_lesson_id)).flatMap((event) => {
+      const preparation = preparationByLesson.get(event.scheduled_lesson_id);
+      if (!preparation || preparation.curriculum_profile_id !== value.curriculumSubjectProfileId || !preparation.curriculum_canonical_id) return [];
+      return [{ ...event, preparation }];
+    });
+    const deliveredRows = deliveryRows.filter((event) => event.outcome === "DELIVERED");
+    const partialRows = deliveryRows.filter((event) => event.outcome === "PARTIALLY_DELIVERED");
+    const bySection = value.sectionIds.map((sectionId) => [...new Set(deliveredRows.filter((item) => item.teaching_section_id === sectionId).map((item) => item.preparation.curriculum_canonical_id).filter(Boolean))]);
     const eligible = value.purpose === "COMMON_STREAM_TEST" ? [...new Set(bySection[0] ?? [])].filter((id) => bySection.every((items) => items.includes(id))) : [...new Set(bySection.flat())];
-    if (!eligible.length && !latestPartialSections.size) return { ok: false, error: "No confirmed curriculum scope is available yet. Confirm classroom position before creating this assessment." };
+    if (!eligible.length && !partialRows.length) return { ok: false, error: "No delivered classroom evidence with a matching lesson preparation is available yet." };
     const content = { title: value.title, purpose: value.purpose, durationMinutes: value.durationMinutes, totalMarks: value.totalMarks, instructions: ["Answer all questions unless instructed otherwise."], blueprint: { participatingSectionIds: value.sectionIds, scopeCanonicalIds: eligible, expectedEvidence: "Teacher-marked responses", itemDistribution: {}, difficultyDistribution: { LOW: 0, MEDIUM: 0, HIGH: 0 }, marksDistribution: {}, totalMarks: value.totalMarks, durationMinutes: value.durationMinutes, practicalRequirements: [], accessibilityConstraints: [], subjectConstraints: [], teacherNotes: "" }, questions: [] };
-    const scopeItems = (positions.data ?? []).filter((item) => eligible.includes(item.canonical_id) && !supersededPositionIds.has(item.id) && !latestPartialSections.has(item.teaching_section_id)).map((item) => ({ canonicalId: item.canonical_id, scopeState: "CONFIRMED_ELIGIBLE", evidenceType: "CONFIRMED_DELIVERY", evidenceReferenceId: item.id, sectionId: item.teaching_section_id }));
-    const response = await client.rpc("create_assessment_workspace", { p_academic_period_id: value.academicPeriodId, p_school_subject_id: value.schoolSubjectId, p_curriculum_subject_profile_id: value.curriculumSubjectProfileId, p_assessment_profile_id: value.assessmentProfileId, p_purpose: value.purpose, p_title: value.title, p_duration_minutes: value.durationMinutes, p_total_marks: value.totalMarks, p_section_ids: value.sectionIds, p_scope_items: scopeItems, p_content_json: content });
+    const seen = new Set<string>();
+    const scopeItems = deliveredRows.filter((item) => eligible.includes(item.preparation.curriculum_canonical_id || "")).filter((item) => { const key = `${item.teaching_section_id}:${item.preparation.curriculum_canonical_id}`; if (seen.has(key)) return false; seen.add(key); return true; }).map((item) => ({ canonicalId: item.preparation.curriculum_canonical_id, scopeState: "CONFIRMED_ELIGIBLE", evidenceType: "CONFIRMED_DELIVERY", evidenceReferenceId: item.id, classroomEvidenceId: item.id, curriculumPositionEventId: item.preparation.curriculum_position_event_id, sectionId: item.teaching_section_id }));
+    const response = await client.rpc("create_assessment_workspace", { p_academic_period_id: value.academicPeriodId, p_school_subject_id: value.schoolSubjectId, p_curriculum_subject_profile_id: value.curriculumSubjectProfileId, p_assessment_profile_id: value.assessmentProfileId, p_purpose: value.purpose, p_title: value.title, p_duration_minutes: value.durationMinutes, p_total_marks: value.totalMarks, p_section_ids: value.sectionIds, p_scope_items: scopeItems, p_content_json: content, p_assessment_date: value.assessmentDate });
     if (response.error || !response.data) return { ok: false, error: response.error?.message || "Assessment workspace could not be created." };
     revalidatePath("/workspace/teacher/assessments");
     return { ok: true, id: String((response.data as { workspaceId: string }).workspaceId) };

@@ -150,6 +150,7 @@ $$;
 create or replace function private.resolve_assessment_profile_context(
   target_school_id uuid,
   target_period_id uuid,
+  target_assessment_date date,
   target_school_subject_id uuid,
   target_subject_profile_id uuid,
   target_profile_id uuid,
@@ -160,6 +161,7 @@ declare
   period_record record;
   profile_record record;
   subject_profile_record record;
+  school_subject_record record;
   subject_binding_record record;
   assessment_date date;
   section_bindings_ok boolean;
@@ -174,7 +176,10 @@ declare
 begin
   select period.* into period_record from academic_periods period where period.id = target_period_id and period.school_id = target_school_id;
   if not found then return jsonb_build_object('applicable', false, 'reason', 'The academic period is not part of the authenticated school.'); end if;
-  assessment_date := period_record.starts_on;
+  if target_assessment_date is null or target_assessment_date < period_record.starts_on or target_assessment_date > period_record.ends_on then
+    return jsonb_build_object('applicable', false, 'reason', 'The assessment date must fall inside the selected academic period.');
+  end if;
+  assessment_date := target_assessment_date;
 
   select ap.id, ap.display_title, ap.purpose, ap.regime, ap.release_id, ap.subject_profile_id,
          ap.status, ap.allows_broader_scope, ap.allows_partial_scope, ap.requires_review,
@@ -191,6 +196,10 @@ begin
 
   select subject_profile.* into subject_profile_record from knowledge_subject_profiles subject_profile where subject_profile.id = target_subject_profile_id;
   if not found then return jsonb_build_object('applicable', false, 'reason', 'The governed subject profile could not be resolved.'); end if;
+  select school_subject.* into school_subject_record from school_subjects school_subject where school_subject.id = target_school_subject_id and school_subject.school_id = target_school_id;
+  if not found or school_subject_record.curriculum_subject_id is distinct from subject_profile_record.governed_subject_id or subject_profile_record.release_id is distinct from profile_record.release_id then
+    return jsonb_build_object('applicable', false, 'reason', 'The school subject, governed subject profile, and assessment release do not match.');
+  end if;
 
   select binding.* into subject_binding_record
     from school_subject_curriculum_bindings binding
@@ -247,7 +256,7 @@ $$;
 
 create or replace function private.assessment_canonical_is_governed(target_subject_profile_id uuid, target_canonical_id text, target_on date)
 returns boolean language sql stable security definer set search_path = '' as $$
-  select exists (select 1 from public.knowledge_profile_records profile_record join public.knowledge_subject_profiles subject_profile on subject_profile.id = profile_record.subject_profile_id join public.knowledge_records record on record.canonical_id = profile_record.canonical_id where profile_record.subject_profile_id = target_subject_profile_id and profile_record.canonical_id = target_canonical_id and profile_record.status = 'APPROVED' and profile_record.runtime_status = 'PILOT_ACTIVE' and (profile_record.effective_from is null or profile_record.effective_from <= target_on) and (profile_record.effective_to is null or profile_record.effective_to >= target_on) and subject_profile.status = 'ACTIVE' and subject_profile.runtime_status = 'PILOT_ACTIVE' and record.verification_status = 'VERIFIED')
+  select exists (select 1 from public.knowledge_profile_records profile_record join public.knowledge_subject_profiles subject_profile on subject_profile.id = profile_record.subject_profile_id join public.knowledge_curriculum_releases release on release.id = subject_profile.release_id join public.knowledge_records record on record.canonical_id = profile_record.canonical_id join public.knowledge_source_spans span on span.span_id = record.span_id and span.source_id = record.source_id join public.knowledge_release_sources source_membership on source_membership.release_id = profile_record.release_id and source_membership.source_id = record.source_id and source_membership.status = 'APPROVED' and (source_membership.subject_profile_id is null or source_membership.subject_profile_id = profile_record.subject_profile_id) where profile_record.subject_profile_id = target_subject_profile_id and profile_record.canonical_id = target_canonical_id and profile_record.status = 'APPROVED' and profile_record.runtime_status = 'PILOT_ACTIVE' and (profile_record.effective_from is null or profile_record.effective_from <= target_on) and (profile_record.effective_to is null or profile_record.effective_to >= target_on) and subject_profile.status = 'ACTIVE' and subject_profile.runtime_status = 'PILOT_ACTIVE' and release.status = 'ACTIVE' and release.effective_from <= target_on and (release.effective_to is null or release.effective_to >= target_on) and record.verification_status = 'VERIFIED' and span.verification_status = 'VERIFIED')
 $$;
 
 create or replace function private.assessment_scope_is_eligible(target_workspace_id uuid, target_canonical_id text)
@@ -294,33 +303,48 @@ create policy assessment_workspace_sections_read on public.assessment_workspace_
 create policy assessment_scope_items_read on public.assessment_scope_items for select to authenticated using (private.assessment_can_manage(school_id, assessment_workspace_id));
 create policy assessment_versions_read on public.assessment_versions for select to authenticated using (private.assessment_can_manage(school_id, assessment_workspace_id));
 
-create or replace function public.create_assessment_workspace(p_academic_period_id uuid, p_school_subject_id uuid, p_curriculum_subject_profile_id uuid, p_assessment_profile_id uuid, p_purpose text, p_title text, p_duration_minutes integer, p_total_marks integer, p_section_ids uuid[], p_scope_items jsonb, p_content_json jsonb)
+create or replace function public.create_assessment_workspace(p_academic_period_id uuid, p_school_subject_id uuid, p_curriculum_subject_profile_id uuid, p_assessment_profile_id uuid, p_purpose text, p_title text, p_duration_minutes integer, p_total_marks integer, p_section_ids uuid[], p_scope_items jsonb, p_content_json jsonb, p_assessment_date date)
 returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
-declare actor record; workspace_id uuid; version_id uuid; item jsonb; section_id uuid; canonical_id text; scope_state text; evidence_type text; section_value uuid; evidence_value uuid; profile_context jsonb; assessment_date date;
+declare actor record; workspace_id uuid; version_id uuid; item jsonb; section_id uuid; canonical_id text; scope_state text; evidence_type text; section_value uuid; evidence_value uuid; classroom_evidence_value uuid; profile_context jsonb; assessment_date date; period_start_date date; period_end_date date;
 begin
   select m.id, m.school_id, m.user_id into actor from memberships m where m.user_id = auth.uid() and m.status = 'ACTIVE' limit 1;
   if not found then raise exception 'active school membership is required'; end if;
   if p_title is null or char_length(trim(p_title)) = 0 or p_duration_minutes <= 0 or p_total_marks <= 0 then raise exception 'assessment identity, duration, and marks are required'; end if;
   if not private.assessment_sections_are_owned(actor.school_id, actor.id, p_section_ids) then raise exception 'every participating Teaching Section must be assigned to the authenticated teacher'; end if;
-  select period.starts_on into assessment_date from academic_periods period where period.id = p_academic_period_id and period.school_id = actor.school_id;
-  if assessment_date is null then raise exception 'academic period does not belong to the authenticated school'; end if;
-  profile_context := private.resolve_assessment_profile_context(actor.school_id, p_academic_period_id, p_school_subject_id, p_curriculum_subject_profile_id, p_assessment_profile_id, p_purpose, p_section_ids);
+  select period.starts_on, period.ends_on into period_start_date, period_end_date from academic_periods period where period.id = p_academic_period_id and period.school_id = actor.school_id;
+  if period_start_date is null or p_assessment_date is null or p_assessment_date < period_start_date or p_assessment_date > period_end_date then raise exception 'assessment date must fall inside the selected academic period'; end if;
+  assessment_date := p_assessment_date;
+  profile_context := private.resolve_assessment_profile_context(actor.school_id, p_academic_period_id, p_assessment_date, p_school_subject_id, p_curriculum_subject_profile_id, p_assessment_profile_id, p_purpose, p_section_ids);
   if coalesce((profile_context->>'applicable')::boolean, false) is not true then raise exception '%', coalesce(profile_context->>'reason', 'assessment profile is not applicable'); end if;
   perform private.validate_assessment_payload_shape(p_content_json, p_purpose, p_total_marks, p_duration_minutes);
   if p_scope_items is null or jsonb_typeof(p_scope_items) <> 'array' then raise exception 'assessment scope items must be a JSON array'; end if;
   insert into assessment_workspaces(school_id, academic_period_id, school_subject_id, curriculum_subject_profile_id, assessment_profile_id, purpose, title, duration_minutes, total_marks, assessment_date, profile_snapshot, created_by_membership_id) values(actor.school_id, p_academic_period_id, p_school_subject_id, p_curriculum_subject_profile_id, p_assessment_profile_id, p_purpose, trim(p_title), p_duration_minutes, p_total_marks, assessment_date, profile_context, actor.id) returning id into workspace_id;
   foreach section_id in array p_section_ids loop insert into assessment_workspace_sections(assessment_workspace_id, school_id, teaching_section_id) values(workspace_id, actor.school_id, section_id); end loop;
   for item in select value from jsonb_array_elements(p_scope_items) value loop
-    canonical_id := nullif(trim(item->>'canonicalId'), ''); scope_state := coalesce(item->>'scopeState', 'CONFIRMED_ELIGIBLE'); evidence_type := coalesce(item->>'evidenceType', 'CONFIRMED_DELIVERY'); section_value := nullif(item->>'sectionId', '')::uuid; evidence_value := nullif(item->>'evidenceReferenceId', '')::uuid;
+    canonical_id := nullif(trim(item->>'canonicalId'), ''); scope_state := coalesce(item->>'scopeState', 'CONFIRMED_ELIGIBLE'); evidence_type := coalesce(item->>'evidenceType', 'CONFIRMED_DELIVERY'); section_value := nullif(item->>'sectionId', '')::uuid; classroom_evidence_value := nullif(item->>'classroomEvidenceId', '')::uuid; evidence_value := nullif(item->>'curriculumPositionEventId', '')::uuid;
     if canonical_id is null or not private.assessment_canonical_is_governed(p_curriculum_subject_profile_id, canonical_id, assessment_date) then raise exception 'scope item is not an approved, runtime-eligible record in the bound subject profile'; end if;
     if scope_state not in ('CONFIRMED_ELIGIBLE','BROADER_PROFILE_PERMITTED') then raise exception 'scope items may only establish governed eligible scope during workspace creation'; end if;
     if scope_state = 'BROADER_PROFILE_PERMITTED' and coalesce((profile_context->>'allowsBroaderScope')::boolean, false) is not true then raise exception 'the resolved assessment profile does not permit broader scope'; end if;
     if section_value is null or not (section_value = any(p_section_ids)) then raise exception 'scope evidence must belong to a participating Teaching Section'; end if;
     if evidence_type <> 'CONFIRMED_DELIVERY' then raise exception 'partial scope must be confirmed through the controlled partial-scope RPC'; end if;
-    if evidence_value is null or not exists (select 1 from teaching_section_curriculum_position_events position where position.id = evidence_value and position.school_id = actor.school_id and position.teaching_section_id = section_value and position.subject_profile_id = p_curriculum_subject_profile_id and position.canonical_id = canonical_id and position.confirmed_at::date <= assessment_date and not exists (select 1 from teaching_section_curriculum_position_events successor where successor.supersedes_event_id = position.id) and not exists (select 1 from classroom_events classroom_event where classroom_event.school_id = actor.school_id and classroom_event.teaching_section_id = section_value and classroom_event.outcome = 'PARTIALLY_DELIVERED' and not exists (select 1 from classroom_events successor where successor.supersedes_event_id = classroom_event.id))) then raise exception 'confirmed scope evidence does not match the current governed position and classroom state'; end if;
-    insert into assessment_scope_items(assessment_workspace_id, school_id, canonical_id, scope_state, evidence_type, evidence_reference_id, curriculum_position_event_id, section_id, override_reason, confirmed_by_membership_id) values(workspace_id, actor.school_id, canonical_id, scope_state, evidence_type, evidence_value::text, evidence_value, section_value, item->>'overrideReason', actor.id);
+    if classroom_evidence_value is null or not exists (
+      select 1
+      from classroom_events classroom_event
+      join scheduled_lessons lesson on lesson.id = classroom_event.scheduled_lesson_id and lesson.school_id = classroom_event.school_id
+      join lesson_preparations preparation on preparation.school_id = classroom_event.school_id and preparation.scheduled_lesson_id = classroom_event.scheduled_lesson_id and preparation.teaching_section_id = classroom_event.teaching_section_id
+      where classroom_event.id = classroom_evidence_value and classroom_event.school_id = actor.school_id and classroom_event.teaching_section_id = section_value and classroom_event.outcome = 'DELIVERED'
+        and lesson.academic_period_id = p_academic_period_id and lesson.scheduled_date <= assessment_date and not exists (select 1 from classroom_events successor where successor.supersedes_event_id = classroom_event.id)
+        and preparation.curriculum_profile_id = p_curriculum_subject_profile_id and preparation.curriculum_canonical_id = canonical_id
+        and (evidence_value is null or preparation.curriculum_position_event_id = evidence_value)
+    ) then raise exception 'confirmed delivery scope must reference a current DELIVERED classroom event and matching lesson preparation anchor'; end if;
+    insert into assessment_scope_items(assessment_workspace_id, school_id, canonical_id, scope_state, evidence_type, evidence_reference_id, classroom_evidence_id, curriculum_position_event_id, section_id, override_reason, confirmed_by_membership_id) values(workspace_id, actor.school_id, canonical_id, scope_state, evidence_type, classroom_evidence_value::text, classroom_evidence_value, evidence_value, section_value, item->>'overrideReason', actor.id);
   end loop;
-  if not exists(select 1 from assessment_scope_items item where item.assessment_workspace_id = workspace_id and item.scope_state in ('CONFIRMED_ELIGIBLE','BROADER_PROFILE_PERMITTED')) and not (coalesce((profile_context->>'allowsPartialScope')::boolean, false) and exists(select 1 from classroom_events classroom_event where classroom_event.school_id = actor.school_id and classroom_event.teaching_section_id = any(p_section_ids) and classroom_event.outcome = 'PARTIALLY_DELIVERED' and not exists(select 1 from classroom_events successor where successor.supersedes_event_id = classroom_event.id))) then raise exception 'no governed eligible assessment scope was supplied'; end if;
+  if not exists(select 1 from assessment_scope_items item where item.assessment_workspace_id = workspace_id and item.scope_state in ('CONFIRMED_ELIGIBLE','BROADER_PROFILE_PERMITTED')) and not (coalesce((profile_context->>'allowsPartialScope')::boolean, false) and exists(
+    select 1 from classroom_events classroom_event
+    join scheduled_lessons lesson on lesson.id = classroom_event.scheduled_lesson_id and lesson.school_id = classroom_event.school_id
+    join lesson_preparations preparation on preparation.school_id = classroom_event.school_id and preparation.scheduled_lesson_id = classroom_event.scheduled_lesson_id and preparation.teaching_section_id = classroom_event.teaching_section_id
+    where classroom_event.school_id = actor.school_id and classroom_event.teaching_section_id = any(p_section_ids) and classroom_event.outcome = 'PARTIALLY_DELIVERED' and lesson.academic_period_id = p_academic_period_id and preparation.curriculum_profile_id = p_curriculum_subject_profile_id and preparation.curriculum_canonical_id is not null and not exists(select 1 from classroom_events successor where successor.supersedes_event_id = classroom_event.id)
+  )) then raise exception 'no governed eligible assessment scope was supplied'; end if;
   insert into assessment_versions(school_id, assessment_workspace_id, version_number, content_json, change_source, change_summary, created_by_membership_id) values(actor.school_id, workspace_id, 1, p_content_json, 'TEACHER', 'Initial teacher-authored assessment draft', actor.id) returning id into version_id;
   update assessment_workspaces set current_version_id = version_id, updated_at = now() where id = workspace_id;
   insert into audit_events(school_id, actor_user_id, action, resource_type, resource_id, metadata, after_state) values(actor.school_id, actor.user_id, 'CREATE', 'ASSESSMENT_WORKSPACE', workspace_id, jsonb_build_object('purpose', p_purpose, 'profile_id', p_assessment_profile_id, 'section_ids', p_section_ids), jsonb_build_object('version_id', version_id));
@@ -363,21 +387,25 @@ $$;
 
 create or replace function public.confirm_assessment_partial_scope(p_workspace_id uuid, p_section_id uuid, p_canonical_id text, p_evidence_reference_id uuid, p_reason text default null)
 returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
-declare actor record; workspace record; profile_context jsonb; position_event record; classroom_event record; current_version record; item_id uuid; version_id uuid; next_version integer; updated_content jsonb; current_scope_eligible boolean;
+declare actor record; workspace record; profile_context jsonb; classroom_event record; current_version record; item_id uuid; version_id uuid; next_version integer; updated_content jsonb; current_scope_eligible boolean;
 begin
   select m.id, m.school_id, m.user_id into actor from memberships m where m.user_id = auth.uid() and m.status = 'ACTIVE' limit 1;
   select workspace.* into workspace from assessment_workspaces workspace where workspace.id = p_workspace_id and workspace.school_id = actor.school_id for update;
   if not found or not private.assessment_can_manage(actor.school_id, p_workspace_id) then raise exception 'assessment is not available to this teacher'; end if;
   if workspace.status = 'FINAL' then raise exception 'finalised assessment workspaces cannot be changed'; end if;
   if not exists(select 1 from assessment_workspace_sections section where section.assessment_workspace_id = p_workspace_id and section.teaching_section_id = p_section_id) then raise exception 'partial scope section is outside the assessment'; end if;
-  profile_context := private.resolve_assessment_profile_context(actor.school_id, workspace.academic_period_id, workspace.school_subject_id, workspace.curriculum_subject_profile_id, workspace.assessment_profile_id, workspace.purpose, array[p_section_id]);
+  profile_context := private.resolve_assessment_profile_context(actor.school_id, workspace.academic_period_id, workspace.assessment_date, workspace.school_subject_id, workspace.curriculum_subject_profile_id, workspace.assessment_profile_id, workspace.purpose, array[p_section_id]);
   if coalesce((profile_context->>'applicable')::boolean, false) is not true or coalesce((profile_context->>'allowsPartialScope')::boolean, false) is not true then raise exception 'the resolved assessment profile does not permit partial-scope confirmation'; end if;
   if not private.assessment_canonical_is_governed(workspace.curriculum_subject_profile_id, p_canonical_id, workspace.assessment_date) then raise exception 'partial scope must reference an approved, runtime-eligible record in the bound subject profile'; end if;
-  select position.* into position_event from teaching_section_curriculum_position_events position where position.school_id = actor.school_id and position.teaching_section_id = p_section_id and position.subject_profile_id = workspace.curriculum_subject_profile_id and position.canonical_id = p_canonical_id and position.confirmed_at::date <= workspace.assessment_date and not exists(select 1 from teaching_section_curriculum_position_events successor where successor.supersedes_event_id = position.id) order by position.confirmed_at desc, position.id desc limit 1;
-  if not found then raise exception 'partial scope must be tied to the current governed curricular position'; end if;
-  select classroom.* into classroom_event from classroom_events classroom where classroom.id = p_evidence_reference_id and classroom.school_id = actor.school_id and classroom.teaching_section_id = p_section_id and classroom.outcome = 'PARTIALLY_DELIVERED' and not exists(select 1 from classroom_events successor where successor.supersedes_event_id = classroom.id);
-  if not found then raise exception 'partial scope must reference the current PARTIALLY_DELIVERED classroom evidence'; end if;
-  insert into assessment_scope_items(assessment_workspace_id, school_id, canonical_id, scope_state, evidence_type, evidence_reference_id, classroom_evidence_id, curriculum_position_event_id, section_id, override_reason, confirmed_by_membership_id) values(p_workspace_id, actor.school_id, p_canonical_id, 'CONFIRMED_ELIGIBLE', 'EXPLICIT_PARTIAL_SCOPE_CONFIRMATION', classroom_event.id::text, classroom_event.id, position_event.id, p_section_id, nullif(trim(p_reason), ''), actor.id)
+  select classroom.*, preparation.curriculum_position_event_id as preparation_position_event_id into classroom_event
+    from classroom_events classroom
+    join scheduled_lessons lesson on lesson.id = classroom.scheduled_lesson_id and lesson.school_id = classroom.school_id
+    join lesson_preparations preparation on preparation.school_id = classroom.school_id and preparation.scheduled_lesson_id = classroom.scheduled_lesson_id and preparation.teaching_section_id = classroom.teaching_section_id
+   where classroom.id = p_evidence_reference_id and classroom.school_id = actor.school_id and classroom.teaching_section_id = p_section_id and classroom.outcome = 'PARTIALLY_DELIVERED'
+     and lesson.academic_period_id = workspace.academic_period_id and lesson.scheduled_date <= workspace.assessment_date and preparation.curriculum_profile_id = workspace.curriculum_subject_profile_id and preparation.curriculum_canonical_id = p_canonical_id
+     and not exists(select 1 from classroom_events successor where successor.supersedes_event_id = classroom.id);
+  if not found then raise exception 'partial scope must reference current PARTIALLY_DELIVERED classroom evidence with a matching lesson preparation anchor'; end if;
+  insert into assessment_scope_items(assessment_workspace_id, school_id, canonical_id, scope_state, evidence_type, evidence_reference_id, classroom_evidence_id, curriculum_position_event_id, section_id, override_reason, confirmed_by_membership_id) values(p_workspace_id, actor.school_id, p_canonical_id, 'CONFIRMED_ELIGIBLE', 'EXPLICIT_PARTIAL_SCOPE_CONFIRMATION', classroom_event.id::text, classroom_event.id, classroom_event.preparation_position_event_id, p_section_id, nullif(trim(p_reason), ''), actor.id)
   on conflict (assessment_workspace_id, canonical_id, section_id) do update set scope_state = excluded.scope_state, evidence_type = excluded.evidence_type, evidence_reference_id = excluded.evidence_reference_id, classroom_evidence_id = excluded.classroom_evidence_id, curriculum_position_event_id = excluded.curriculum_position_event_id, override_reason = excluded.override_reason, confirmed_by_membership_id = excluded.confirmed_by_membership_id;
   select id into item_id from assessment_scope_items where assessment_workspace_id = p_workspace_id and canonical_id = p_canonical_id and section_id = p_section_id;
   current_scope_eligible := private.assessment_scope_is_eligible(p_workspace_id, p_canonical_id);
@@ -388,7 +416,7 @@ begin
     insert into assessment_versions(school_id, assessment_workspace_id, version_number, content_json, change_source, change_summary, created_by_membership_id) values(actor.school_id, p_workspace_id, next_version, updated_content, 'TEACHER', 'Teacher confirmed an assessable partial curricular portion', actor.id) returning id into version_id;
     update assessment_workspaces set current_version_id = version_id, updated_at = now() where id = p_workspace_id;
   end if;
-  insert into audit_events(school_id, actor_user_id, action, resource_type, resource_id, metadata) values(actor.school_id, actor.user_id, 'CONFIRM_PARTIAL_ASSESSMENT_SCOPE', 'ASSESSMENT_WORKSPACE', p_workspace_id, jsonb_build_object('scope_item_id', item_id, 'section_id', p_section_id, 'canonical_id', p_canonical_id, 'classroom_evidence_id', classroom_event.id, 'curriculum_position_event_id', position_event.id));
+  insert into audit_events(school_id, actor_user_id, action, resource_type, resource_id, metadata) values(actor.school_id, actor.user_id, 'CONFIRM_PARTIAL_ASSESSMENT_SCOPE', 'ASSESSMENT_WORKSPACE', p_workspace_id, jsonb_build_object('scope_item_id', item_id, 'section_id', p_section_id, 'canonical_id', p_canonical_id, 'classroom_evidence_id', classroom_event.id, 'curriculum_position_event_id', classroom_event.preparation_position_event_id));
   return jsonb_build_object('workspaceId', p_workspace_id, 'scopeItemId', item_id, 'canonicalId', p_canonical_id, 'sectionId', p_section_id);
 end;
 $$;
@@ -402,7 +430,7 @@ begin
   if not found or not private.assessment_can_manage(actor.school_id, p_workspace_id) then raise exception 'assessment is not available to this teacher'; end if;
   if workspace.status = 'FINAL' then raise exception 'assessment is already finalised'; end if;
   select array_agg(section.teaching_section_id order by section.teaching_section_id) into section_ids from assessment_workspace_sections section where section.assessment_workspace_id = p_workspace_id;
-  profile_context := private.resolve_assessment_profile_context(actor.school_id, workspace.academic_period_id, workspace.school_subject_id, workspace.curriculum_subject_profile_id, workspace.assessment_profile_id, workspace.purpose, section_ids);
+  profile_context := private.resolve_assessment_profile_context(actor.school_id, workspace.academic_period_id, workspace.assessment_date, workspace.school_subject_id, workspace.curriculum_subject_profile_id, workspace.assessment_profile_id, workspace.purpose, section_ids);
   if coalesce((profile_context->>'applicable')::boolean, false) is not true then raise exception 'the assessment profile is no longer applicable; reopen and resolve the current profile'; end if;
   select * into version from assessment_versions where id = workspace.current_version_id and school_id = actor.school_id;
   if not found or (p_expected_version is not null and version.version_number <> p_expected_version) then raise exception 'assessment version is stale; reopen before finalising'; end if;
@@ -437,7 +465,7 @@ begin
   select * into version from assessment_versions where id = workspace.current_version_id;
   if p_expected_version is not null and p_expected_version <> next_version - 1 then raise exception 'assessment changed while the AI proposal was open'; end if;
   select array_agg(section.teaching_section_id order by section.teaching_section_id) into section_ids from assessment_workspace_sections section where section.assessment_workspace_id = p_workspace_id;
-  profile_context := private.resolve_assessment_profile_context(actor.school_id, workspace.academic_period_id, workspace.school_subject_id, workspace.curriculum_subject_profile_id, workspace.assessment_profile_id, workspace.purpose, section_ids);
+  profile_context := private.resolve_assessment_profile_context(actor.school_id, workspace.academic_period_id, workspace.assessment_date, workspace.school_subject_id, workspace.curriculum_subject_profile_id, workspace.assessment_profile_id, workspace.purpose, section_ids);
   if coalesce((profile_context->>'applicable')::boolean, false) is not true or coalesce((profile_context->>'externalAiAllowed')::boolean, false) is not true then raise exception 'the current assessment profile is no longer eligible for AI acceptance'; end if;
   current_scope := to_jsonb(array(select distinct item.canonical_id from assessment_scope_items item where item.assessment_workspace_id = p_workspace_id and item.scope_state in ('CONFIRMED_ELIGIBLE','BROADER_PROFILE_PERMITTED') order by item.canonical_id));
   if run_record.context_snapshot->>'profileId' is distinct from workspace.assessment_profile_id::text or run_record.context_snapshot->>'purpose' is distinct from workspace.purpose or coalesce((run_record.context_snapshot->>'expectedVersion')::integer, -1) <> next_version - 1 or run_record.context_snapshot->'blueprint' is distinct from version.content_json->'blueprint' or run_record.context_snapshot->'eligibleCanonicalIds' is distinct from current_scope then raise exception 'AI proposal context is stale; generate a new proposal'; end if;
@@ -460,18 +488,18 @@ $$;
 
 revoke all on function private.assessment_can_manage(uuid, uuid) from public;
 revoke all on function private.assessment_sections_are_owned(uuid, uuid, uuid[]) from public;
-revoke all on function private.resolve_assessment_profile_context(uuid, uuid, uuid, uuid, uuid, text, uuid[]) from public;
+revoke all on function private.resolve_assessment_profile_context(uuid, uuid, date, uuid, uuid, uuid, text, uuid[]) from public;
 revoke all on function private.assessment_canonical_is_governed(uuid, text, date) from public;
 revoke all on function private.assessment_scope_is_eligible(uuid, text) from public;
 revoke all on function private.validate_assessment_payload_shape(jsonb, text, integer, integer) from public;
-revoke all on function public.create_assessment_workspace(uuid, uuid, uuid, uuid, text, text, integer, integer, uuid[], jsonb, jsonb) from public;
+revoke all on function public.create_assessment_workspace(uuid, uuid, uuid, uuid, text, text, integer, integer, uuid[], jsonb, jsonb, date) from public;
 revoke all on function public.create_assessment_version(uuid, jsonb, integer, text) from public;
 revoke all on function public.confirm_assessment_partial_scope(uuid, uuid, text, uuid, text) from public;
 revoke all on function public.finalize_assessment_workspace(uuid, integer) from public;
 revoke all on function public.accept_assessment_ai_version(uuid, uuid, integer, text) from public;
 grant execute on function private.assessment_can_manage(uuid, uuid) to authenticated;
 grant execute on function private.assessment_sections_are_owned(uuid, uuid, uuid[]) to authenticated;
-grant execute on function public.create_assessment_workspace(uuid, uuid, uuid, uuid, text, text, integer, integer, uuid[], jsonb, jsonb) to authenticated;
+grant execute on function public.create_assessment_workspace(uuid, uuid, uuid, uuid, text, text, integer, integer, uuid[], jsonb, jsonb, date) to authenticated;
 grant execute on function public.create_assessment_version(uuid, jsonb, integer, text) to authenticated;
 grant execute on function public.confirm_assessment_partial_scope(uuid, uuid, text, uuid, text) to authenticated;
 grant execute on function public.finalize_assessment_workspace(uuid, integer) to authenticated;

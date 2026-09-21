@@ -4,7 +4,7 @@ import { resolveRuntimeAssessmentProfile } from "./profile";
 const base = {
   profile: { id: "assessment-profile", displayTitle: "Class test", purpose: "CLASS_TEST" as const, regime: "LOWER_SECONDARY", releaseId: "release", subjectProfileId: "subject-profile", status: "ACTIVE", allowsBroaderScope: false, allowsPartialScope: true, requiresReview: true },
   release: { id: "release", versionLabel: "2026.1", authority: "Test authority", status: "ACTIVE", effectiveFrom: "2026-01-01", effectiveTo: "2026-12-31" },
-  subjectProfile: { id: "subject-profile", governedSubjectId: "governed-subject", educationLevel: "lower-secondary", status: "ACTIVE", runtimeStatus: "PILOT_ACTIVE" },
+  subjectProfile: { id: "subject-profile", releaseId: "release", governedSubjectId: "governed-subject", educationLevel: "lower-secondary", status: "ACTIVE", runtimeStatus: "PILOT_ACTIVE" },
   subjectProfileId: "subject-profile",
   subjectId: "governed-subject",
   subjectBinding: { status: "ACTIVE", effectiveFrom: "2026-01-01", effectiveTo: "2026-12-31" },
@@ -31,6 +31,16 @@ describe("runtime assessment profile resolver", () => {
 
   it("does not resolve an expired governed release", () => {
     const resolved = resolveRuntimeAssessmentProfile({ ...base, release: { ...base.release, effectiveTo: "2026-02-28" } });
+    expect(resolved.state).toBe("UNAVAILABLE");
+  });
+
+  it("uses the assessment date for binding applicability", () => {
+    const resolved = resolveRuntimeAssessmentProfile({ ...base, assessmentDate: "2026-07-01", subjectBinding: { ...base.subjectBinding, effectiveTo: "2026-06-30" } });
+    expect(resolved.state).toBe("UNAVAILABLE");
+  });
+
+  it("does not combine an assessment profile with a subject profile from another release", () => {
+    const resolved = resolveRuntimeAssessmentProfile({ ...base, subjectProfile: { ...base.subjectProfile, releaseId: "another-release" } });
     expect(resolved.state).toBe("UNAVAILABLE");
   });
 });

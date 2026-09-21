@@ -96,7 +96,7 @@ async function loadRuntimeProfile(client: Awaited<ReturnType<typeof createSupaba
   return resolveRuntimeAssessmentProfile({
     profile: { id: profileId, displayTitle: stringValue(profileRow.display_title), purpose: stringValue(profileRow.purpose) as AssessmentProfile["purpose"], regime: stringValue(profileRow.regime), releaseId: stringValue(profileRow.release_id), subjectProfileId: profileRow.subject_profile_id == null ? null : stringValue(profileRow.subject_profile_id), status: stringValue(profileRow.status), allowsBroaderScope: Boolean(profileRow.allows_broader_scope), allowsPartialScope: Boolean(profileRow.allows_partial_scope), requiresReview: Boolean(profileRow.requires_review) },
     release: { id: stringValue(releaseRow.id), versionLabel: stringValue(releaseRow.version_label), authority: stringValue(releaseRow.authority), status: stringValue(releaseRow.status), effectiveFrom: stringValue(releaseRow.effective_from), effectiveTo: releaseRow.effective_to == null ? null : stringValue(releaseRow.effective_to) },
-    subjectProfile: { id: stringValue(subjectProfileRow.id), governedSubjectId: stringValue(subjectProfileRow.governed_subject_id), educationLevel: stringValue(subjectProfileRow.education_level), status: stringValue(subjectProfileRow.status), runtimeStatus: stringValue(subjectProfileRow.runtime_status) },
+    subjectProfile: { id: stringValue(subjectProfileRow.id), releaseId: stringValue(subjectProfileRow.release_id), governedSubjectId: stringValue(subjectProfileRow.governed_subject_id), educationLevel: stringValue(subjectProfileRow.education_level), status: stringValue(subjectProfileRow.status), runtimeStatus: stringValue(subjectProfileRow.runtime_status) },
     subjectProfileId,
     subjectId: stringValue(subjectProfileRow.governed_subject_id),
     sectionIds,
@@ -122,22 +122,22 @@ export async function loadAssessmentWorkspace(workspaceId: string): Promise<Asse
   const current = (versions.data ?? []).find((item) => item.id === workspaceResult.data.current_version_id) ?? versions.data?.[0];
   if (!current) throw new Error("Assessment workspace has no current version.");
   const sectionIds = (sections.data ?? []).map((section) => String(section.teaching_section_id));
-  const [runtimeProfile, classroomEvents, positionEvents] = await Promise.all([
+  const [runtimeProfile, classroomEvents, preparations, scheduledLessons] = await Promise.all([
     loadRuntimeProfile(client, workspaceResult.data, sectionIds),
-    sectionIds.length ? client.from("classroom_events").select("id, teaching_section_id, outcome, occurred_at, supersedes_event_id").eq("school_id", access.schoolId).in("teaching_section_id", sectionIds).order("occurred_at", { ascending: false }) : Promise.resolve({ data: [], error: null }),
-    sectionIds.length ? client.from("teaching_section_curriculum_position_events").select("id, teaching_section_id, canonical_id, supersedes_event_id, confirmed_at").eq("school_id", access.schoolId).in("teaching_section_id", sectionIds).eq("subject_profile_id", String(workspaceResult.data.curriculum_subject_profile_id)).order("confirmed_at", { ascending: false }) : Promise.resolve({ data: [], error: null }),
+    sectionIds.length ? client.from("classroom_events").select("id, scheduled_lesson_id, teaching_section_id, outcome, occurred_at, supersedes_event_id").eq("school_id", access.schoolId).in("teaching_section_id", sectionIds).order("occurred_at", { ascending: false }) : Promise.resolve({ data: [], error: null }),
+    sectionIds.length ? client.from("lesson_preparations").select("scheduled_lesson_id, teaching_section_id, curriculum_canonical_id, curriculum_profile_id").eq("school_id", access.schoolId).in("teaching_section_id", sectionIds).eq("curriculum_profile_id", String(workspaceResult.data.curriculum_subject_profile_id)) : Promise.resolve({ data: [], error: null }),
+    sectionIds.length ? client.from("scheduled_lessons").select("id, academic_period_id, scheduled_date, teaching_section_id").eq("school_id", access.schoolId).in("teaching_section_id", sectionIds).eq("academic_period_id", String(workspaceResult.data.academic_period_id)).lte("scheduled_date", String(workspaceResult.data.assessment_date)) : Promise.resolve({ data: [], error: null }),
   ]);
-  if (classroomEvents.error || positionEvents.error) throw new Error("Assessment classroom continuity context could not be loaded.");
+  if (classroomEvents.error || preparations.error || scheduledLessons.error) throw new Error("Assessment classroom continuity context could not be loaded.");
+  const scheduledLessonIds = new Set(records(scheduledLessons.data).map((lesson) => stringValue(lesson.id)));
   const supersededClassroomIds = new Set(records(classroomEvents.data).map((event) => stringValue(event.supersedes_event_id)).filter(Boolean));
   const currentPartialBySection = new Map<string, Record<string, unknown>>();
-  for (const event of records(classroomEvents.data)) if (!supersededClassroomIds.has(stringValue(event.id)) && stringValue(event.outcome) === "PARTIALLY_DELIVERED" && !currentPartialBySection.has(stringValue(event.teaching_section_id))) currentPartialBySection.set(stringValue(event.teaching_section_id), event);
-  const supersededPositionIds = new Set(records(positionEvents.data).map((event) => stringValue(event.supersedes_event_id)).filter(Boolean));
-  const currentPositionBySection = new Map<string, Record<string, unknown>>();
-  for (const event of records(positionEvents.data)) if (!supersededPositionIds.has(stringValue(event.id)) && !currentPositionBySection.has(stringValue(event.teaching_section_id))) currentPositionBySection.set(stringValue(event.teaching_section_id), event);
+  for (const event of records(classroomEvents.data)) if (scheduledLessonIds.has(stringValue(event.scheduled_lesson_id)) && !supersededClassroomIds.has(stringValue(event.id)) && stringValue(event.outcome) === "PARTIALLY_DELIVERED" && !currentPartialBySection.has(stringValue(event.teaching_section_id))) currentPartialBySection.set(stringValue(event.teaching_section_id), event);
+  const preparationByLesson = new Map(records(preparations.data).map((preparation) => [stringValue(preparation.scheduled_lesson_id), preparation]));
   const partialScopeCandidates = [...currentPartialBySection.entries()].flatMap(([sectionId, classroomEvent]) => {
-    const position = currentPositionBySection.get(sectionId);
-    if (!position || !runtimeProfile.profile?.allowsPartialScope) return [];
-    return [{ sectionId, canonicalId: stringValue(position.canonical_id), evidenceReferenceId: stringValue(classroomEvent.id) }];
+    const preparation = preparationByLesson.get(stringValue(classroomEvent.scheduled_lesson_id));
+    if (!preparation || !runtimeProfile.profile?.allowsPartialScope || !stringValue(preparation.curriculum_canonical_id)) return [];
+    return [{ sectionId, canonicalId: stringValue(preparation.curriculum_canonical_id), evidenceReferenceId: stringValue(classroomEvent.id) }];
   });
   return { access, workspace: workspaceResult.data, sections: sections.data ?? [], scopeItems: scopeItems.data ?? [], version: current as AssessmentWorkspaceData["version"], versions: versions.data ?? [], profile: profile.data ?? null, runtimeProfile: runtimeProfile.profile, profileResolution: runtimeProfile, partialScopeCandidates };
 }
