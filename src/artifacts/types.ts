@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AssessmentPayloadSchema } from "@/assessment/domain/types";
 
 const AssessmentQuestionSchema = z.object({ id: z.string(), text: z.string(), marks: z.number().nonnegative(), markingGuide: z.array(z.string()) });
 export const AssessmentArtifactPayloadSchema = z.object({ title: z.string(), durationMinutes: z.number().nonnegative(), totalMarks: z.number().nonnegative(), questions: z.array(AssessmentQuestionSchema) });
@@ -42,7 +43,7 @@ export type LessonArtifactPayloadMap = { FORMAL_LESSON_PLAN: FormalLessonPlanPay
 export const lessonArtifactTypes: LessonArtifactType[] = ["FORMAL_LESSON_PLAN", "BOARD_NOTES", "LEARNER_NOTES", "LESSON_SUMMARY", "ACTIVITY_SHEET", "HOMEWORK"];
 const CanonicalMetadataSchema = z.object({ artifactId: z.string(), versionId: z.string(), status: z.enum(["DRAFT", "REVIEW", "FINAL"]), ownerScope: z.string(), curriculumAnchorIds: z.array(z.string()), curriculumProfileId: z.string().optional(), rightsState: z.enum(["CLEARED", "REVIEW_REQUIRED", "RESTRICTED", "UNKNOWN"]).optional(), provenance: z.array(z.object({ category: z.string(), label: z.string(), sourceId: z.string().optional(), sourceLocation: z.string().optional(), rightsState: z.string().optional() })) });
 export const CanonicalArtifactVersionSchema = z.discriminatedUnion("artifactType", [
-  CanonicalMetadataSchema.extend({ artifactType: z.literal("ASSESSMENT"), payload: AssessmentArtifactPayloadSchema }),
+  CanonicalMetadataSchema.extend({ artifactType: z.literal("ASSESSMENT"), payload: z.union([AssessmentPayloadSchema, AssessmentArtifactPayloadSchema]) }),
   CanonicalMetadataSchema.extend({ artifactType: z.literal("FORMAL_LESSON_PLAN"), payload: FormalLessonPlanPayloadSchema }),
   CanonicalMetadataSchema.extend({ artifactType: z.literal("BOARD_NOTES"), payload: BoardNotesPayloadSchema }),
   CanonicalMetadataSchema.extend({ artifactType: z.literal("LEARNER_NOTES"), payload: LearnerNotesPayloadSchema }),
