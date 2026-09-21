@@ -8,7 +8,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ asse
   const kind = new URL(request.url).searchParams.get("kind") === "marking-guide" ? "marking-guide" : "question-paper";
   const result = await resolveAssessmentExport(assessmentId);
   if (!result.ok) return new Response(result.error, { status: 403 });
-  const meta = { schoolName: result.schoolName, subject: undefined, classLabel: undefined };
+  const meta = { schoolName: result.schoolName, subject: result.subjectName, classLabel: result.classLabel };
   const pdf = await renderToBuffer(kind === "marking-guide" ? <MarkingGuideDocument artifact={result.canonical} meta={meta} /> : <QuestionPaperDocument artifact={result.canonical} meta={meta} />);
   return new Response(pdf as unknown as BodyInit, { headers: { "Content-Type": "application/pdf", "Content-Disposition": `inline; filename="${kind}-${assessmentId}.pdf"` } });
 }
