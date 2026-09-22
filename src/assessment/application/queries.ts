@@ -2,6 +2,8 @@ import "server-only";
 
 import { requireWorkspaceAccess } from "@/lib/auth/access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { withTransientReadRetry } from "@/lib/supabase/retry";
+import { createPostgresKnowledgeClient } from "@/knowledge/db/client";
 import { assessmentPurposes, type AssessmentPayload, type AssessmentProfile, type ProfileResolution } from "@/assessment/domain/types";
 import { resolveRuntimeAssessmentProfile } from "@/assessment/domain/profile";
 
@@ -15,19 +17,28 @@ export type AssessmentStudioListData = {
   purposes: typeof assessmentPurposes;
 };
 
-export async function loadAssessmentStudioList(): Promise<AssessmentStudioListData> {
-  const access = await requireWorkspaceAccess();
+async function loadAssessmentStudioListOnce(nextPath = "/workspace/teacher/assessments"): Promise<AssessmentStudioListData> {
+  const access = await requireWorkspaceAccess(undefined, nextPath);
   if (!access.roles.includes("TEACHER")) throw new Error("Assessment Studio is available to assigned teachers.");
   const client = await createSupabaseServerClient();
-  const [sections, subjects, periods, profiles, workspaces] = await Promise.all([
+  const [sections, subjects, periods, workspaces] = await Promise.all([
     client.from("teaching_sections").select("id, academic_period_id, school_subject_id, class_level_id, stream_id, assignment_state, operational_status").eq("school_id", access.schoolId).eq("teacher_membership_id", access.membershipId).eq("assignment_state", "CONFIRMED").eq("operational_status", "ACTIVE"),
     client.from("school_subjects").select("id, name, code").eq("school_id", access.schoolId).order("name"),
     client.from("academic_periods").select("id, name, academic_year, starts_on, ends_on").eq("school_id", access.schoolId).order("starts_on", { ascending: false }),
-    client.from("knowledge_assessment_profiles").select("id, release_id, subject_profile_id, assessment_key, display_title, purpose, regime, status").eq("status", "ACTIVE").in("purpose", [...assessmentPurposes]),
     client.from("assessment_workspaces").select("id, title, purpose, status, duration_minutes, total_marks, current_version_id, updated_at").eq("school_id", access.schoolId).order("updated_at", { ascending: false }),
   ]);
-  for (const result of [sections, subjects, periods, profiles, workspaces]) if (result.error) throw new Error("Assessment Studio data could not be loaded.");
-  return { access, sections: sections.data ?? [], subjects: subjects.data ?? [], periods: periods.data ?? [], profiles: profiles.data ?? [], workspaces: workspaces.data ?? [], purposes: assessmentPurposes };
+  for (const result of [sections, subjects, periods, workspaces]) if (result.error) throw new Error(`Assessment Studio data could not be loaded. ${result.error.code ?? ""} ${result.error.message ?? ""}`.trim());
+  const knowledge = createPostgresKnowledgeClient();
+  try {
+    const profiles = await knowledge.query<Record<string, unknown>>("select id, release_id, subject_profile_id, assessment_key, display_title, purpose, regime, status from knowledge_assessment_profiles where status = 'ACTIVE' and purpose = any($1::text[]) order by display_title", [assessmentPurposes]);
+    return { access, sections: sections.data ?? [], subjects: subjects.data ?? [], periods: periods.data ?? [], profiles: profiles.rows, workspaces: workspaces.data ?? [], purposes: assessmentPurposes };
+  } finally {
+    await knowledge.close();
+  }
+}
+
+export async function loadAssessmentStudioList(nextPath = "/workspace/teacher/assessments"): Promise<AssessmentStudioListData> {
+  return withTransientReadRetry(() => loadAssessmentStudioListOnce(nextPath), { label: "Assessment Studio read model", attempts: 3, delayMs: 250 });
 }
 
 export type AssessmentWorkspaceData = {
@@ -44,7 +55,11 @@ export type AssessmentWorkspaceData = {
 };
 
 function records(value: unknown): Array<Record<string, unknown>> { return Array.isArray(value) ? value as Array<Record<string, unknown>> : []; }
-function stringValue(value: unknown) { return typeof value === "string" ? value : ""; }
+function stringValue(value: unknown) {
+  if (typeof value === "string") return value;
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return "";
+}
 
 async function loadRuntimeProfile(client: Awaited<ReturnType<typeof createSupabaseServerClient>>, workspace: Record<string, unknown>, sectionIds: string[]): Promise<ProfileResolution> {
   const profileId = stringValue(workspace.assessment_profile_id);
@@ -52,35 +67,34 @@ async function loadRuntimeProfile(client: Awaited<ReturnType<typeof createSupaba
   const schoolSubjectId = stringValue(workspace.school_subject_id);
   const schoolId = stringValue(workspace.school_id);
   const assessmentDate = stringValue(workspace.assessment_date);
-  const profileResult = await client.from("knowledge_assessment_profiles").select("id, display_title, purpose, regime, release_id, subject_profile_id, status, applicable_source_roles, allows_broader_scope, allows_partial_scope, requires_review").eq("id", profileId).maybeSingle();
-  if (profileResult.error || !profileResult.data) return { state: "UNAVAILABLE", profile: null, explanation: "The governed assessment profile context could not be loaded." };
-  const profileRow = profileResult.data as Record<string, unknown>;
-  const [releaseResult, subjectProfileResult, subjectBindingResult, sectionBindingsResult, sourcesResult] = await Promise.all([
-    client.from("knowledge_curriculum_releases").select("id, version_label, authority, status, effective_from, effective_to").eq("id", stringValue(profileRow.release_id)).maybeSingle(),
-    client.from("knowledge_subject_profiles").select("id, governed_subject_id, education_level, status, runtime_status, release_id").eq("id", subjectProfileId).maybeSingle(),
-    client.from("school_subject_curriculum_bindings").select("status, effective_from, effective_to").eq("school_id", schoolId).eq("school_subject_id", schoolSubjectId).eq("subject_profile_id", subjectProfileId).order("effective_from", { ascending: false }),
-    client.from("teaching_section_curriculum_bindings").select("teaching_section_id, status, effective_from, effective_to").eq("school_id", schoolId).in("teaching_section_id", sectionIds).eq("subject_profile_id", subjectProfileId),
-    client.from("knowledge_release_sources").select("release_id, source_id, source_role, subject_profile_id, status").eq("status", "APPROVED").eq("release_id", stringValue(profileRow.release_id)),
-  ]);
-  if (profileResult.error || releaseResult.error || subjectProfileResult.error || subjectBindingResult.error || sectionBindingsResult.error || sourcesResult.error || !profileResult.data || !releaseResult.data || !subjectProfileResult.data) {
-    return { state: "UNAVAILABLE", profile: null, explanation: "The governed assessment profile context could not be loaded." };
-  }
-  const releaseRow = releaseResult.data as Record<string, unknown>;
-  const subjectProfileRow = subjectProfileResult.data as Record<string, unknown>;
-  const applicableRoles = new Set(Array.isArray(profileRow.applicable_source_roles) ? profileRow.applicable_source_roles.map((role) => stringValue(role)) : []);
-  const releaseSources = records(sourcesResult.data).filter((source) => stringValue(source.release_id) === stringValue(profileRow.release_id) && (source.subject_profile_id == null || stringValue(source.subject_profile_id) === subjectProfileId) && (applicableRoles.size === 0 || applicableRoles.has(stringValue(source.source_role))));
-  const sourceIds = [...new Set(releaseSources.map((source) => stringValue(source.source_id)).filter(Boolean))];
-  const [sourceRowsResult, decisionsResult] = await Promise.all([
-    sourceIds.length ? client.from("knowledge_sources").select("source_id, source_version, checksum_sha256, rights_status, production_use_status, external_ai_allowed, formal_artifact_allowed, export_allowed").in("source_id", sourceIds) : Promise.resolve({ data: [], error: null }),
-    sourceIds.length ? client.from("knowledge_rights_decisions").select("source_id, source_checksum_sha256, rights_status, production_use_status, external_ai_allowed, formal_artifact_allowed, export_allowed, review_expires_at, decided_at, decision_id").in("source_id", sourceIds).order("decided_at", { ascending: false }) : Promise.resolve({ data: [], error: null }),
-  ]);
-  if (sourceRowsResult.error || decisionsResult.error) return { state: "UNAVAILABLE", profile: null, explanation: "The governed assessment source rights could not be loaded." };
-  const decisionsBySource = new Map<string, Record<string, unknown>>();
-  for (const decision of records(decisionsResult.data)) {
+  const knowledge = createPostgresKnowledgeClient();
+  try {
+    const profileResult = await knowledge.query<Record<string, unknown>>("select id, display_title, purpose, regime, release_id, subject_profile_id, status, applicable_source_roles, allows_broader_scope, allows_partial_scope, requires_review from knowledge_assessment_profiles where id=$1 limit 1", [profileId]);
+    const profileRow = profileResult.rows[0];
+    if (!profileRow) return { state: "UNAVAILABLE", profile: null, explanation: "The assessment guidance for this workspace could not be loaded." };
+    const [releaseResult, subjectProfileResult, subjectBindingResult, sectionBindingsResult, sourcesResult] = await Promise.all([
+      knowledge.query<Record<string, unknown>>("select id, version_label, authority, status, effective_from, effective_to from knowledge_curriculum_releases where id=$1 limit 1", [stringValue(profileRow.release_id)]),
+      knowledge.query<Record<string, unknown>>("select id, governed_subject_id, education_level, status, runtime_status, release_id from knowledge_subject_profiles where id=$1 limit 1", [subjectProfileId]),
+      client.from("school_subject_curriculum_bindings").select("status, effective_from, effective_to").eq("school_id", schoolId).eq("school_subject_id", schoolSubjectId).eq("subject_profile_id", subjectProfileId).order("effective_from", { ascending: false }),
+      client.from("teaching_section_curriculum_bindings").select("teaching_section_id, status, effective_from, effective_to").eq("school_id", schoolId).in("teaching_section_id", sectionIds).eq("subject_profile_id", subjectProfileId),
+      knowledge.query<Record<string, unknown>>("select release_id, source_id, source_role, subject_profile_id, status from knowledge_release_sources where status='APPROVED' and release_id=$1", [stringValue(profileRow.release_id)]),
+    ]);
+    if (!releaseResult.rows[0] || !subjectProfileResult.rows[0] || subjectBindingResult.error || sectionBindingsResult.error) return { state: "UNAVAILABLE", profile: null, explanation: "The assessment guidance is not active for this class and date." };
+    const releaseRow = releaseResult.rows[0];
+    const subjectProfileRow = subjectProfileResult.rows[0];
+    const applicableRoles = new Set(Array.isArray(profileRow.applicable_source_roles) ? profileRow.applicable_source_roles.map((role) => stringValue(role)) : []);
+    const releaseSources = releaseResult && sourcesResult.rows.filter((source) => stringValue(source.release_id) === stringValue(profileRow.release_id) && (source.subject_profile_id == null || stringValue(source.subject_profile_id) === subjectProfileId) && (applicableRoles.size === 0 || applicableRoles.has(stringValue(source.source_role))));
+    const sourceIds = [...new Set(releaseSources.map((source) => stringValue(source.source_id)).filter(Boolean))];
+    const [sourceRowsResult, decisionsResult] = await Promise.all([
+      sourceIds.length ? knowledge.query<Record<string, unknown>>("select source_id, source_version, checksum_sha256, rights_status, production_use_status, external_ai_allowed, formal_artifact_allowed, export_allowed from knowledge_sources where source_id = any($1::text[])", [sourceIds]) : Promise.resolve({ rows: [] as Record<string, unknown>[] }),
+      sourceIds.length ? knowledge.query<Record<string, unknown>>("select source_id, source_checksum_sha256, rights_status, production_use_status, external_ai_allowed, formal_artifact_allowed, export_allowed, review_expires_at, decided_at, decision_id from knowledge_rights_decisions where source_id = any($1::text[]) order by decided_at desc", [sourceIds]) : Promise.resolve({ rows: [] as Record<string, unknown>[] }),
+    ]);
+    const decisionsBySource = new Map<string, Record<string, unknown>>();
+    for (const decision of decisionsResult.rows) {
     const key = `${stringValue(decision.source_id)}:${stringValue(decision.source_checksum_sha256)}`;
     if (!decisionsBySource.has(key)) decisionsBySource.set(key, decision);
   }
-  const sources = records(sourceRowsResult.data).map((source) => {
+    const sources = sourceRowsResult.rows.map((source) => {
     const decision = decisionsBySource.get(`${stringValue(source.source_id)}:${stringValue(source.checksum_sha256)}`);
     const current = decision && (!decision.review_expires_at || stringValue(decision.review_expires_at) >= assessmentDate) ? decision : null;
     return {
@@ -93,7 +107,7 @@ async function loadRuntimeProfile(client: Awaited<ReturnType<typeof createSupaba
       exportAllowed: Boolean(current?.export_allowed),
     };
   });
-  return resolveRuntimeAssessmentProfile({
+    return resolveRuntimeAssessmentProfile({
     profile: { id: profileId, displayTitle: stringValue(profileRow.display_title), purpose: stringValue(profileRow.purpose) as AssessmentProfile["purpose"], regime: stringValue(profileRow.regime), releaseId: stringValue(profileRow.release_id), subjectProfileId: profileRow.subject_profile_id == null ? null : stringValue(profileRow.subject_profile_id), status: stringValue(profileRow.status), allowsBroaderScope: Boolean(profileRow.allows_broader_scope), allowsPartialScope: Boolean(profileRow.allows_partial_scope), requiresReview: Boolean(profileRow.requires_review) },
     release: { id: stringValue(releaseRow.id), versionLabel: stringValue(releaseRow.version_label), authority: stringValue(releaseRow.authority), status: stringValue(releaseRow.status), effectiveFrom: stringValue(releaseRow.effective_from), effectiveTo: releaseRow.effective_to == null ? null : stringValue(releaseRow.effective_to) },
     subjectProfile: { id: stringValue(subjectProfileRow.id), releaseId: stringValue(subjectProfileRow.release_id), governedSubjectId: stringValue(subjectProfileRow.governed_subject_id), educationLevel: stringValue(subjectProfileRow.education_level), status: stringValue(subjectProfileRow.status), runtimeStatus: stringValue(subjectProfileRow.runtime_status) },
@@ -104,29 +118,34 @@ async function loadRuntimeProfile(client: Awaited<ReturnType<typeof createSupaba
     sectionBindings: records(sectionBindingsResult.data).map((row) => ({ sectionId: stringValue(row.teaching_section_id), status: stringValue(row.status), effectiveFrom: stringValue(row.effective_from), effectiveTo: row.effective_to == null ? null : stringValue(row.effective_to) })),
     assessmentDate,
     sources,
-  });
+    });
+  } finally {
+    await knowledge.close();
+  }
 }
 
-export async function loadAssessmentWorkspace(workspaceId: string): Promise<AssessmentWorkspaceData> {
-  const access = await requireWorkspaceAccess();
+async function loadAssessmentWorkspaceOnce(workspaceId: string, nextPath = `/workspace/teacher/assessments/${workspaceId}`, options: { exportOnly?: boolean } = {}): Promise<AssessmentWorkspaceData> {
+  const access = await requireWorkspaceAccess(undefined, nextPath);
   const client = await createSupabaseServerClient();
   const workspaceResult = await client.from("assessment_workspaces").select("*").eq("id", workspaceId).eq("school_id", access.schoolId).single();
   if (workspaceResult.error || !workspaceResult.data) throw new Error("Assessment workspace could not be loaded.");
-  const [sections, scopeItems, versions, profile] = await Promise.all([
+  const knowledge = createPostgresKnowledgeClient();
+  const [sections, scopeItems, versions, profileResult] = await Promise.all([
     client.from("assessment_workspace_sections").select("teaching_section_id").eq("assessment_workspace_id", workspaceId).eq("school_id", access.schoolId),
     client.from("assessment_scope_items").select("id, canonical_id, scope_state, evidence_type, evidence_reference_id, classroom_evidence_id, curriculum_position_event_id, section_id, override_reason, confirmed_by_membership_id, created_at").eq("assessment_workspace_id", workspaceId).eq("school_id", access.schoolId).order("canonical_id"),
     client.from("assessment_versions").select("id, version_number, content_json, change_source, created_at").eq("assessment_workspace_id", workspaceId).eq("school_id", access.schoolId).order("version_number", { ascending: false }),
-    client.from("knowledge_assessment_profiles").select("id, display_title, purpose, regime, status, release_id, subject_profile_id").eq("id", workspaceResult.data.assessment_profile_id).maybeSingle(),
+    knowledge.query<Record<string, unknown>>("select id, display_title, purpose, regime, status, release_id, subject_profile_id from knowledge_assessment_profiles where id=$1 limit 1", [workspaceResult.data.assessment_profile_id]),
   ]);
-  if (sections.error || scopeItems.error || versions.error || profile.error) throw new Error("Assessment workspace context could not be loaded.");
+  await knowledge.close();
+  if (sections.error || scopeItems.error || versions.error) throw new Error("Assessment workspace context could not be loaded.");
   const current = (versions.data ?? []).find((item) => item.id === workspaceResult.data.current_version_id) ?? versions.data?.[0];
   if (!current) throw new Error("Assessment workspace has no current version.");
   const sectionIds = (sections.data ?? []).map((section) => String(section.teaching_section_id));
   const [runtimeProfile, classroomEvents, preparations, scheduledLessons] = await Promise.all([
     loadRuntimeProfile(client, workspaceResult.data, sectionIds),
-    sectionIds.length ? client.from("classroom_events").select("id, scheduled_lesson_id, teaching_section_id, outcome, occurred_at, supersedes_event_id").eq("school_id", access.schoolId).in("teaching_section_id", sectionIds).order("occurred_at", { ascending: false }) : Promise.resolve({ data: [], error: null }),
-    sectionIds.length ? client.from("lesson_preparations").select("scheduled_lesson_id, teaching_section_id, curriculum_canonical_id, curriculum_profile_id").eq("school_id", access.schoolId).in("teaching_section_id", sectionIds).eq("curriculum_profile_id", String(workspaceResult.data.curriculum_subject_profile_id)) : Promise.resolve({ data: [], error: null }),
-    sectionIds.length ? client.from("scheduled_lessons").select("id, academic_period_id, scheduled_date, teaching_section_id").eq("school_id", access.schoolId).in("teaching_section_id", sectionIds).eq("academic_period_id", String(workspaceResult.data.academic_period_id)).lte("scheduled_date", String(workspaceResult.data.assessment_date)) : Promise.resolve({ data: [], error: null }),
+    options.exportOnly ? Promise.resolve({ data: [], error: null }) : sectionIds.length ? client.from("classroom_events").select("id, scheduled_lesson_id, teaching_section_id, outcome, occurred_at, supersedes_event_id").eq("school_id", access.schoolId).in("teaching_section_id", sectionIds).order("occurred_at", { ascending: false }) : Promise.resolve({ data: [], error: null }),
+    options.exportOnly ? Promise.resolve({ data: [], error: null }) : sectionIds.length ? client.from("lesson_preparations").select("scheduled_lesson_id, teaching_section_id, curriculum_canonical_id, curriculum_profile_id").eq("school_id", access.schoolId).in("teaching_section_id", sectionIds).eq("curriculum_profile_id", String(workspaceResult.data.curriculum_subject_profile_id)) : Promise.resolve({ data: [], error: null }),
+    options.exportOnly ? Promise.resolve({ data: [], error: null }) : sectionIds.length ? client.from("scheduled_lessons").select("id, academic_period_id, scheduled_date, teaching_section_id").eq("school_id", access.schoolId).in("teaching_section_id", sectionIds).eq("academic_period_id", String(workspaceResult.data.academic_period_id)).lte("scheduled_date", String(workspaceResult.data.assessment_date)) : Promise.resolve({ data: [], error: null }),
   ]);
   if (classroomEvents.error || preparations.error || scheduledLessons.error) throw new Error("Assessment classroom continuity context could not be loaded.");
   const scheduledLessonIds = new Set(records(scheduledLessons.data).map((lesson) => stringValue(lesson.id)));
@@ -139,5 +158,9 @@ export async function loadAssessmentWorkspace(workspaceId: string): Promise<Asse
     if (!preparation || !runtimeProfile.profile?.allowsPartialScope || !stringValue(preparation.curriculum_canonical_id)) return [];
     return [{ sectionId, canonicalId: stringValue(preparation.curriculum_canonical_id), evidenceReferenceId: stringValue(classroomEvent.id) }];
   });
-  return { access, workspace: workspaceResult.data, sections: sections.data ?? [], scopeItems: scopeItems.data ?? [], version: current as AssessmentWorkspaceData["version"], versions: versions.data ?? [], profile: profile.data ?? null, runtimeProfile: runtimeProfile.profile, profileResolution: runtimeProfile, partialScopeCandidates };
+  return { access, workspace: workspaceResult.data, sections: sections.data ?? [], scopeItems: scopeItems.data ?? [], version: current as AssessmentWorkspaceData["version"], versions: versions.data ?? [], profile: profileResult.rows[0] ?? null, runtimeProfile: runtimeProfile.profile, profileResolution: runtimeProfile, partialScopeCandidates };
+}
+
+export async function loadAssessmentWorkspace(workspaceId: string, nextPath = `/workspace/teacher/assessments/${workspaceId}`, options: { exportOnly?: boolean } = {}): Promise<AssessmentWorkspaceData> {
+  return withTransientReadRetry(() => loadAssessmentWorkspaceOnce(workspaceId, nextPath, options), { label: "Assessment workspace read model", attempts: 3, delayMs: 250 });
 }

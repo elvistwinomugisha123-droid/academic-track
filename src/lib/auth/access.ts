@@ -2,27 +2,33 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { withTransientReadRetry } from "@/lib/supabase/retry";
 
 export type AccessContext = { userId: string; schoolId: string; membershipId: string; displayName: string; roles: string[] };
 
 export async function resolveAccessContext(schoolId?: string): Promise<AccessContext | null> {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await withTransientReadRetry(() => supabase.auth.getUser(), { label: "Supabase session" });
   if (!user) return null;
   let query = supabase.from("memberships").select("id, school_id, display_name, role_grants(role, status)").eq("user_id", user.id).eq("status", "ACTIVE");
   if (schoolId) query = query.eq("school_id", schoolId);
-  const { data } = await query.maybeSingle();
+  const { data } = await withTransientReadRetry(async () => {
+    const result = await query.maybeSingle();
+    if (result.error) throw new Error("Active school membership could not be loaded.");
+    return result;
+  }, { label: "School membership" });
   if (!data) return null;
   const grants = Array.isArray(data.role_grants) ? data.role_grants : [];
   return { userId: user.id, schoolId: data.school_id, membershipId: data.id, displayName: data.display_name, roles: grants.filter((grant) => grant.status === "ACTIVE").map((grant) => grant.role) };
 }
 
-export async function requireWorkspaceAccess(schoolId?: string) {
+export async function requireWorkspaceAccess(schoolId?: string, nextPath = "/workspace") {
   const context = await resolveAccessContext(schoolId);
   if (context) return context;
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await withTransientReadRetry(() => supabase.auth.getUser(), { label: "Supabase session" });
   if (user) redirect("/no-membership");
   const hasSessionCookie = (await cookies()).getAll().some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("auth-token"));
-  redirect(hasSessionCookie ? "/session-expired?next=/workspace" : "/sign-in?next=/workspace");
+  const safeNextPath = nextPath.startsWith("/") && !nextPath.startsWith("//") ? nextPath : "/workspace";
+  redirect(hasSessionCookie ? `/session-expired?next=${encodeURIComponent(safeNextPath)}` : `/sign-in?next=${encodeURIComponent(safeNextPath)}`);
 }

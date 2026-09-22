@@ -27,6 +27,7 @@ knowledge-workbench/
 playwright-report/
 test-results/
 output/playwright/
+test-artifacts/
 
 # Local coverage
 coverage/

@@ -4,6 +4,6 @@ import { AssessmentWorkspace } from "@/components/assessment/AssessmentWorkspace
 
 export default async function AssessmentWorkspacePage({ params }: { params: Promise<{ assessmentId: string }> }) {
   const { assessmentId } = await params;
-  const data = await loadAssessmentWorkspace(assessmentId);
+  const data = await loadAssessmentWorkspace(assessmentId, `/workspace/teacher/assessments/${assessmentId}`);
   return <AppShell access={data.access}><AssessmentWorkspace data={data} /></AppShell>;
 }

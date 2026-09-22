@@ -12,7 +12,7 @@ export interface KnowledgeSqlClient {
 
 export function createPostgresKnowledgeClient(connectionString = process.env.DATABASE_URL): KnowledgeSqlClient {
   if (!connectionString) throw new Error("DATABASE_URL is required for the PostgreSQL knowledge client.");
-  const client = postgres(connectionString, { max: 1, prepare: false });
+  const client = postgres(connectionString, { max: 1, prepare: false, ssl: "require" });
   let activeTransactionExecutor: SqlExecutor | null = null;
   return {
     async query<Row extends Record<string, unknown>>(statement: string, parameters: unknown[] = []) {

@@ -3,6 +3,6 @@ import { loadAcademicOperationsData } from "@/academic-operations/application/qu
 import { AcademicOperationsWorkspace } from "@/components/academic-operations/AcademicOperationsWorkspace";
 
 export default async function AcademicOperationsPage() {
-  const data = await loadAcademicOperationsData();
+  const data = await loadAcademicOperationsData("/workspace/academic-operations");
   return <AppShell activePath="/workspace/academic-operations" access={data.access}><AcademicOperationsWorkspace data={data} /></AppShell>;
 }

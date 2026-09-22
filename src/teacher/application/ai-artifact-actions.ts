@@ -41,6 +41,7 @@ async function updateRun(runId: string, values: Record<string, unknown>) {
 function refresh(lessonId: string, sectionId: string) { revalidatePath(`/workspace/teacher/lessons/${lessonId}`); revalidatePath(`/workspace/teacher/sections/${sectionId}`); revalidatePath("/workspace"); }
 
 function blocked(context: TrustedLessonAIContext): AIProposal { return { ok: false, code: "RIGHTS_BLOCKED", error: "ATE cannot send this curriculum context to an external model under its current rights decision. You can continue by editing the saved artifact manually." }; }
+function aiFailureMessage(error: unknown) { const message = error instanceof Error ? error.message : ""; return /ANTHROPIC_API_KEY|API key|not configured|fetch failed/i.test(message) ? "ATE drafting is unavailable right now. You can continue by writing the lesson plan manually." : message || "ATE could not prepare a valid structured proposal."; }
 
 async function runGeneration<T extends LessonArtifactType>(input: { context: TrustedLessonAIContext; type: T; operation: AIArtifactOperation; artifactId: string | null; expectedVersion: number | null; parentArtifactId: string | null; parentVersionId: string | null; currentArtifact: unknown | null; instruction?: string; selectedField?: string | null; expectedCanonicalId?: string | null }): Promise<AIProposal> {
   const version = promptVersion(input.operation);
@@ -61,7 +62,7 @@ async function runGeneration<T extends LessonArtifactType>(input: { context: Tru
     return { ok: true, runId, scheduledLessonId: input.context.scheduledLessonId, content: result.output, artifactId: input.artifactId, artifactType: input.type, expectedVersion: input.expectedVersion, parentArtifactId: input.parentArtifactId, parentVersionId: input.parentVersionId, contextFingerprint, outputFingerprint, instruction: input.instruction || null, selectedField: input.selectedField || null, model: result.model };
   } catch (error) {
     await updateRun(runId, { status: "FAILED", validation_status: "FAILED", latency_ms: Date.now() - started, error_code: error instanceof Error ? error.name : "GENERATION_FAILED" });
-    return { ok: false, code: "VALIDATION_FAILED", error: error instanceof Error ? error.message : "ATE could not prepare a valid structured proposal." };
+    return { ok: false, code: "UNAVAILABLE", error: aiFailureMessage(error) };
   }
 }
 
@@ -74,7 +75,7 @@ export async function generateFormalLessonPlanDraft(scheduledLessonId: string): 
     const artifact = data.artifacts.find((item) => item.artifactType === "FORMAL_LESSON_PLAN");
     const current = artifact?.currentContent ? parseLessonPayload("FORMAL_LESSON_PLAN", artifact.currentContent) : null;
     return runGeneration({ context, type: "FORMAL_LESSON_PLAN", operation: "GENERATE_FORMAL_LESSON_PLAN", artifactId: artifact?.id || null, expectedVersion: artifact?.currentVersionNumber || null, parentArtifactId: null, parentVersionId: null, currentArtifact: current, expectedCanonicalId: context.anchor?.canonicalId || null });
-  } catch (error) { return { ok: false, code: "UNAVAILABLE", error: error instanceof Error ? error.message : "ATE could not start lesson plan generation." }; }
+  } catch (error) { return { ok: false, code: "UNAVAILABLE", error: aiFailureMessage(error) }; }
 }
 
 export async function generateTeachingPackDraft(input: unknown): Promise<AIProposal> {

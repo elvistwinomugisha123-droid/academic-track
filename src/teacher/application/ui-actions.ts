@@ -6,6 +6,7 @@ import { getCurrentTeachingSectionCurriculumPosition } from "@/knowledge/curricu
 import { createPostgresKnowledgeClient } from "@/knowledge/db/client";
 import { requireWorkspaceAccess } from "@/lib/auth/access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { userFacingError } from "@/lib/user-facing-error";
 import { loadLessonReadinessData } from "@/teacher/application/queries";
 
 const uuid = z.string().uuid();
@@ -81,15 +82,13 @@ export async function saveLessonPreparation(input: unknown): Promise<ActionResul
       if (value.version != null && Number(existing.data.version) !== value.version) throw new Error("This preparation changed in another session. Reopen it before saving again.");
       const update = await ownership.client.from("lesson_preparations").update(payload).eq("id", existing.data.id).eq("school_id", access.schoolId).select("id, version").single();
       if (update.error || !update.data) throw new Error("Preparation could not be updated.");
-      revalidatePath("/workspace"); revalidatePath(`/workspace/teacher/lessons/${value.scheduledLessonId}`); revalidatePath(`/workspace/teacher/sections/${ownership.lesson.teaching_section_id}`);
       return { ok: true, id: String(update.data.id), version: Number(update.data.version) };
     }
     const insert = await ownership.client.from("lesson_preparations").insert({ ...payload, created_by: access.userId }).select("id, version").single();
     if (insert.error || !insert.data) throw new Error("Preparation could not be saved.");
-    revalidatePath("/workspace"); revalidatePath(`/workspace/teacher/lessons/${value.scheduledLessonId}`); revalidatePath(`/workspace/teacher/sections/${ownership.lesson.teaching_section_id}`);
     return { ok: true, id: String(insert.data.id), version: Number(insert.data.version) };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "Preparation could not be saved." };
+    return { ok: false, error: userFacingError(error, "Preparation could not be saved.") };
   }
 }
 
@@ -105,23 +104,23 @@ export async function confirmTeacherCurriculumPosition(input: unknown): Promise<
     let subjectProfileId: string | null = null;
     try {
       const binding = await knowledge.query<{ subject_profile_id: string }>(`select subject_profile_id from teaching_section_curriculum_bindings where school_id=$1 and teaching_section_id=$2 and status='ACTIVE' and effective_from <= $3::date and (effective_to is null or effective_to >= $3::date) order by effective_from desc limit 1`, [access.schoolId, value.teachingSectionId, effectiveOn]);
-      if (!binding.rows[0]) throw new Error("This Teaching Section has no active governed curriculum profile.");
+      if (!binding.rows[0]) throw new Error("This Teaching Section has no active curriculum setup.");
       subjectProfileId = binding.rows[0].subject_profile_id;
       const candidate = await knowledge.query<{ record_type: string }>(`select r.record_type from knowledge_profile_records pr join knowledge_records r on r.canonical_id=pr.canonical_id where pr.subject_profile_id=$1 and pr.canonical_id=$2 and pr.status='APPROVED' and pr.runtime_status='PILOT_ACTIVE' and r.record_type in ('topic','learning_outcome')`, [binding.rows[0].subject_profile_id, value.canonicalId]);
-      if (!candidate.rows[0]) throw new Error("Select a valid position from the active governed curriculum profile.");
+      if (!candidate.rows[0]) throw new Error("Select a valid position from the active curriculum setup.");
       const expectedKind = candidate.rows[0].record_type === "topic" ? "TOPIC" : "LEARNING_OUTCOME";
-      if (expectedKind !== value.positionKind) throw new Error("The selected curriculum position type does not match the governed record.");
+      if (expectedKind !== value.positionKind) throw new Error("The selected curriculum position type does not match the verified record.");
       current = await getCurrentTeachingSectionCurriculumPosition(knowledge, access.schoolId, value.teachingSectionId, effectiveOn);
       if (current?.canonical_id === value.canonicalId) throw new Error("That position is already confirmed for this Teaching Section.");
     } finally { await knowledge.close(); }
     if (current && !value.correctionReason) throw new Error("A short reason is required when correcting the confirmed position.");
-    if (!subjectProfileId) throw new Error("This Teaching Section has no active governed curriculum profile.");
+    if (!subjectProfileId) throw new Error("This Teaching Section has no active curriculum setup.");
     const client = await createSupabaseServerClient();
     const response = await client.from("teaching_section_curriculum_position_events").insert({ school_id: access.schoolId, teaching_section_id: value.teachingSectionId, subject_profile_id: subjectProfileId, canonical_id: value.canonicalId, position_kind: value.positionKind, confirmed_by: access.userId, supersedes_event_id: current?.id ?? null, correction_reason: current ? value.correctionReason : null }).select("id").single();
-    if (response.error || !response.data) throw new Error(response.error?.message || "Curriculum position could not be confirmed.");
+    if (response.error || !response.data) throw new Error(userFacingError(response.error, "Curriculum position could not be confirmed."));
     revalidatePath("/workspace"); revalidatePath(`/workspace/teacher/sections/${value.teachingSectionId}`);
     return { ok: true, id: String(response.data.id) };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "Curriculum position could not be confirmed." };
+    return { ok: false, error: userFacingError(error, "Curriculum position could not be confirmed.") };
   }
 }

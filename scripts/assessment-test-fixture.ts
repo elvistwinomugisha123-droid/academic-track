@@ -13,16 +13,17 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
 
-const databaseUrl = process.env.TEST_DATABASE_URL;
-const supabaseUrl = process.env.TEST_SUPABASE_URL;
+const databaseUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
+const supabaseUrl = process.env.TEST_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.TEST_SUPABASE_SERVICE_ROLE_KEY;
-if (!process.env.TEST_ASSESSMENT_FIXTURE || !databaseUrl || !supabaseUrl || !serviceRoleKey) {
-  throw new Error("This setup path is TEST-only. Set TEST_ASSESSMENT_FIXTURE=1, TEST_DATABASE_URL, TEST_SUPABASE_URL, and TEST_SUPABASE_SERVICE_ROLE_KEY.");
+if (!process.env.TEST_ASSESSMENT_FIXTURE || !databaseUrl || !supabaseUrl || !serviceRoleKey || !supabaseUrl.includes("lwbkxhimqlfuzzxilaga")) {
+  throw new Error("This setup path is TEST-only. Set TEST_ASSESSMENT_FIXTURE=1, TEST_DATABASE_URL or DATABASE_URL, TEST_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL, and TEST_SUPABASE_SERVICE_ROLE_KEY for the isolated TEST project.");
 }
 
 const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { autoRefreshToken: false, persistSession: false } });
 const sql = postgres(databaseUrl, { max: 1 });
 const id = () => randomUUID();
+const fixtureSuffix = randomUUID().slice(0, 8).toUpperCase();
 const password = "Test-only-Ate-Assessment-2026!";
 
 async function ensureUser(email: string, displayName: string) {
@@ -34,9 +35,10 @@ async function ensureUser(email: string, displayName: string) {
   return created.data.user;
 }
 
-const teacher = await ensureUser("assessment-teacher@test.invalid", "Synthetic Assessment Teacher");
-const otherTeacher = await ensureUser("assessment-other-teacher@test.invalid", "Synthetic Other Teacher");
-const dos = await ensureUser("assessment-dos@test.invalid", "Synthetic Academic Lead");
+async function main() {
+const teacher = await ensureUser(`assessment-teacher-${fixtureSuffix.toLowerCase()}@test.invalid`, "Synthetic Assessment Teacher");
+const otherTeacher = await ensureUser(`assessment-other-teacher-${fixtureSuffix.toLowerCase()}@test.invalid`, "Synthetic Other Teacher");
+const dos = await ensureUser(`assessment-dos-${fixtureSuffix.toLowerCase()}@test.invalid`, "Synthetic Academic Lead");
 const schoolId = id();
 const foreignSchoolId = id();
 const departmentId = id();
@@ -54,7 +56,7 @@ const subjectIdInForeignSchool = id();
 const foreignClassLevelId = id();
 const foreignStreamId = id();
 const foreignTimetableId = id();
-const sourceId = "TEST_ASSESSMENT_SYNTHETIC_SOURCE";
+const sourceId = `TEST_ASSESSMENT_SYNTHETIC_SOURCE_${fixtureSuffix}`;
 const checksum = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const manifestChecksum = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 const releaseId = id();
@@ -63,8 +65,8 @@ const governedSubjectId = id();
 const otherGovernedSubjectId = id();
 const otherSubjectProfileId = id();
 const assessmentProfileId = id();
-const canonicalIds = ["TEST-ASSESSMENT-A", "TEST-ASSESSMENT-B", "TEST-ASSESSMENT-C", "TEST-ASSESSMENT-D"];
-const foreignCanonicalId = "TEST-ASSESSMENT-FOREIGN-PROFILE";
+const canonicalIds = [`TEST-ASSESSMENT-${fixtureSuffix}-A`, `TEST-ASSESSMENT-${fixtureSuffix}-B`, `TEST-ASSESSMENT-${fixtureSuffix}-C`, `TEST-ASSESSMENT-${fixtureSuffix}-D`];
+const foreignCanonicalId = `TEST-ASSESSMENT-${fixtureSuffix}-FOREIGN`;
 
 const teacherMembershipId = id();
 const otherTeacherMembershipId = id();
@@ -73,7 +75,7 @@ const foreignTeacherMembershipId = id();
 
 const fixture: Record<string, unknown> = {
   schoolId, foreignSchoolId, periodId, foreignPeriodId, schoolSubjectId: subjectId, subjectProfileId, assessmentProfileId,
-  sectionAId, sectionBId, foreignSectionId, teacherEmail: teacher.email, otherTeacherEmail: otherTeacher.email,
+  sectionAId, sectionBId, foreignSectionId, teacherEmail: teacher.email, otherTeacherEmail: otherTeacher.email, dosEmail: dos.email,
   teacherPassword: password, otherTeacherPassword: password, canonicalIds, foreignCanonicalId,
   assessmentDate: "2026-03-20", periodStartsOn: "2026-01-01", periodEndsOn: "2026-12-31",
 };
@@ -88,10 +90,10 @@ await sql.begin(async (tx) => {
   await tx`insert into role_grants (membership_id,school_id,role,scope_type,status,granted_by) values (${teacherMembershipId},${schoolId},'TEACHER','SCHOOL','ACTIVE',${dos.id}),(${otherTeacherMembershipId},${schoolId},'TEACHER','SCHOOL','ACTIVE',${dos.id}),(${dosMembershipId},${schoolId},'DOS','SCHOOL','ACTIVE',${dos.id}),(${foreignTeacherMembershipId},${foreignSchoolId},'TEACHER','SCHOOL','ACTIVE',${dos.id})`;
 
   await tx`insert into knowledge_sources (source_id,authority,title,document_type,education_level,subject,checksum_sha256,rights_status,production_use_status,external_ai_allowed,attribution_required,processing_status,verification_status,source_path,effective_from,effective_to,formal_artifact_allowed,export_allowed) values (${sourceId},'TEST-SYNTHETIC','TEST Synthetic Assessment Source','TEST','lower-secondary','TEST-SUBJECT',${checksum},'REVIEW_REQUIRED','PERMISSION_PENDING',false,true,'IMPORTED','UNVERIFIED','synthetic://assessment-test','2026-01-01','2026-12-31',false,false)`;
-  await tx`insert into knowledge_curriculum_subjects (id,subject_key,title,education_level,status) values (${governedSubjectId},'TEST-ASSESSMENT-SUBJECT','TEST Synthetic Subject','lower-secondary','DRAFT'),(${otherGovernedSubjectId},'TEST-ASSESSMENT-OTHER-SUBJECT','TEST Synthetic Other Subject','lower-secondary','DRAFT')`;
-  await tx`insert into knowledge_curriculum_releases (id,release_key,authority,display_name,education_level,version_label,effective_from,effective_to,status,manifest_checksum_sha256,created_by) values (${releaseId},'TEST-ASSESSMENT-RELEASE','TEST-SYNTHETIC','TEST Synthetic Assessment Release','lower-secondary','TEST-1','2026-01-01','2026-12-31','DRAFT',${manifestChecksum},${dos.id})`;
-  await tx`insert into knowledge_subject_profiles (id,release_id,governed_subject_id,profile_key,display_title,education_level,status,requires_assessment_profile) values (${subjectProfileId},${releaseId},${governedSubjectId},'TEST-ASSESSMENT-PROFILE','TEST Synthetic Assessment Subject Profile','lower-secondary','DRAFT',true),(${otherSubjectProfileId},${releaseId},${otherGovernedSubjectId},'TEST-ASSESSMENT-OTHER-PROFILE','TEST Synthetic Other Subject Profile','lower-secondary','DRAFT',false)`;
-  await tx`insert into knowledge_assessment_profiles (id,release_id,subject_profile_id,assessment_key,display_title,purpose,regime,applicable_source_roles,status,allows_broader_scope,allows_partial_scope,requires_review) values (${assessmentProfileId},${releaseId},${subjectProfileId},'TEST-ASSESSMENT-CLASS-TEST','TEST Synthetic Class Test','CLASS_TEST','TEST_SYNTHETIC',array['SUBJECT_SYLLABUS']::text[],'DRAFT',false,true,false)`;
+  await tx`insert into knowledge_curriculum_subjects (id,subject_key,title,education_level,status) values (${governedSubjectId},${`TEST-ASSESSMENT-SUBJECT-${fixtureSuffix}`},'TEST Synthetic Subject','lower-secondary','DRAFT'),(${otherGovernedSubjectId},${`TEST-ASSESSMENT-OTHER-SUBJECT-${fixtureSuffix}`},'TEST Synthetic Other Subject','lower-secondary','DRAFT')`;
+  await tx`insert into knowledge_curriculum_releases (id,release_key,authority,display_name,education_level,version_label,effective_from,effective_to,status,manifest_checksum_sha256,created_by) values (${releaseId},${`TEST-ASSESSMENT-RELEASE-${fixtureSuffix}`},'TEST-SYNTHETIC','TEST Synthetic Assessment Release','lower-secondary','TEST-1','2026-01-01','2026-12-31','DRAFT',${manifestChecksum},${dos.id})`;
+  await tx`insert into knowledge_subject_profiles (id,release_id,governed_subject_id,profile_key,display_title,education_level,status,requires_assessment_profile) values (${subjectProfileId},${releaseId},${governedSubjectId},${`TEST-ASSESSMENT-PROFILE-${fixtureSuffix}`},'TEST Synthetic Assessment Subject Profile','lower-secondary','DRAFT',true),(${otherSubjectProfileId},${releaseId},${otherGovernedSubjectId},${`TEST-ASSESSMENT-OTHER-PROFILE-${fixtureSuffix}`},'TEST Synthetic Other Subject Profile','lower-secondary','DRAFT',false)`;
+  await tx`insert into knowledge_assessment_profiles (id,release_id,subject_profile_id,assessment_key,display_title,purpose,regime,applicable_source_roles,status,allows_broader_scope,allows_partial_scope,requires_review) values (${assessmentProfileId},${releaseId},${subjectProfileId},${`TEST-ASSESSMENT-CLASS-TEST-${fixtureSuffix}`},'TEST Synthetic Class Test','CLASS_TEST','TEST_SYNTHETIC',array['SUBJECT_SYLLABUS']::text[],'DRAFT',false,true,true)`;
   await tx`insert into knowledge_release_sources (release_id,subject_profile_id,source_id,source_role,is_required,status,approved_at,approved_by) values (${releaseId},${subjectProfileId},${sourceId},'SUBJECT_SYLLABUS',true,'APPROVED',now(),${dos.id}),(${releaseId},${otherSubjectProfileId},${sourceId},'SUBJECT_SYLLABUS',true,'APPROVED',now(),${dos.id})`;
   for (const [index, canonicalId] of [...canonicalIds, foreignCanonicalId].entries()) {
     const spanId = `${sourceId}:ASSESSMENT:${canonicalId}`;
@@ -126,7 +128,7 @@ await sql.begin(async (tx) => {
   const lessonIds: string[] = [];
   const evidence: Record<string, string> = {};
   const positions: Record<string, string> = {};
-  for (const [sectionId, streamId, membershipId, values] of [[sectionAId, streamAId, teacherMembershipId, ["TEST-ASSESSMENT-A", "TEST-ASSESSMENT-B", "TEST-ASSESSMENT-C", "TEST-ASSESSMENT-D", "TEST-ASSESSMENT-D", "TEST-ASSESSMENT-D"]], [sectionBId, streamBId, teacherMembershipId, ["TEST-ASSESSMENT-A", "TEST-ASSESSMENT-B", "TEST-ASSESSMENT-C", "TEST-ASSESSMENT-D"]] ] as const) {
+  for (const [sectionId, streamId, membershipId, values] of [[sectionAId, streamAId, teacherMembershipId, [canonicalIds[0], canonicalIds[1], canonicalIds[2], canonicalIds[3], canonicalIds[3], canonicalIds[3]]], [sectionBId, streamBId, teacherMembershipId, [canonicalIds[0], canonicalIds[1], canonicalIds[2], canonicalIds[3]]] ] as const) {
     for (const [index, canonicalId] of values.entries()) {
       const slotId = id(); const lessonId = id(); const positionId = id(); const scheduledDate = `2026-03-${String(10 + index).padStart(2, "0")}`;
       await tx`insert into timetable_slots (id,school_id,timetable_version_id,teaching_section_id,day_of_week,starts_at,ends_at) values (${slotId},${schoolId},${timetableId},${sectionId},${index + 1},'08:00','09:00')`;
@@ -156,3 +158,10 @@ await mkdir("test-artifacts", { recursive: true });
 await writeFile("test-artifacts/assessment-fixture.json", `${JSON.stringify(fixture, null, 2)}\n`, "utf8");
 await sql.end({ timeout: 5 });
 console.log(JSON.stringify(fixture, null, 2));
+}
+
+main().catch(async (error) => {
+  console.error(error);
+  await sql.end({ timeout: 5 }).catch(() => undefined);
+  process.exitCode = 1;
+});

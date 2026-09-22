@@ -103,8 +103,8 @@ export function resolveRuntimeAssessmentProfile(input: RuntimeAssessmentProfileI
     subjectId: input.subjectId,
     educationLevel: input.subjectProfile.educationLevel,
   };
-  if (!applicable) return { state: "UNAVAILABLE", profile: null, explanation: "The assessment profile, governed release, subject profile, or school bindings are not active and date-applicable." };
-  return { state: "RESOLVED", profile, explanation: `Using ${profile.displayTitle} (${profile.releaseVersion}); this is governed assessment guidance, not an inferred national rule.` };
+  if (!applicable) return { state: "UNAVAILABLE", profile: null, explanation: "The assessment profile, curriculum setup, or school bindings are not active for this date." };
+  return { state: "RESOLVED", profile, explanation: `Using ${profile.displayTitle} (${profile.releaseVersion}); this is verified assessment guidance, not an inferred national rule.` };
 }
 
 export function resolveAssessmentProfile(input: {
@@ -129,5 +129,5 @@ export function resolveAssessmentProfile(input: {
   );
   const candidate = matching.sort((left, right) => Number(right.subjectProfileId === input.subjectProfileId) - Number(left.subjectProfileId === input.subjectProfileId))[0];
   if (!candidate) return { state: "UNAVAILABLE", profile: null, explanation: "No verified assessment profile is currently activated for this subject and purpose." };
-  return { state: "RESOLVED", profile: candidate, explanation: `Using ${candidate.displayTitle} (${candidate.releaseVersion}); this is governed assessment guidance, not an inferred national rule.` };
+  return { state: "RESOLVED", profile: candidate, explanation: `Using ${candidate.displayTitle} (${candidate.releaseVersion}); this is verified assessment guidance, not an inferred national rule.` };
 }

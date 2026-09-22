@@ -9,7 +9,7 @@ export default async function LeadershipPage({ params }: { params: Promise<{ sco
   const { scope: rawScope } = await params;
   const scope = rawScope.toUpperCase() as LeadershipScope;
   if (!scopes.has(scope)) redirect("/access-denied");
-  const data = await loadLeadershipOverview(scope);
+  const data = await loadLeadershipOverview(scope, `/workspace/leadership/${rawScope.toLowerCase()}`);
   if (!data.access.roles.includes(scope)) redirect("/access-denied");
   return <AppShell activePath={`/workspace/leadership/${rawScope.toLowerCase()}`} access={data.access}><LeadershipWorkspace data={data} /></AppShell>;
 }

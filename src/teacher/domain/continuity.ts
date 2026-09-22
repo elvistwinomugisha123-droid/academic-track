@@ -69,18 +69,18 @@ export function deriveNextPosition(input: { outcome: TeacherOutcome; current: Cu
   }
 
   if (!input.options.length) {
-    return { position: null, reason: "NO_DETERMINISTIC_SUCCESSOR", label: "No next governed position is available" };
+    return { position: null, reason: "NO_DETERMINISTIC_SUCCESSOR", label: "No next verified position is available" };
   }
 
   if (!input.current) {
-    return { position: input.options[0], reason: "ADVANCE_TO_NEXT_VALID_POSITION", label: "Start at the first valid governed position" };
+    return { position: input.options[0], reason: "ADVANCE_TO_NEXT_VALID_POSITION", label: "Start at the first valid position" };
   }
 
   const currentIndex = input.options.findIndex((option) => option.canonicalId === input.current?.canonicalId);
   const next = currentIndex >= 0 ? input.options[currentIndex + 1] ?? null : null;
   return next
-    ? { position: next, reason: "ADVANCE_TO_NEXT_VALID_POSITION", label: "Advance to the next valid governed position" }
-    : { position: null, reason: "NO_DETERMINISTIC_SUCCESSOR", label: "The current position is the last available governed position" };
+    ? { position: next, reason: "ADVANCE_TO_NEXT_VALID_POSITION", label: "Advance to the next valid position" }
+    : { position: null, reason: "NO_DETERMINISTIC_SUCCESSOR", label: "The current position is the last available position" };
 }
 
 export function recommendedFocus(input: { current: CurrentPosition | null; previousOutcome: TeacherOutcome | null; unfinishedWork: string | null; scheduledSubject: string }): string {

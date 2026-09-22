@@ -4,6 +4,7 @@ import { getCurrentTeachingSectionCurriculumPosition } from "@/knowledge/curricu
 import { createPostgresKnowledgeClient } from "@/knowledge/db/client";
 import { requireWorkspaceAccess } from "@/lib/auth/access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { withTransientReadRetry } from "@/lib/supabase/retry";
 import { deriveNextPosition, positionKindForRecordType, recommendedFocus, safeCurrentPositionTitle, safeCurriculumPositionLabel, type CurrentPosition, type NextPositionProposal, type PositionOption, type TeacherOutcome } from "@/teacher/domain/continuity";
 
 type Row = Record<string, unknown>;
@@ -72,6 +73,7 @@ export type TeacherHomeData = {
   nextLesson: TeacherLesson | null;
   todayLessons: TeacherLesson[];
   attention: TeacherAttention[];
+  continuityWarning: string | null;
 };
 
 export type TeacherAttention = {
@@ -91,6 +93,7 @@ export type TeachingSectionData = {
   nextLesson: TeacherLesson | null;
   recentLessons: TeacherLesson[];
   positionHistory: PositionHistory[];
+  continuityWarning: string | null;
 };
 
 export type PositionHistory = {
@@ -111,6 +114,7 @@ export type LessonReadinessData = {
   recommendedFocus: string;
   proposal: NextPositionProposal | null;
   artifacts: LessonArtifactRecord[];
+  continuityWarning: string | null;
 };
 
 export type LessonArtifactRecord = {
@@ -131,8 +135,8 @@ export type LessonArtifactRecord = {
   potentiallyStale: boolean;
 };
 
-function requiredRows<T>(result: { data: T[] | null; error: { message?: string } | null }, label: string): T[] {
-  if (result.error) throw new Error(label);
+function requiredRows<T>(result: { data: T[] | null; error: { message?: string; code?: string } | null }, label: string): T[] {
+  if (result.error) throw new Error(`${label} ${result.error.code ?? ""} ${result.error.message ?? ""}`.trim());
   return result.data ?? [];
 }
 
@@ -197,7 +201,7 @@ async function loadGovernedContext(client: ReturnType<typeof createPostgresKnowl
     where b.school_id=$1 and b.teaching_section_id=$2 and b.status='ACTIVE'
       and b.effective_from <= $3::date and (b.effective_to is null or b.effective_to >= $3::date)
     order by b.effective_from desc limit 1`, [schoolId, sectionId, effectiveOn]);
-  if (!binding.rows[0]) throw new Error("This Teaching Section has no active governed curriculum profile.");
+  if (!binding.rows[0]) throw new Error("This Teaching Section has no active curriculum setup.");
   const profile = binding.rows[0];
   const current = await getCurrentTeachingSectionCurriculumPosition(client, schoolId, sectionId, effectiveOn);
   const optionsResult = await client.query<Row>(`select pr.canonical_id, pr.ordering_key, r.record_type, r.source_wording, r.normalized
@@ -227,8 +231,8 @@ function todayInTimezone(timeZone: string): string {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
-async function loadTeacherReadModel() {
-  const access = await requireWorkspaceAccess();
+async function loadTeacherReadModelOnce(nextPath = "/workspace") {
+  const access = await requireWorkspaceAccess(undefined, nextPath);
   const client = await createSupabaseServerClient();
   const schoolResult = await client.from("schools").select("id, name, timezone").eq("id", access.schoolId).single();
   if (schoolResult.error || !schoolResult.data) throw new Error("School context could not be loaded.");
@@ -251,7 +255,7 @@ async function loadTeacherReadModel() {
   const sections = requiredRows(sectionsResult, "Teaching Sections could not be loaded.");
   const scheduledLessonRows = requiredRows(lessonsResult, "Scheduled lessons could not be loaded.");
   const slots = requiredRows(slotsResult, "Timetable slots could not be loaded.");
-  if (continuityResult.error) throw new Error("Classroom continuity could not be loaded.");
+  const continuityWarning = continuityResult.error ? "Classroom updates are temporarily unavailable. Your schedule and saved preparation remain available. Try again before recording an outcome." : null;
   const continuity = (continuityResult.data ?? []) as Row[];
   const preparations = requiredRows(preparationsResult, "Saved preparation could not be loaded.");
   const periodById = new Map(periods.map((row) => [stringValue(row, "id"), row]));
@@ -298,7 +302,11 @@ async function loadTeacherReadModel() {
     await knowledge.close();
   }
   const lessons = baseLessons.map((lesson) => ({ ...lesson, currentPosition: contextBySection.get(lesson.sectionId)?.current ?? null }));
-  return { access, schoolName: String(school.name), schoolTimezone: String(school.timezone), sections: sectionRows, lessons, contextBySection };
+  return { access, schoolName: String(school.name), schoolTimezone: String(school.timezone), sections: sectionRows, lessons, contextBySection, continuityWarning };
+}
+
+async function loadTeacherReadModel(nextPath = "/workspace") {
+  return withTransientReadRetry(() => loadTeacherReadModelOnce(nextPath), { label: "Teacher read model", attempts: 3, delayMs: 250 });
 }
 
 function attentionForLessons(lessons: TeacherLesson[], contexts: Map<string, GovernedCurriculumContext>, now = new Date()): TeacherAttention[] {
@@ -311,17 +319,17 @@ function attentionForLessons(lessons: TeacherLesson[], contexts: Map<string, Gov
   return attention.slice(0, 4);
 }
 
-export async function loadTeacherHomeData(): Promise<TeacherHomeData> {
-  const model = await loadTeacherReadModel();
+export async function loadTeacherHomeData(nextPath = "/workspace"): Promise<TeacherHomeData> {
+  const model = await loadTeacherReadModel(nextPath);
   const now = new Date();
   const future = model.lessons.filter((lesson) => new Date(lesson.startsAt) >= now);
   const nextLesson = future[0] ?? null;
   const today = model.lessons.filter((lesson) => lesson.scheduledDate === todayInTimezone(model.schoolTimezone));
-  return { access: model.access, schoolName: model.schoolName, schoolTimezone: model.schoolTimezone, nextLesson, todayLessons: today, attention: attentionForLessons(model.lessons, model.contextBySection, now) };
+  return { access: model.access, schoolName: model.schoolName, schoolTimezone: model.schoolTimezone, nextLesson, todayLessons: today, attention: attentionForLessons(model.lessons, model.contextBySection, now), continuityWarning: model.continuityWarning };
 }
 
-export async function loadTeachingSectionData(sectionId: string): Promise<TeachingSectionData> {
-  const model = await loadTeacherReadModel();
+async function loadTeachingSectionDataOnce(sectionId: string, nextPath = `/workspace/teacher/sections/${sectionId}`): Promise<TeachingSectionData> {
+  const model = await loadTeacherReadModel(nextPath);
   const section = model.sections.find((item) => item.id === sectionId);
   if (!section) throw new Error("Teaching Section not found or not assigned to this teacher.");
   const lessons = model.lessons.filter((lesson) => lesson.sectionId === sectionId);
@@ -335,11 +343,15 @@ export async function loadTeachingSectionData(sectionId: string): Promise<Teachi
       where e.school_id=$1 and e.teaching_section_id=$2 order by e.confirmed_at desc, e.id desc limit 8`, [model.access.schoolId, sectionId]);
     positionHistory = history.rows.map((row) => ({ eventId: stringValue(row, "id"), title: recordTitle(row.normalized, stringValue(row, "source_wording")), positionKind: stringValue(row, "position_kind"), confirmedAt: stringValue(row, "confirmed_at"), correctionReason: nullableString(row, "correction_reason") }));
   } finally { await historyClient.close(); }
-  return { access: model.access, schoolName: model.schoolName, schoolTimezone: model.schoolTimezone, section, curriculum: model.contextBySection.get(sectionId)!, nextLesson, recentLessons: lessons.filter((lesson) => new Date(lesson.startsAt) < now).slice(-5).reverse(), positionHistory };
+  return { access: model.access, schoolName: model.schoolName, schoolTimezone: model.schoolTimezone, section, curriculum: model.contextBySection.get(sectionId)!, nextLesson, recentLessons: lessons.filter((lesson) => new Date(lesson.startsAt) < now).slice(-5).reverse(), positionHistory, continuityWarning: model.continuityWarning };
 }
 
-export async function loadLessonReadinessData(lessonId: string): Promise<LessonReadinessData> {
-  const model = await loadTeacherReadModel();
+export async function loadTeachingSectionData(sectionId: string, nextPath = `/workspace/teacher/sections/${sectionId}`): Promise<TeachingSectionData> {
+  return withTransientReadRetry(() => loadTeachingSectionDataOnce(sectionId, nextPath), { label: "Teaching Section read model", attempts: 3, delayMs: 250 });
+}
+
+async function loadLessonReadinessDataOnce(lessonId: string, nextPath = `/workspace/teacher/lessons/${lessonId}`): Promise<LessonReadinessData> {
+  const model = await loadTeacherReadModel(nextPath);
   const lesson = model.lessons.find((item) => item.id === lessonId);
   if (!lesson) throw new Error("Scheduled lesson not found or not assigned to this teacher.");
   const curriculum = model.contextBySection.get(lesson.sectionId)!;
@@ -359,5 +371,9 @@ export async function loadLessonReadinessData(lessonId: string): Promise<LessonR
       id: stringValue(row, "id"), artifactType: stringValue(row, "artifact_type") as LessonArtifactRecord["artifactType"], status: stringValue(row, "status"), currentVersionId, currentVersionNumber: currentVersion ? Number(currentVersion.version_number) : null, currentContent: currentVersion?.content_json ?? null, parentArtifactId: nullableString(row, "parent_artifact_id"), parentVersionId: nullableString(row, "parent_version_id"), curriculumProfileId: nullableString(row, "curriculum_profile_id"), curriculumPositionEventId: nullableString(row, "curriculum_position_event_id"), curriculumCanonicalId: nullableString(row, "curriculum_canonical_id"), updatedAt: stringValue(row, "updated_at"), rightsState: (stringValue(row, "rights_state") || "UNKNOWN") as LessonArtifactRecord["rightsState"], provenance: Array.isArray(row.provenance) ? row.provenance as unknown[] : [], potentiallyStale: stringValue(row, "artifact_type") !== "FORMAL_LESSON_PLAN" && Boolean(planVersionId && nullableString(row, "parent_version_id") && planVersionId !== nullableString(row, "parent_version_id")),
     } satisfies LessonArtifactRecord;
   });
-  return { access: model.access, schoolName: model.schoolName, schoolTimezone: model.schoolTimezone, lesson, curriculum, previousLesson, recommendedFocus: recommendedFocus({ current: curriculum.current, previousOutcome: previousLesson?.outcome ?? null, unfinishedWork: lesson.unfinishedWork, scheduledSubject: lesson.section.subjectName }), proposal, artifacts };
+  return { access: model.access, schoolName: model.schoolName, schoolTimezone: model.schoolTimezone, lesson, curriculum, previousLesson, recommendedFocus: recommendedFocus({ current: curriculum.current, previousOutcome: previousLesson?.outcome ?? null, unfinishedWork: lesson.unfinishedWork, scheduledSubject: lesson.section.subjectName }), proposal, artifacts, continuityWarning: model.continuityWarning };
+}
+
+export async function loadLessonReadinessData(lessonId: string, nextPath = `/workspace/teacher/lessons/${lessonId}`): Promise<LessonReadinessData> {
+  return withTransientReadRetry(() => loadLessonReadinessDataOnce(lessonId, nextPath), { label: "Lesson readiness read model", attempts: 3, delayMs: 250 });
 }

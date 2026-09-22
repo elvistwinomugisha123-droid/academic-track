@@ -3,6 +3,6 @@ import { ClassroomContinuityWorkspace } from "@/components/classroom-continuity/
 import { loadClassroomContinuityData } from "@/classroom-continuity/application/queries";
 
 export default async function ClassroomPage() {
-  const data = await loadClassroomContinuityData();
+  const data = await loadClassroomContinuityData("/workspace/classroom");
   return <AppShell activePath="/workspace/classroom" access={data.access}><ClassroomContinuityWorkspace data={data} /></AppShell>;
 }

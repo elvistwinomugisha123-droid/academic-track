@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireWorkspaceAccess } from "@/lib/auth/access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { userFacingError } from "@/lib/user-facing-error";
 import { activateTimetableVersion, confirmTeachingSectionAssignment, createProgrammeEvent as createProgrammeEventCommand, verifyTimetableVersion } from "@/academic-operations/application/commands";
 
 const uuid = z.string().uuid();
@@ -15,7 +16,7 @@ const optionalUuid = z.preprocess((item) => typeof item === "string" && item.tri
 type ActionResult = { ok: true } | { ok: false; error: string };
 
 function result(error: { message?: string } | null): ActionResult {
-  return error ? { ok: false, error: error.message ?? "The change could not be saved." } : { ok: true };
+  return error ? { ok: false, error: userFacingError(error, "The change could not be saved.") } : { ok: true };
 }
 
 async function contextFor(roles: string[]) {
@@ -68,7 +69,7 @@ export async function verifyVersion(id: string): Promise<ActionResult> { try { a
 export async function activateVersion(id: string): Promise<ActionResult> { try { await activateTimetableVersion({ versionId: id }); revalidatePath("/workspace/academic-operations"); return { ok: true }; } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Timetable activation failed." }; } }
 
 export async function createProgrammeEvent(input: { academicPeriodId: string; eventType: string; title: string; startsAt: string; endsAt: string; notes: string; targetType?: "SCHOOL" | "CLASS_LEVEL" | "STREAM" | "DEPARTMENT"; targetId?: string | null }): Promise<ActionResult> {
-  try { const access = await contextFor(["DOS", "SCHOOL_ADMIN"]); const value = z.object({ academicPeriodId: optionalUuid.transform((item) => item || null), eventType: z.enum(["HOLIDAY", "ASSEMBLY", "SPORTS", "TRIP", "VISITATION", "EXAMINATION", "MOCK", "OTHER"]), title: text, startsAt: z.string().datetime(), endsAt: z.string().datetime(), notes: z.string().trim().max(500).transform((item) => item || null), targetType: z.enum(["SCHOOL", "CLASS_LEVEL", "STREAM", "DEPARTMENT"]).default("SCHOOL"), targetId: uuid.nullable().default(null) }).superRefine((item, refinement) => { if (item.targetType === "SCHOOL" && item.targetId) refinement.addIssue({ code: z.ZodIssueCode.custom, path: ["targetId"], message: "School-wide events do not use a target." }); if (item.targetType !== "SCHOOL" && !item.targetId) refinement.addIssue({ code: z.ZodIssueCode.custom, path: ["targetId"], message: "Choose a target for this scope." }); }).parse(input); await createProgrammeEventCommand({ ...value, schoolId: access.schoolId }); revalidatePath("/workspace/academic-operations"); return { ok: true }; } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Programme event could not be created." }; }
+  try { const access = await contextFor(["DOS", "SCHOOL_ADMIN"]); const value = z.object({ academicPeriodId: optionalUuid.transform((item) => item || null), eventType: z.enum(["HOLIDAY", "ASSEMBLY", "SPORTS", "TRIP", "VISITATION", "EXAMINATION", "MOCK", "OTHER"]), title: text, startsAt: z.string().datetime(), endsAt: z.string().datetime(), notes: z.string().trim().max(500).transform((item) => item || null), targetType: z.enum(["SCHOOL", "CLASS_LEVEL", "STREAM", "DEPARTMENT"]).default("SCHOOL"), targetId: z.preprocess((item) => item === "null" || item === "" ? null : item, uuid.nullable().default(null)) }).superRefine((item, refinement) => { if (item.targetType === "SCHOOL" && item.targetId) refinement.addIssue({ code: z.ZodIssueCode.custom, path: ["targetId"], message: "School-wide events do not use a target." }); if (item.targetType !== "SCHOOL" && !item.targetId) refinement.addIssue({ code: z.ZodIssueCode.custom, path: ["targetId"], message: "Choose a target for this scope." }); }).parse(input); await createProgrammeEventCommand({ ...value, schoolId: access.schoolId }); revalidatePath("/workspace/academic-operations"); return { ok: true }; } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Programme event could not be created." }; }
 }
 
 export async function cancelProgrammeEvent(id: string): Promise<ActionResult> { try { const access = await contextFor(["DOS", "SCHOOL_ADMIN"]); const client = await createSupabaseServerClient(); const response = await client.from("school_programme_events").update({ status: "CANCELLED", updated_at: new Date().toISOString() }).eq("id", uuid.parse(id)).eq("school_id", access.schoolId); revalidatePath("/workspace/academic-operations"); return result(response.error); } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Programme event could not be cancelled." }; } }

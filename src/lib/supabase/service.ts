@@ -4,6 +4,10 @@ import { readEnvironment } from "@/lib/env";
 
 export function createSupabaseServiceRoleClient() {
   const environment = readEnvironment();
-  if (!environment.SUPABASE_SERVICE_ROLE_KEY) throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for trusted server operations.");
-  return createClient(environment.NEXT_PUBLIC_SUPABASE_URL, environment.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } });
+  const isolatedTestProject = "lwbkxhimqlfuzzxilaga";
+  const key = environment.NEXT_PUBLIC_SUPABASE_URL.includes(isolatedTestProject)
+    ? process.env.TEST_SUPABASE_SERVICE_ROLE_KEY || environment.SUPABASE_SERVICE_ROLE_KEY
+    : environment.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) throw new Error("A trusted Supabase service key is required for server operations.");
+  return createClient(environment.NEXT_PUBLIC_SUPABASE_URL, key, { auth: { autoRefreshToken: false, persistSession: false } });
 }

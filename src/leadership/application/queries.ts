@@ -2,6 +2,7 @@ import "server-only";
 
 import { requireWorkspaceAccess } from "@/lib/auth/access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { withTransientReadRetry } from "@/lib/supabase/retry";
 
 export type LeadershipScope = "HOD" | "DOS" | "PRINCIPAL";
 
@@ -56,8 +57,8 @@ function object(value: unknown): Record<string, unknown> { return value && typeo
 function number(value: unknown): number { return typeof value === "number" ? value : 0; }
 function string(value: unknown): string { return typeof value === "string" ? value : ""; }
 
-export async function loadLeadershipOverview(scope: LeadershipScope): Promise<LeadershipOverviewData> {
-  const access = await requireWorkspaceAccess();
+async function loadLeadershipOverviewOnce(scope: LeadershipScope, nextPath = `/workspace/leadership/${scope.toLowerCase()}`): Promise<LeadershipOverviewData> {
+  const access = await requireWorkspaceAccess(undefined, nextPath);
   const client = await createSupabaseServerClient();
   const result = await client.rpc("get_leadership_overview", { p_scope: scope });
   if (result.error || !result.data) throw new Error(result.error?.message || "Leadership overview could not be loaded.");
@@ -89,8 +90,12 @@ export async function loadLeadershipOverview(scope: LeadershipScope): Promise<Le
   };
 }
 
-export async function loadAssessmentReviewWorkspace(workspaceId: string): Promise<AssessmentReviewData> {
-  const access = await requireWorkspaceAccess();
+export async function loadLeadershipOverview(scope: LeadershipScope, nextPath = `/workspace/leadership/${scope.toLowerCase()}`): Promise<LeadershipOverviewData> {
+  return withTransientReadRetry(() => loadLeadershipOverviewOnce(scope, nextPath), { label: "Leadership read model", attempts: 3, delayMs: 250 });
+}
+
+async function loadAssessmentReviewWorkspaceOnce(workspaceId: string, nextPath = `/workspace/leadership/assessments/${workspaceId}`): Promise<AssessmentReviewData> {
+  const access = await requireWorkspaceAccess(undefined, nextPath);
   const client = await createSupabaseServerClient();
   const result = await client.rpc("get_assessment_review_workspace", { p_workspace_id: workspaceId });
   if (result.error || !result.data) throw new Error(result.error?.message || "Assessment review could not be loaded.");
@@ -115,4 +120,8 @@ export async function loadAssessmentReviewWorkspace(workspaceId: string): Promis
     sections: records(raw.sections),
     history: records(raw.history),
   };
+}
+
+export async function loadAssessmentReviewWorkspace(workspaceId: string, nextPath = `/workspace/leadership/assessments/${workspaceId}`): Promise<AssessmentReviewData> {
+  return withTransientReadRetry(() => loadAssessmentReviewWorkspaceOnce(workspaceId, nextPath), { label: "Assessment review read model", attempts: 3, delayMs: 250 });
 }

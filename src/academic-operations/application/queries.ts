@@ -3,6 +3,7 @@ import "server-only";
 import { listAssignableTeachers } from "@/academic-operations/application/commands";
 import { requireWorkspaceAccess } from "@/lib/auth/access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { withTransientReadRetry } from "@/lib/supabase/retry";
 
 export type AcademicOperationsData = {
   access: Awaited<ReturnType<typeof requireWorkspaceAccess>>;
@@ -21,12 +22,12 @@ export type AcademicOperationsData = {
 };
 
 function requiredRows<T>(result: { data: T[] | null; error: { message?: string } | null }, label: string): T[] {
-  if (result.error) throw new Error(label);
+  if (result.error) throw new Error(`${label} ${result.error.message ?? ""}`.trim());
   return result.data ?? [];
 }
 
-export async function loadAcademicOperationsData(): Promise<AcademicOperationsData> {
-  const access = await requireWorkspaceAccess();
+async function loadAcademicOperationsDataOnce(nextPath = "/workspace/academic-operations"): Promise<AcademicOperationsData> {
+  const access = await requireWorkspaceAccess(undefined, nextPath);
   const client = await createSupabaseServerClient();
   const schoolId = access.schoolId;
   const [periods, departments, levels, streams, subjects, sections, versions, slots, lessons, events, eventTargets] = await Promise.all([
@@ -74,4 +75,8 @@ export async function loadAcademicOperationsData(): Promise<AcademicOperationsDa
     eventTargets: required.eventTargets as AcademicOperationsData["eventTargets"],
     teachers,
   };
+}
+
+export async function loadAcademicOperationsData(nextPath = "/workspace/academic-operations"): Promise<AcademicOperationsData> {
+  return withTransientReadRetry(() => loadAcademicOperationsDataOnce(nextPath), { label: "Academic operations read model", attempts: 3, delayMs: 250 });
 }

@@ -2,6 +2,7 @@ import "server-only";
 
 import { requireWorkspaceAccess } from "@/lib/auth/access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { withTransientReadRetry } from "@/lib/supabase/retry";
 
 export type ContinuityRow = {
   lesson_id: string;
@@ -41,11 +42,15 @@ function scopeFor(roles: string[]): ClassroomContinuityData["scope"] {
   return "MY";
 }
 
-export async function loadClassroomContinuityData(): Promise<ClassroomContinuityData> {
-  const access = await requireWorkspaceAccess();
+async function loadClassroomContinuityDataOnce(nextPath = "/workspace/classroom"): Promise<ClassroomContinuityData> {
+  const access = await requireWorkspaceAccess(undefined, nextPath);
   const scope = scopeFor(access.roles);
   const client = await createSupabaseServerClient();
   const { data, error } = await client.rpc("get_classroom_continuity", { p_scope: scope });
   if (error) throw new Error("Classroom continuity could not be loaded.");
   return { access, scope, lessons: (data ?? []) as ContinuityRow[] };
+}
+
+export async function loadClassroomContinuityData(nextPath = "/workspace/classroom"): Promise<ClassroomContinuityData> {
+  return withTransientReadRetry(() => loadClassroomContinuityDataOnce(nextPath), { label: "Classroom continuity read model", attempts: 3, delayMs: 250 });
 }

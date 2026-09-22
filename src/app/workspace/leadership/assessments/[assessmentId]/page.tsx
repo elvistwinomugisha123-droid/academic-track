@@ -4,6 +4,6 @@ import { loadAssessmentReviewWorkspace } from "@/leadership/application/queries"
 
 export default async function LeadershipAssessmentReviewPage({ params }: { params: Promise<{ assessmentId: string }> }) {
   const { assessmentId } = await params;
-  const data = await loadAssessmentReviewWorkspace(assessmentId);
+  const data = await loadAssessmentReviewWorkspace(assessmentId, `/workspace/leadership/assessments/${assessmentId}`);
   return <AppShell activePath="/workspace/leadership/dos" access={data.access}><AssessmentReviewWorkspace data={data} /></AppShell>;
 }
