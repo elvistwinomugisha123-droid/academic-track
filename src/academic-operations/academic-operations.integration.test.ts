@@ -6,7 +6,18 @@ const publishableKey = process.env.TEST_SUPABASE_PUBLISHABLE_KEY;
 const serviceKey = process.env.TEST_SUPABASE_SERVICE_ROLE_KEY;
 const admin = url && serviceKey ? createClient(url, serviceKey) : null;
 const suffix = `operations-${Date.now()}`;
-const revisionEffectiveFrom = "2026-10-01";
+// Keep the fixture calendar on Mondays and inside the continuity query's
+// rolling window. All three continuity lessons have ended, regardless of run day.
+const fixtureMonday = new Date();
+fixtureMonday.setUTCHours(0, 0, 0, 0);
+fixtureMonday.setUTCDate(fixtureMonday.getUTCDate() - ((fixtureMonday.getUTCDay() + 6) % 7) - 7);
+const fixtureOffset = fixtureMonday.getTime() - Date.parse("2026-09-21T00:00:00Z");
+const fixtureDate = (value: string) => {
+  const shifted = new Date(Date.parse(value) + fixtureOffset).toISOString();
+  return value.length === 10 ? shifted.slice(0, 10) : shifted;
+};
+
+const revisionEffectiveFrom = fixtureDate("2026-10-01");
 
 type TestUser = { id: string; email: string; password: string; client: SupabaseClient };
 let schoolA = "";
@@ -100,8 +111,8 @@ describe("isolated Step 4 academic operations integration", () => {
     ];
     const roleResult = await admin!.from("role_grants").insert(roleRows);
     if (roleResult.error) throw roleResult.error;
-    periodA = await insertOne("academic_periods", { school_id: schoolA, name: `Term 3 ${suffix}`, period_type: "TERM", academic_year: 2026, starts_on: "2026-09-01", ends_on: "2026-12-31", status: "CURRENT" });
-    periodB = await insertOne("academic_periods", { school_id: schoolB, name: `Term 3 B ${suffix}`, period_type: "TERM", academic_year: 2026, starts_on: "2026-09-01", ends_on: "2026-12-31", status: "CURRENT" });
+    periodA = await insertOne("academic_periods", { school_id: schoolA, name: `Term 3 ${suffix}`, period_type: "TERM", academic_year: Number(fixtureDate("2026-09-01").slice(0, 4)), starts_on: fixtureDate("2026-09-01"), ends_on: fixtureDate("2026-12-31"), status: "CURRENT" });
+    periodB = await insertOne("academic_periods", { school_id: schoolB, name: `Term 3 B ${suffix}`, period_type: "TERM", academic_year: Number(fixtureDate("2026-09-01").slice(0, 4)), starts_on: fixtureDate("2026-09-01"), ends_on: fixtureDate("2026-12-31"), status: "CURRENT" });
     levelA = await insertOne("class_levels", { school_id: schoolA, code: `S2-${suffix}`, name: `Senior 2 ${suffix}` });
     streamA = await insertOne("streams", { school_id: schoolA, class_level_id: levelA, code: `A-${suffix}`, name: `Blue ${suffix}` });
     levelB = await insertOne("class_levels", { school_id: schoolB, code: `S2-B-${suffix}`, name: `Senior 2 B ${suffix}` });
@@ -111,7 +122,7 @@ describe("isolated Step 4 academic operations integration", () => {
     sectionA = await insertOne("teaching_sections", { school_id: schoolA, academic_period_id: periodA, teacher_membership_id: teacherMembershipA, school_subject_id: subjectBiology, class_level_id: levelA, stream_id: streamA, created_by: dosA.id });
     sectionB = await insertOne("teaching_sections", { school_id: schoolA, academic_period_id: periodA, teacher_membership_id: teacherMembershipB, school_subject_id: subjectBiology, class_level_id: levelA, stream_id: streamA, created_by: dosA.id });
     chemistrySection = await insertOne("teaching_sections", { school_id: schoolA, academic_period_id: periodA, teacher_membership_id: teacherMembershipB, school_subject_id: subjectChemistry, class_level_id: levelA, stream_id: streamA, created_by: dosA.id });
-    versionA = await insertOne("timetable_versions", { school_id: schoolA, academic_period_id: periodA, version_number: 1, name: `Draft ${suffix}`, status: "DRAFT", effective_from: "2026-01-01", created_by: dosA.id });
+    versionA = await insertOne("timetable_versions", { school_id: schoolA, academic_period_id: periodA, version_number: 1, name: `Draft ${suffix}`, status: "DRAFT", effective_from: fixtureDate("2026-01-01"), created_by: dosA.id });
     await signIn(teacherA); await signIn(teacherB); await signIn(hodA); await signIn(dosA); await signIn(multiSchoolDos); await signIn(principalA); await signIn(adminA);
   });
 
@@ -176,7 +187,7 @@ describe("isolated Step 4 academic operations integration", () => {
 
   it("verifies, activates, stamps actors, and generates idempotent schedule intent", async () => {
     expect((await teacherB.client.rpc("confirm_teaching_section_assignment", { p_section_id: sectionB, p_decision: "CONFIRMED", p_reason: null })).error).toBeNull();
-    versionB = await insertOne("timetable_versions", { school_id: schoolA, academic_period_id: periodA, version_number: 2, name: `Verified ${suffix}`, status: "DRAFT", effective_from: "2026-09-01", created_by: dosA.id });
+    versionB = await insertOne("timetable_versions", { school_id: schoolA, academic_period_id: periodA, version_number: 2, name: `Verified ${suffix}`, status: "DRAFT", effective_from: fixtureDate("2026-09-01"), created_by: dosA.id });
     await admin!.from("timetable_slots").insert({ school_id: schoolA, timetable_version_id: versionB, teaching_section_id: sectionB, day_of_week: 1, starts_at: "08:00", ends_at: "09:00" });
     expect((await dosA.client.rpc("verify_timetable_version", { p_version_id: versionB })).error).toBeNull();
     expect((await dosA.client.rpc("activate_timetable_version", { p_version_id: versionB })).error).toBeNull();
@@ -217,9 +228,9 @@ describe("isolated Step 4 academic operations integration", () => {
   });
 
   it("keeps programme overlap as an overlap fact only", async () => {
-    const event = await insertOne("school_programme_events", { school_id: schoolA, academic_period_id: periodA, event_type: "ASSEMBLY", title: `Assembly ${suffix}`, starts_at: "2026-09-21T05:30:00+00:00", ends_at: "2026-09-21T06:30:00+00:00", created_by: dosA.id });
+    const event = await insertOne("school_programme_events", { school_id: schoolA, academic_period_id: periodA, event_type: "ASSEMBLY", title: `Assembly ${suffix}`, starts_at: fixtureDate("2026-09-21T05:30:00+00:00"), ends_at: fixtureDate("2026-09-21T06:30:00+00:00"), created_by: dosA.id });
     await admin!.from("programme_event_targets").insert({ event_id: event, school_id: schoolA, stream_id: streamA });
-    const lesson = (await admin!.from("scheduled_lessons").select("id").eq("timetable_version_id", versionB).eq("scheduled_date", "2026-09-21").single()).data;
+    const lesson = (await admin!.from("scheduled_lessons").select("id").eq("timetable_version_id", versionB).eq("scheduled_date", fixtureDate("2026-09-21")).single()).data;
     expect(lesson).toBeTruthy();
     const overlaps = await teacherB.client.rpc("find_programme_event_overlaps", { p_scheduled_lesson_id: lesson!.id });
     expect(overlaps.error).toBeNull();
@@ -250,7 +261,7 @@ describe("isolated Step 4 academic operations integration", () => {
   });
 
   it("creates programme events and targets atomically through the narrow command", async () => {
-    const targeted = await dosA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: periodA, p_event_type: "ASSEMBLY", p_title: `Targeted ${suffix}`, p_starts_at: "2026-11-02T08:00:00+00:00", p_ends_at: "2026-11-02T09:00:00+00:00", p_notes: "Department assembly", p_target_type: "STREAM", p_target_id: streamA });
+    const targeted = await dosA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: periodA, p_event_type: "ASSEMBLY", p_title: `Targeted ${suffix}`, p_starts_at: fixtureDate("2026-11-02T08:00:00+00:00"), p_ends_at: fixtureDate("2026-11-02T09:00:00+00:00"), p_notes: "Department assembly", p_target_type: "STREAM", p_target_id: streamA });
     expect(targeted.error).toBeNull();
     const target = await admin!.from("programme_event_targets").select("stream_id, class_level_id, department_id").eq("event_id", targeted.data).single();
     expect(target.error).toBeNull();
@@ -258,23 +269,23 @@ describe("isolated Step 4 academic operations integration", () => {
     const audit = await admin!.from("audit_events").select("actor_user_id, action, resource_type, resource_id").eq("resource_id", targeted.data).single();
     expect(audit.error).toBeNull();
     expect(audit.data).toMatchObject({ actor_user_id: dosA.id, action: "CREATE", resource_type: "SCHOOL_PROGRAMME_EVENT", resource_id: targeted.data });
-    const schoolWide = await dosA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: periodA, p_event_type: "HOLIDAY", p_title: `Whole school ${suffix}`, p_starts_at: "2026-11-03T08:00:00+00:00", p_ends_at: "2026-11-03T09:00:00+00:00", p_notes: "", p_target_type: "SCHOOL", p_target_id: null });
+    const schoolWide = await dosA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: periodA, p_event_type: "HOLIDAY", p_title: `Whole school ${suffix}`, p_starts_at: fixtureDate("2026-11-03T08:00:00+00:00"), p_ends_at: fixtureDate("2026-11-03T09:00:00+00:00"), p_notes: "", p_target_type: "SCHOOL", p_target_id: null });
     expect(schoolWide.error).toBeNull();
     expect((await admin!.from("programme_event_targets").select("id").eq("event_id", schoolWide.data)).data).toEqual([]);
-    const adminEvent = await adminA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: periodA, p_event_type: "VISITATION", p_title: `Admin event ${suffix}`, p_starts_at: "2026-11-05T08:00:00+00:00", p_ends_at: "2026-11-05T09:00:00+00:00", p_notes: null, p_target_type: "SCHOOL", p_target_id: null });
+    const adminEvent = await adminA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: periodA, p_event_type: "VISITATION", p_title: `Admin event ${suffix}`, p_starts_at: fixtureDate("2026-11-05T08:00:00+00:00"), p_ends_at: fixtureDate("2026-11-05T09:00:00+00:00"), p_notes: null, p_target_type: "SCHOOL", p_target_id: null });
     expect(adminEvent.error).toBeNull();
-    const noPeriod = await multiSchoolDos.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: null, p_event_type: "OTHER", p_title: `No period ${suffix}`, p_starts_at: "2026-11-06T08:00:00+00:00", p_ends_at: "2026-11-06T09:00:00+00:00", p_notes: null, p_target_type: "SCHOOL", p_target_id: null });
+    const noPeriod = await multiSchoolDos.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: null, p_event_type: "OTHER", p_title: `No period ${suffix}`, p_starts_at: fixtureDate("2026-11-06T08:00:00+00:00"), p_ends_at: fixtureDate("2026-11-06T09:00:00+00:00"), p_notes: null, p_target_type: "SCHOOL", p_target_id: null });
     expect(noPeriod.error).toBeNull();
-    expect((await dosA.client.rpc("create_programme_event", { p_school_id: schoolB, p_academic_period_id: null, p_event_type: "OTHER", p_title: "Wrong school", p_starts_at: "2026-11-07T08:00:00+00:00", p_ends_at: "2026-11-07T09:00:00+00:00", p_notes: null, p_target_type: "SCHOOL", p_target_id: null })).error).toBeTruthy();
-    expect((await dosA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: periodB, p_event_type: "OTHER", p_title: "Wrong period", p_starts_at: "2026-11-08T08:00:00+00:00", p_ends_at: "2026-11-08T09:00:00+00:00", p_notes: null, p_target_type: "SCHOOL", p_target_id: null })).error).toBeTruthy();
-    expect((await dosA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: null, p_event_type: "OTHER", p_title: "Wrong target", p_starts_at: "2026-11-09T08:00:00+00:00", p_ends_at: "2026-11-09T09:00:00+00:00", p_notes: null, p_target_type: "STREAM", p_target_id: streamB })).error).toBeTruthy();
-    expect((await teacherA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: periodA, p_event_type: "ASSEMBLY", p_title: "No", p_starts_at: "2026-11-04T08:00:00+00:00", p_ends_at: "2026-11-04T09:00:00+00:00", p_notes: null, p_target_type: "SCHOOL", p_target_id: null })).error).toBeTruthy();
+    expect((await dosA.client.rpc("create_programme_event", { p_school_id: schoolB, p_academic_period_id: null, p_event_type: "OTHER", p_title: "Wrong school", p_starts_at: fixtureDate("2026-11-07T08:00:00+00:00"), p_ends_at: fixtureDate("2026-11-07T09:00:00+00:00"), p_notes: null, p_target_type: "SCHOOL", p_target_id: null })).error).toBeTruthy();
+    expect((await dosA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: periodB, p_event_type: "OTHER", p_title: "Wrong period", p_starts_at: fixtureDate("2026-11-08T08:00:00+00:00"), p_ends_at: fixtureDate("2026-11-08T09:00:00+00:00"), p_notes: null, p_target_type: "SCHOOL", p_target_id: null })).error).toBeTruthy();
+    expect((await dosA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: null, p_event_type: "OTHER", p_title: "Wrong target", p_starts_at: fixtureDate("2026-11-09T08:00:00+00:00"), p_ends_at: fixtureDate("2026-11-09T09:00:00+00:00"), p_notes: null, p_target_type: "STREAM", p_target_id: streamB })).error).toBeTruthy();
+    expect((await teacherA.client.rpc("create_programme_event", { p_school_id: schoolA, p_academic_period_id: periodA, p_event_type: "ASSEMBLY", p_title: "No", p_starts_at: fixtureDate("2026-11-04T08:00:00+00:00"), p_ends_at: fixtureDate("2026-11-04T09:00:00+00:00"), p_notes: null, p_target_type: "SCHOOL", p_target_id: null })).error).toBeTruthy();
   });
 
   it("preserves classroom evidence, authority, correction history, and continuity projection", async () => {
-    const lesson = (await admin!.from("scheduled_lessons").select("id, starts_at, ends_at, schedule_status").eq("timetable_version_id", versionB).eq("scheduled_date", "2026-09-14").single()).data;
-    const nextLesson = (await admin!.from("scheduled_lessons").select("id, starts_at, ends_at, schedule_status").eq("timetable_version_id", versionB).eq("scheduled_date", "2026-09-21").single()).data;
-    const unconfirmedLesson = (await admin!.from("scheduled_lessons").select("id, starts_at, ends_at, schedule_status").eq("timetable_version_id", versionB).eq("scheduled_date", "2026-09-07").single()).data;
+    const lesson = (await admin!.from("scheduled_lessons").select("id, starts_at, ends_at, schedule_status").eq("timetable_version_id", versionB).eq("scheduled_date", fixtureDate("2026-09-14")).single()).data;
+    const nextLesson = (await admin!.from("scheduled_lessons").select("id, starts_at, ends_at, schedule_status").eq("timetable_version_id", versionB).eq("scheduled_date", fixtureDate("2026-09-21")).single()).data;
+    const unconfirmedLesson = (await admin!.from("scheduled_lessons").select("id, starts_at, ends_at, schedule_status").eq("timetable_version_id", versionB).eq("scheduled_date", fixtureDate("2026-09-07")).single()).data;
     expect(lesson).toMatchObject({ schedule_status: "SCHEDULED" });
     expect(nextLesson).toMatchObject({ schedule_status: "SCHEDULED" });
     expect(unconfirmedLesson).toMatchObject({ schedule_status: "SCHEDULED" });
@@ -305,7 +316,7 @@ describe("isolated Step 4 academic operations integration", () => {
     expect(partialProjection.error).toBeNull();
     expect(partialProjection.data).toEqual(expect.arrayContaining([
       expect.objectContaining({ lesson_id: lesson!.id, lesson_state: "PARTIAL_CARRY_FORWARD", carry_forward_state: null }),
-      expect.objectContaining({ lesson_id: nextLesson!.id, lesson_state: "SCHEDULED", carry_forward_state: "PARTIAL_CARRY_FORWARD", previous_lesson_id: lesson!.id }),
+      expect.objectContaining({ lesson_id: nextLesson!.id, lesson_state: "UNCONFIRMED", carry_forward_state: "PARTIAL_CARRY_FORWARD", previous_lesson_id: lesson!.id }),
       expect.objectContaining({ lesson_id: unconfirmedLesson!.id, lesson_state: "UNCONFIRMED", carry_forward_state: null }),
     ]));
     const correction = await teacherB.client.rpc("correct_classroom_outcome", { p_scheduled_lesson_id: lesson!.id, p_supersedes_event_id: eventId, p_outcome: "DELIVERED" });
