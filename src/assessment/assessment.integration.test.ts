@@ -3,7 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
 
 type Fixture = {
-  periodId: string; schoolSubjectId: string; subjectProfileId: string; assessmentProfileId: string;
+  periodId: string; schoolSubjectId: string; subjectProfileId: string; assessmentProfileId: string; commonAssessmentProfileId: string;
   sectionAId: string; sectionBId: string; foreignSectionId: string; teacherEmail: string; teacherPassword: string;
   canonicalIds: string[]; foreignCanonicalId: string; assessmentDate: string; evidence: Record<string, string>; positions: Record<string, string>;
 };
@@ -69,7 +69,7 @@ describeConfigured("Step 9 direct Assessment Studio RPC attacks and taught-scope
 
   it("adds a partially covered anchor to a common test only after both streams confirm it", async () => {
     const fixture = await loadFixture(); const client = await signedInClient(fixture); const canonicalId = fixture.canonicalIds[3]; const a = fixture.canonicalIds[0];
-    const workspace = await client.rpc("create_assessment_workspace", { p_academic_period_id: fixture.periodId, p_school_subject_id: fixture.schoolSubjectId, p_curriculum_subject_profile_id: fixture.subjectProfileId, p_assessment_profile_id: fixture.assessmentProfileId, p_purpose: "COMMON_STREAM_TEST", p_title: "Synthetic partial common test", p_duration_minutes: 45, p_total_marks: 20, p_section_ids: [fixture.sectionAId, fixture.sectionBId], p_scope_items: [item(fixture.sectionAId, a, fixture.evidence[`${fixture.sectionAId}:${a}:DELIVERED`]), item(fixture.sectionBId, a, fixture.evidence[`${fixture.sectionBId}:${a}:DELIVERED`])], p_content_json: content(fixture, [a], [fixture.sectionAId, fixture.sectionBId]), p_assessment_date: fixture.assessmentDate });
+    const workspace = await client.rpc("create_assessment_workspace", { p_academic_period_id: fixture.periodId, p_school_subject_id: fixture.schoolSubjectId, p_curriculum_subject_profile_id: fixture.subjectProfileId, p_assessment_profile_id: fixture.commonAssessmentProfileId, p_purpose: "COMMON_STREAM_TEST", p_title: "Synthetic partial common test", p_duration_minutes: 45, p_total_marks: 20, p_section_ids: [fixture.sectionAId, fixture.sectionBId], p_scope_items: [item(fixture.sectionAId, a, fixture.evidence[`${fixture.sectionAId}:${a}:DELIVERED`]), item(fixture.sectionBId, a, fixture.evidence[`${fixture.sectionBId}:${a}:DELIVERED`])], p_content_json: { ...content(fixture, [a], [fixture.sectionAId, fixture.sectionBId]), purpose: "COMMON_STREAM_TEST" }, p_assessment_date: fixture.assessmentDate });
     expect(workspace.error).toBeNull();
     const first = await client.rpc("confirm_assessment_partial_scope", { p_workspace_id: workspace.data.workspaceId, p_section_id: fixture.sectionAId, p_canonical_id: canonicalId, p_evidence_reference_id: fixture.evidence[`${fixture.sectionAId}:${canonicalId}:PARTIALLY_DELIVERED`], p_reason: "Synthetic stream A confirmation" });
     expect(first.error).toBeNull();
@@ -84,7 +84,7 @@ describeConfigured("Step 9 direct Assessment Studio RPC attacks and taught-scope
   it("keeps accumulated anchors and computes common scope as the stream intersection", async () => {
     const fixture = await loadFixture(); const client = await signedInClient(fixture); const [a, b] = fixture.canonicalIds;
     const rows = [item(fixture.sectionAId, a, fixture.evidence[`${fixture.sectionAId}:${a}:DELIVERED`]), item(fixture.sectionAId, b, fixture.evidence[`${fixture.sectionAId}:${b}:DELIVERED`]), item(fixture.sectionBId, a, fixture.evidence[`${fixture.sectionBId}:${a}:DELIVERED`]), item(fixture.sectionBId, b, fixture.evidence[`${fixture.sectionBId}:${b}:DELIVERED`])];
-    const result = await client.rpc("create_assessment_workspace", { p_academic_period_id: fixture.periodId, p_school_subject_id: fixture.schoolSubjectId, p_curriculum_subject_profile_id: fixture.subjectProfileId, p_assessment_profile_id: fixture.assessmentProfileId, p_purpose: "COMMON_STREAM_TEST", p_title: "Synthetic common test", p_duration_minutes: 45, p_total_marks: 20, p_section_ids: [fixture.sectionAId, fixture.sectionBId], p_scope_items: rows, p_content_json: content(fixture, [a, b], [fixture.sectionAId, fixture.sectionBId]), p_assessment_date: fixture.assessmentDate });
+    const result = await client.rpc("create_assessment_workspace", { p_academic_period_id: fixture.periodId, p_school_subject_id: fixture.schoolSubjectId, p_curriculum_subject_profile_id: fixture.subjectProfileId, p_assessment_profile_id: fixture.commonAssessmentProfileId, p_purpose: "COMMON_STREAM_TEST", p_title: "Synthetic common test", p_duration_minutes: 45, p_total_marks: 20, p_section_ids: [fixture.sectionAId, fixture.sectionBId], p_scope_items: rows, p_content_json: { ...content(fixture, [a, b], [fixture.sectionAId, fixture.sectionBId]), purpose: "COMMON_STREAM_TEST" }, p_assessment_date: fixture.assessmentDate });
     expect(result.error).toBeNull();
     const scope = await client.from("assessment_scope_items").select("canonical_id, section_id").eq("assessment_workspace_id", result.data.workspaceId);
     expect(scope.error).toBeNull(); expect(scope.data?.map((row) => row.canonical_id).sort()).toEqual([a, a, b, b].sort());

@@ -65,6 +65,7 @@ const governedSubjectId = id();
 const otherGovernedSubjectId = id();
 const otherSubjectProfileId = id();
 const assessmentProfileId = id();
+const commonAssessmentProfileId = id();
 const canonicalIds = [`TEST-ASSESSMENT-${fixtureSuffix}-A`, `TEST-ASSESSMENT-${fixtureSuffix}-B`, `TEST-ASSESSMENT-${fixtureSuffix}-C`, `TEST-ASSESSMENT-${fixtureSuffix}-D`];
 const foreignCanonicalId = `TEST-ASSESSMENT-${fixtureSuffix}-FOREIGN`;
 
@@ -74,7 +75,7 @@ const dosMembershipId = id();
 const foreignTeacherMembershipId = id();
 
 const fixture: Record<string, unknown> = {
-  schoolId, foreignSchoolId, periodId, foreignPeriodId, schoolSubjectId: subjectId, subjectProfileId, assessmentProfileId,
+  schoolId, foreignSchoolId, periodId, foreignPeriodId, schoolSubjectId: subjectId, subjectProfileId, assessmentProfileId, commonAssessmentProfileId,
   sectionAId, sectionBId, foreignSectionId, teacherEmail: teacher.email, otherTeacherEmail: otherTeacher.email, dosEmail: dos.email,
   teacherPassword: password, otherTeacherPassword: password, canonicalIds, foreignCanonicalId,
   assessmentDate: "2026-03-20", periodStartsOn: "2026-01-01", periodEndsOn: "2026-12-31",
@@ -94,6 +95,7 @@ await sql.begin(async (tx) => {
   await tx`insert into knowledge_curriculum_releases (id,release_key,authority,display_name,education_level,version_label,effective_from,effective_to,status,manifest_checksum_sha256,created_by) values (${releaseId},${`TEST-ASSESSMENT-RELEASE-${fixtureSuffix}`},'TEST-SYNTHETIC','TEST Synthetic Assessment Release','lower-secondary','TEST-1','2026-01-01','2026-12-31','DRAFT',${manifestChecksum},${dos.id})`;
   await tx`insert into knowledge_subject_profiles (id,release_id,governed_subject_id,profile_key,display_title,education_level,status,requires_assessment_profile) values (${subjectProfileId},${releaseId},${governedSubjectId},${`TEST-ASSESSMENT-PROFILE-${fixtureSuffix}`},'TEST Synthetic Assessment Subject Profile','lower-secondary','DRAFT',true),(${otherSubjectProfileId},${releaseId},${otherGovernedSubjectId},${`TEST-ASSESSMENT-OTHER-PROFILE-${fixtureSuffix}`},'TEST Synthetic Other Subject Profile','lower-secondary','DRAFT',false)`;
   await tx`insert into knowledge_assessment_profiles (id,release_id,subject_profile_id,assessment_key,display_title,purpose,regime,applicable_source_roles,status,allows_broader_scope,allows_partial_scope,requires_review) values (${assessmentProfileId},${releaseId},${subjectProfileId},${`TEST-ASSESSMENT-CLASS-TEST-${fixtureSuffix}`},'TEST Synthetic Class Test','CLASS_TEST','TEST_SYNTHETIC',array['SUBJECT_SYLLABUS']::text[],'DRAFT',false,true,true)`;
+  await tx`insert into knowledge_assessment_profiles (id,release_id,subject_profile_id,assessment_key,display_title,purpose,regime,applicable_source_roles,status,allows_broader_scope,allows_partial_scope,requires_review) values (${commonAssessmentProfileId},${releaseId},${subjectProfileId},${`TEST-ASSESSMENT-COMMON-TEST-${fixtureSuffix}`},'TEST Synthetic Common Test','COMMON_STREAM_TEST','TEST_SYNTHETIC',array['SUBJECT_SYLLABUS']::text[],'DRAFT',false,true,true)`;
   await tx`insert into knowledge_release_sources (release_id,subject_profile_id,source_id,source_role,is_required,status,approved_at,approved_by) values (${releaseId},${subjectProfileId},${sourceId},'SUBJECT_SYLLABUS',true,'APPROVED',now(),${dos.id}),(${releaseId},${otherSubjectProfileId},${sourceId},'SUBJECT_SYLLABUS',true,'APPROVED',now(),${dos.id})`;
   for (const [index, canonicalId] of [...canonicalIds, foreignCanonicalId].entries()) {
     const spanId = `${sourceId}:ASSESSMENT:${canonicalId}`;
@@ -112,7 +114,7 @@ await sql.begin(async (tx) => {
   await tx`select set_config('ate.knowledge_governance_command','ACTIVATE_RELEASE',true)`;
   await tx`update knowledge_subject_profiles set status='ACTIVE' where release_id=${releaseId}`;
   await tx`update knowledge_curriculum_subjects set status='ACTIVE' where id in (${governedSubjectId},${otherGovernedSubjectId})`;
-  await tx`update knowledge_assessment_profiles set status='ACTIVE' where id=${assessmentProfileId}`;
+  await tx`update knowledge_assessment_profiles set status='ACTIVE' where id in (${assessmentProfileId}, ${commonAssessmentProfileId})`;
   await tx`update knowledge_curriculum_releases set status='ACTIVE',activated_at=now(),activated_by=${dos.id} where id=${releaseId}`;
   await tx`select public.activate_knowledge_profile_pilot(${subjectProfileId},${dos.id},'Synthetic TEST fixture activation')`;
   await tx`select public.activate_knowledge_profile_pilot(${otherSubjectProfileId},${dos.id},'Synthetic TEST fixture activation')`;
