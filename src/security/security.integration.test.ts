@@ -105,6 +105,14 @@ describe("isolated Supabase security integration", () => {
     requireError((await teacherA.client.from("academic_periods").insert({ school_id: schoolB, name: "Cross tenant", period_type: "TERM", academic_year: 2026, starts_on: "2026-01-01", ends_on: "2026-03-31" })).error);
   });
 
+  it("keeps internal knowledge governance tables outside direct browser access", async () => {
+    const anonymous = createClient(url!, publishableKey!);
+    const anonymousResult = await anonymous.from("knowledge_runtime_decisions").select("decision_id").limit(1);
+    expect(anonymousResult.data).toBeNull(); requireError(anonymousResult.error);
+    const authenticatedResult = await teacherA.client.from("knowledge_runtime_decisions").select("decision_id").limit(1);
+    expect(authenticatedResult.data).toBeNull(); requireError(authenticatedResult.error);
+  });
+
   it("denies inactive memberships and applies role revocation immediately", async () => {
     await admin!.from("memberships").update({ status: "SUSPENDED" }).eq("school_id", schoolA).eq("user_id", teacherA.id);
     expect((await teacherA.client.from("schools").select("id")).data).toEqual([]);
