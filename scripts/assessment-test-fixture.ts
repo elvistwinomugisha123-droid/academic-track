@@ -75,6 +75,7 @@ const dosMembershipId = id();
 const foreignTeacherMembershipId = id();
 
 const fixture: Record<string, unknown> = {
+  fixtureSuffix,
   schoolId, foreignSchoolId, periodId, foreignPeriodId, schoolSubjectId: subjectId, subjectProfileId, assessmentProfileId, commonAssessmentProfileId,
   sectionAId, sectionBId, foreignSectionId, teacherEmail: teacher.email, otherTeacherEmail: otherTeacher.email, dosEmail: dos.email,
   teacherPassword: password, otherTeacherPassword: password, canonicalIds, foreignCanonicalId,

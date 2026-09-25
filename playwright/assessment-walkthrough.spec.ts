@@ -3,6 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { restoreAuthState } from "./auth-state";
 
 type AssessmentFixture = {
+  fixtureSuffix: string;
   teacherEmail: string;
   teacherPassword: string;
   dosEmail: string;
@@ -51,7 +52,7 @@ test.describe("Assessment Studio walkthrough", () => {
 
   test("teacher authors, submits, receives review return, then exports after approval", async ({ page }) => {
     const data = requireFixture();
-    const assessmentTitle = `Synthetic microscope class test ${data.sectionAId.slice(0, 8)}`;
+    const assessmentTitle = `Synthetic microscope class test ${data.fixtureSuffix}`;
     const assertClean = browserFailures(page);
     await signIn(page);
     await expect(page.getByRole("heading", { name: "Assessment Studio" })).toBeVisible({ timeout: 60_000 });
