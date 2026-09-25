@@ -289,7 +289,7 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
 
     await page.goto(`/workspace/teacher/sections/${value.sectionId}`);
     await expect(page.getByRole("heading", { name: value.currentTitle })).toBeVisible();
-    await expect(page.getByText(/Governed curriculum context/i)).toBeVisible();
+    await expect(page.getByText("Current confirmed position", { exact: true })).toBeVisible();
     await captureResponsive(page, "teaching-section");
 
     await page.goto(`/workspace/teacher/lessons/${value.currentLessonId}`);
