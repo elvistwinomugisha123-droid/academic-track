@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 
@@ -26,6 +26,10 @@ type Fixture = {
   currentPositionKind: "TOPIC" | "LEARNING_OUTCOME";
   currentTitle: string;
   nextTitle: string;
+};
+
+type AssessmentFixture = {
+  subjectProfileId: string;
 };
 
 let fixture: Fixture | null = null;
@@ -78,6 +82,8 @@ async function createFixture(client: TestAdmin): Promise<Fixture> {
   const tomorrow = dateInKampala(new Date(now.getTime() + 24 * 60 * 60 * 1000));
   const periodStart = dateInKampala(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
   const periodEnd = dateInKampala(new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000));
+  const assessmentFixture = JSON.parse(readFileSync("test-artifacts/assessment-fixture.json", "utf8")) as AssessmentFixture;
+  if (!assessmentFixture.subjectProfileId) throw new Error("Step 7 acceptance requires the isolated synthetic curriculum fixture.");
 
   let schoolId = "";
   try {
@@ -91,7 +97,7 @@ async function createFixture(client: TestAdmin): Promise<Fixture> {
   const periodId = await insertOne(client, "academic_periods", { school_id: schoolId, name: `Step 7 Term ${suffix}`, period_type: "TERM", academic_year: now.getUTCFullYear(), starts_on: periodStart, ends_on: periodEnd, status: "CURRENT" });
   const levelId = await insertOne(client, "class_levels", { school_id: schoolId, code: `S2-${suffix}`, name: `Senior 2 ${suffix}` });
   const streamId = await insertOne(client, "streams", { school_id: schoolId, class_level_id: levelId, code: `BLUE-${suffix}`, name: `Blue ${suffix}` });
-  const profile = requireResult((await client.from("knowledge_subject_profiles").select("id, governed_subject_id, education_level").eq("profile_key", "UG-LSC-BIOLOGY-2019-REFERENCE").eq("status", "ACTIVE").eq("runtime_status", "PILOT_ACTIVE").single()).data, null) as Row;
+  const profile = requireResult((await client.from("knowledge_subject_profiles").select("id, governed_subject_id, education_level").eq("id", assessmentFixture.subjectProfileId).eq("status", "ACTIVE").eq("runtime_status", "PILOT_ACTIVE").single()).data, null) as Row;
   const profileId = String(profile.id);
   const subjectId = await insertOne(client, "school_subjects", {
     school_id: schoolId,
