@@ -29,6 +29,7 @@ O_LEVEL: dict[str, tuple[str, str, int | None]] = {
     "ENGLISH_SYLLABUS_compressed.pdf": ("English Language", "syllabus", 2019),
     "ENTREPRENEURSHIP_SYLLABUS_compressed.pdf": ("Entrepreneurship Education", "syllabus", 2019),
     "Georgraphy-Syllabus.pdf": ("Geography", "syllabus", None),
+    "Olevel-History-syllabus-June-2023.pdf": ("History and Political Education", "syllabus", 2019),
     "HISTORY-AND-POLITICAL-EDUCATION-S.4-LEARNERS-BOOK-FINAL-07.11.2021_Web-file.pdf": (
         "History and Political Education",
         "learner-book",

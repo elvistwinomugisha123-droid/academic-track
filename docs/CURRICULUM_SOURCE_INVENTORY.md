@@ -8,16 +8,16 @@ runtime publication. Publication year is source metadata, not an expiry date.
 
 | Collection | Supplied files | Unique PDFs | Pages | Classification |
 |---|---:|---:|---:|---|
-| Lower Secondary | 12 | 11 | 945 supplied / 887 unique | 10 syllabi; 1 learner book |
+| Lower Secondary | 13 | 12 | 1,009 supplied / 951 unique | 11 syllabi; 1 learner book |
 | Advanced Secondary syllabi | 19 | 19 | 1,208 | 19 syllabi |
 | Advanced Secondary assessment | 15 | 15 | 1,262 | 1 framework; 14 subject guidelines |
-| **Total** | **46** | **45** | **3,415 supplied / 3,357 unique** | SHA-256 deduplicated |
+| **Total** | **47** | **46** | **3,479 supplied / 3,421 unique** | SHA-256 deduplicated |
 
 The two supplied Lower Secondary Biology PDFs are byte-for-byte identical. One
-is canonical and the other is retained as a duplicate alias. History and
-Political Education at Lower Secondary is represented by a Senior Four learner
-book, not a syllabus, so it is supporting content and must not be mislabelled as
-curriculum authority.
+is canonical and the other is retained as a duplicate alias. Lower Secondary
+History and Political Education now has both its syllabus and a separately
+classified Senior Four learner book. The learner book remains supporting
+content and is not mislabelled as curriculum authority.
 
 ## Lower Secondary
 
@@ -30,7 +30,7 @@ curriculum authority.
 | English Language | Yes | — |
 | Entrepreneurship Education | Yes | — |
 | Geography | Yes | — |
-| History and Political Education | No | Senior Four learner book |
+| History and Political Education | Yes | Senior Four learner book |
 | Literature in English | Yes | — |
 | Mathematics | Yes | — |
 | Physics | Yes | — |

@@ -219,7 +219,7 @@ async function cleanupFixture(client: TestAdmin, value: Fixture) {
 async function signIn(page: Page, value: Fixture) {
   await page.goto("/sign-in");
   await page.getByLabel("Email address").fill(value.email);
-  await page.getByLabel("Password").fill(value.password);
+  await page.getByRole("textbox", { name: "Password", exact: true }).fill(value.password);
   await page.getByRole("button", { name: "Sign in" }).click();
   await page.waitForURL("**/workspace", { timeout: 30_000 });
 }

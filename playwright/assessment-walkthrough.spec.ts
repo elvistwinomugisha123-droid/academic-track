@@ -51,6 +51,7 @@ test.describe("Assessment Studio walkthrough", () => {
 
   test("teacher authors, submits, receives review return, then exports after approval", async ({ page }) => {
     const data = requireFixture();
+    const assessmentTitle = `Synthetic microscope class test ${data.sectionAId.slice(0, 8)}`;
     const assertClean = browserFailures(page);
     await signIn(page);
     await expect(page.getByRole("heading", { name: "Assessment Studio" })).toBeVisible({ timeout: 60_000 });
@@ -61,13 +62,13 @@ test.describe("Assessment Studio walkthrough", () => {
     await page.getByRole("textbox", { name: "Assessment date", exact: true }).fill(data.assessmentDate);
     await page.getByRole("textbox", { name: "Curriculum subject profile", exact: true }).fill(data.subjectProfileId);
     await page.getByRole("combobox", { name: "Assessment profile", exact: true }).selectOption(data.assessmentProfileId);
-    await page.getByRole("textbox", { name: "Title", exact: true }).fill("Synthetic microscope class test");
+    await page.getByRole("textbox", { name: "Title", exact: true }).fill(assessmentTitle);
     await page.getByRole("spinbutton", { name: "Duration (minutes)", exact: true }).fill("40");
     await page.getByRole("spinbutton", { name: "Total marks", exact: true }).fill("20");
     await page.getByRole("checkbox", { name: new RegExp(data.sectionAId) }).check();
     await page.getByRole("button", { name: "Open assessment workspace" }).click();
 
-    await expect(page.getByRole("heading", { name: "Synthetic microscope class test", exact: true }).first()).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole("heading", { name: assessmentTitle, exact: true }).first()).toBeVisible({ timeout: 60_000 });
     await page.getByRole("button", { name: "Add question" }).click();
     await page.getByLabel("Question text").fill("Describe one observation a learner can make when viewing a prepared specimen through a microscope.");
     await page.getByLabel("Marks").fill("20");
@@ -85,11 +86,11 @@ test.describe("Assessment Studio walkthrough", () => {
     await page.context().clearCookies();
     await signIn(page, "dos");
     await expect(page.getByRole("heading", { name: /Academic Operations/i })).toBeVisible({ timeout: 60_000 });
-    const reviewRow = page.locator(".assessment-review-row").filter({ hasText: "Synthetic microscope class test" });
+    const reviewRow = page.locator(".assessment-review-row").filter({ hasText: assessmentTitle });
     await expect(reviewRow).toBeVisible({ timeout: 60_000 });
     await reviewRow.getByRole("link", { name: "Open review" }).click();
     await expect(page).toHaveURL(/\/workspace\/leadership\/assessments\/[0-9a-f-]+$/, { timeout: 60_000 });
-    await expect(page.getByRole("heading", { name: "Synthetic microscope class test", exact: true }).first()).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole("heading", { name: assessmentTitle, exact: true }).first()).toBeVisible({ timeout: 60_000 });
     await expect(page.getByText("Read-only submitted assessment content for authorised academic review.")).toBeVisible();
     page.once("dialog", (dialog) => dialog.accept("Clarify the marking evidence before approval."));
     await page.getByRole("button", { name: "Return to draft" }).click();
@@ -104,7 +105,7 @@ test.describe("Assessment Studio walkthrough", () => {
 
     await page.context().clearCookies();
     await signIn(page, "dos");
-    const resubmittedRow = page.locator(".assessment-review-row").filter({ hasText: "Synthetic microscope class test" });
+    const resubmittedRow = page.locator(".assessment-review-row").filter({ hasText: assessmentTitle });
     await expect(resubmittedRow).toBeVisible({ timeout: 60_000 });
     await resubmittedRow.getByRole("link", { name: "Open review" }).click();
     await expect(page).toHaveURL(/\/workspace\/leadership\/assessments\/[0-9a-f-]+$/, { timeout: 60_000 });
