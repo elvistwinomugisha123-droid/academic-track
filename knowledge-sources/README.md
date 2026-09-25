@@ -109,11 +109,12 @@ The source registry must carry rights/permission metadata and the retrieval laye
 
 Do not treat extracted JSON as automatically free of the source document's rights restrictions.
 
-## First extraction target
+## Corpus rollout
 
-Do not process every source at once.
+The complete supplied subject set is in scope. Process it through the same
+repeatable pipeline, with validation and review performed in manageable batches.
 
-Use a small end-to-end validation set first, for example:
+Use a small end-to-end validation set first:
 
 - one Lower Secondary syllabus;
 - one Advanced Secondary syllabus;
@@ -122,4 +123,6 @@ Use a small end-to-end validation set first, for example:
 
 Physics is a strong engineering test case because the current product discussions already include both Lower and Advanced Secondary lesson/assessment examples. This does **not** make ATE a Physics-only or Biology-only product.
 
-Once the schema and validation pipeline are proven, run the same process across the wider subject corpus.
+Once the schema and validation pipeline are proven, run the same process across
+every supplied subject. Exact duplicate files must be represented as aliases and
+must not be extracted twice.

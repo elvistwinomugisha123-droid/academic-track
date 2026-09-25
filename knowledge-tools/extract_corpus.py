@@ -162,20 +162,20 @@ def sha256_file(path: Path) -> str:
 
 def main() -> None:
     registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
-    seen_paths = set()
+    seen_checksums = set()
     records = []
     registry_duplicates = []
     for record in sorted(registry["records"], key=lambda item: item["source_id"]):
-        if record["local_path"] in seen_paths:
+        if record["checksum_sha256"] in seen_checksums:
             registry_duplicates.append(record)
             continue
-        seen_paths.add(record["local_path"])
+        seen_checksums.add(record["checksum_sha256"])
         records.append(record)
     summaries, all_spans, all_curriculum, all_assessment, all_relationships, review_items = [], [], [], [], [], []
     grouped: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
 
     for record in registry_duplicates:
-        review_items.append({"id": f"duplicate-registry-path:{record['source_id']}", "severity": "LOW", "status": "open", "sourceId": record["source_id"], "reason": "A registry record points to a canonical file already represented by another source record; it was not extracted twice."})
+        review_items.append({"id": f"duplicate-source-content:{record['source_id']}", "severity": "LOW", "status": "open", "sourceId": record["source_id"], "reason": "This file has the same SHA-256 content as a canonical source and was not extracted twice."})
 
     for record in records:
         pdf_path = ROOT / record["local_path"]
