@@ -6,7 +6,10 @@ export type { PublicEnvironment } from "./env-public";
 const ServerEnvironmentSchema = PublicEnvironmentBaseSchema.extend({
   DATABASE_URL: z.string().url().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+  AI_DEFAULT_PROVIDER: z.enum(["anthropic"]).default("anthropic"),
+  AI_DEFAULT_MODEL: z.string().trim().min(1).optional(),
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_MODEL: z.string().trim().min(1).optional(),
 }).superRefine((value, context) => {
   if (!value.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY && !value.NEXT_PUBLIC_SUPABASE_ANON_KEY) context.addIssue({ code: z.ZodIssueCode.custom, path: ["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"], message: "A Supabase publishable or anon key is required." });
 });

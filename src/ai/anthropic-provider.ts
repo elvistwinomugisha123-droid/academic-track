@@ -24,8 +24,8 @@ export type AnthropicResult<T> = {
   requestId?: string;
 };
 
-export async function generateAnthropicStructured<T>(input: { system: string; payload: unknown; maxTokens: number; validate: (value: unknown) => T }): Promise<AnthropicResult<T>> {
-  return generate(input.system, input.payload, input.maxTokens, input.validate);
+export async function generateAnthropicStructured<T>(input: { system: string; payload: unknown; maxTokens: number; validate: (value: unknown) => T; model?: string }): Promise<AnthropicResult<T>> {
+  return generate(input.system, input.payload, input.maxTokens, input.validate, input.model);
 }
 
 function modelName() {
@@ -44,10 +44,10 @@ function parseJson(text: string): unknown {
   return JSON.parse(trimmed);
 }
 
-async function generate<T>(system: string, payload: unknown, maxTokens: number, validate: (value: unknown) => T): Promise<AnthropicResult<T>> {
+async function generate<T>(system: string, payload: unknown, maxTokens: number, validate: (value: unknown) => T, selectedModel?: string): Promise<AnthropicResult<T>> {
   const started = performance.now();
   const response = await client().messages.create({
-    model: modelName(),
+    model: selectedModel || modelName(),
     max_tokens: maxTokens,
     temperature: 0.2,
     system,

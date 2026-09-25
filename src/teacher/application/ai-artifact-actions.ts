@@ -5,11 +5,10 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { parseLessonPayload } from "@/artifacts/lesson";
 import { lessonArtifactTypes, type LessonArtifactType } from "@/artifacts/types";
-import { generateAnthropicStructured } from "@/ai/anthropic-provider";
+import { configuredAIGateway, generateStructured } from "@/ai/gateway";
 import { lessonArtifactSystemPrompt } from "@/ai/lesson-artifact-prompts";
 import { ARTIFACT_PATCH_PROMPT_VERSION, ASK_ATE_PROMPT_VERSION, LESSON_PLAN_PROMPT_VERSION, TEACHING_PACK_PROMPT_VERSION, AIProposalInputSchema, buildTrustedLessonAIContext, canUseExternalAI, safeModelContext, validateGeneratedArtifact, type AIArtifactOperation, type TrustedLessonAIContext } from "@/ai/lesson-artifact-contracts";
 import { canonicalJson } from "@/ai/canonical-json";
-import { DEFAULT_ANTHROPIC_MODEL } from "@/ai/anthropic-provider";
 import { requireWorkspaceAccess } from "@/lib/auth/access";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/service";
 import { loadLessonReadinessData } from "./queries";
@@ -29,7 +28,8 @@ function fingerprint(input: { modelContext: unknown; artifactId: string | null; 
 
 async function createRun(input: { context: TrustedLessonAIContext; artifactId: string | null; artifactType: LessonArtifactType; operation: AIArtifactOperation; promptVersion: string; contextFingerprint: string }) {
   const service = createSupabaseServiceRoleClient();
-  const result = await service.from("ai_generation_runs").insert({ school_id: input.context.schoolId, created_by_user_id: input.context.userId, created_by_membership_id: input.context.membershipId, scheduled_lesson_id: input.context.scheduledLessonId, artifact_id: input.artifactId, artifact_type: input.artifactType, operation: input.operation, provider: "anthropic", model: process.env.ANTHROPIC_MODEL?.trim() || DEFAULT_ANTHROPIC_MODEL, prompt_version: input.promptVersion, context_fingerprint: input.contextFingerprint, status: "RUNNING", validation_status: "NOT_RUN", rights_state: rightsState(input.context) }).select("id").single();
+  const ai = configuredAIGateway();
+  const result = await service.from("ai_generation_runs").insert({ school_id: input.context.schoolId, created_by_user_id: input.context.userId, created_by_membership_id: input.context.membershipId, scheduled_lesson_id: input.context.scheduledLessonId, artifact_id: input.artifactId, artifact_type: input.artifactType, operation: input.operation, provider: ai.provider, model: ai.model, prompt_version: input.promptVersion, context_fingerprint: input.contextFingerprint, status: "RUNNING", validation_status: "NOT_RUN", rights_state: rightsState(input.context) }).select("id").single();
   if (result.error || !result.data) throw new Error("AI generation run could not be recorded.");
   return result.data.id as string;
 }
@@ -51,7 +51,7 @@ async function runGeneration<T extends LessonArtifactType>(input: { context: Tru
   if (!canUseExternalAI(input.context)) { await updateRun(runId, { status: "RIGHTS_BLOCKED", validation_status: "FAILED", error_code: "RIGHTS_BLOCKED" }); return blocked(input.context); }
   const started = Date.now();
   try {
-    const result = await generateAnthropicStructured({
+    const result = await generateStructured({
       system: lessonArtifactSystemPrompt(input.operation, input.type, input.selectedField),
       payload: modelContext,
       maxTokens: input.type === "FORMAL_LESSON_PLAN" ? 3000 : 1800,

@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { AssessmentPayloadSchema, type AssessmentPayload } from "@/assessment/domain/types";
 import { validateAssessment } from "@/assessment/domain/validation";
-import { generateAnthropicStructured, DEFAULT_ANTHROPIC_MODEL } from "@/ai/anthropic-provider";
+import { configuredAIGateway, generateStructured } from "@/ai/gateway";
 import { canonicalJson } from "@/ai/canonical-json";
 import { loadAssessmentWorkspace } from "./queries";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/service";
@@ -33,13 +33,14 @@ export async function generateAssessmentDraft(workspaceId: string): Promise<Asse
     const service = createSupabaseServiceRoleClient();
     const safeContext = { purpose: data.workspace.purpose, profile: { id: profile.id, title: profile.displayTitle, regime: profile.regime, releaseId: profile.releaseId, releaseVersion: profile.releaseVersion }, blueprint: data.version.content_json.blueprint, eligibleCanonicalIds, currentVersion: data.version.version_number, rightsState: profile.rightsState, externalAiAllowed: profile.externalAiAllowed };
     const contextFingerprint = fingerprint({ safeContext, promptVersion });
-    const runInsert = await service.from("assessment_ai_generation_runs").insert({ school_id: data.access.schoolId, assessment_workspace_id: workspaceIdValue, created_by_user_id: data.access.userId, created_by_membership_id: data.access.membershipId, provider: "anthropic", model: process.env.ANTHROPIC_MODEL?.trim() || DEFAULT_ANTHROPIC_MODEL, prompt_version: promptVersion, context_fingerprint: contextFingerprint, context_snapshot: { profileId, purpose: data.workspace.purpose, expectedVersion: data.version.version_number, blueprint: data.version.content_json.blueprint, eligibleCanonicalIds }, status: aiAllowed ? "RUNNING" : "RIGHTS_BLOCKED", validation_status: aiAllowed ? "NOT_RUN" : "FAILED", rights_state: rightsState }).select("id").single();
+    const ai = configuredAIGateway();
+    const runInsert = await service.from("assessment_ai_generation_runs").insert({ school_id: data.access.schoolId, assessment_workspace_id: workspaceIdValue, created_by_user_id: data.access.userId, created_by_membership_id: data.access.membershipId, provider: ai.provider, model: ai.model, prompt_version: promptVersion, context_fingerprint: contextFingerprint, context_snapshot: { profileId, purpose: data.workspace.purpose, expectedVersion: data.version.version_number, blueprint: data.version.content_json.blueprint, eligibleCanonicalIds }, status: aiAllowed ? "RUNNING" : "RIGHTS_BLOCKED", validation_status: aiAllowed ? "NOT_RUN" : "FAILED", rights_state: rightsState }).select("id").single();
     if (runInsert.error || !runInsert.data) return { ok: false, code: "UNAVAILABLE", error: "The AI generation run could not be recorded." };
     const runId = String(runInsert.data.id);
     if (!aiAllowed) return { ok: false, code: "RIGHTS_BLOCKED", error: "The active assessment sources are not cleared for external AI. Manual authoring remains available." };
     const started = Date.now();
     try {
-      const result = await generateAnthropicStructured({ system: "Draft a teacher-review-required assessment inside the supplied blueprint. Use only eligibleCanonicalIds. Never invent curriculum IDs, official status, NCDC/UNEB claims, or assessment rules. Preserve purpose, durationMinutes, totalMarks, blueprint and participatingSectionIds exactly. Return only the canonical AssessmentPayload JSON with stable question IDs.", payload: { workflow: "ASSESSMENT_DRAFT", safeContext }, maxTokens: 3200, validate: (value) => AssessmentPayloadSchema.parse(value) });
+      const result = await generateStructured({ system: "Draft a teacher-review-required assessment inside the supplied blueprint. Use only eligibleCanonicalIds. Never invent curriculum IDs, official status, NCDC/UNEB claims, or assessment rules. Preserve purpose, durationMinutes, totalMarks, blueprint and participatingSectionIds exactly. Return only the canonical AssessmentPayload JSON with stable question IDs.", payload: { workflow: "ASSESSMENT_DRAFT", safeContext }, maxTokens: 3200, validate: (value) => AssessmentPayloadSchema.parse(value) });
       const validation = validateAssessment({ payload: result.output, blueprint: data.version.content_json.blueprint, eligibleCanonicalIds, knownCanonicalIds: eligibleCanonicalIds, participatingSectionIds: data.sections.map((section) => String(section.teaching_section_id)), profile, exportAllowed: profile.exportAllowed });
       if (!validation.valid) throw new Error(validation.issues[0]?.message || "AI assessment draft did not satisfy the blueprint.");
       const outputFingerprint = fingerprint(result.output);
