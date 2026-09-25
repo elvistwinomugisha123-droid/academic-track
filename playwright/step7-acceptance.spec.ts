@@ -2,6 +2,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { mkdirSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
+import { safeCurriculumPositionLabel } from "../src/teacher/domain/continuity";
 
 type Row = Record<string, unknown>;
 type TestAdmin = SupabaseClient;
@@ -49,11 +50,6 @@ function dateInKampala(value: Date): string {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Kampala", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(value);
   const fields = Object.fromEntries(parts.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
   return `${fields.year}-${fields.month}-${fields.day}`;
-}
-
-function titleFromRecord(row: Row): string {
-  const normalized = row.normalized && typeof row.normalized === "object" && !Array.isArray(row.normalized) ? row.normalized as Row : {};
-  return String(normalized.title || normalized.name || row.source_wording || "Biology curriculum position").trim();
 }
 
 async function createFixture(client: TestAdmin): Promise<Fixture> {
@@ -175,7 +171,7 @@ async function createFixture(client: TestAdmin): Promise<Fixture> {
   const currentLessonId = await insertOne(client, "scheduled_lessons", { school_id: schoolId, academic_period_id: periodId, teaching_section_id: sectionId, timetable_version_id: versionId, timetable_slot_id: slotId, scheduled_date: today, starts_at: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(), ends_at: new Date(now.getTime() - 60 * 60 * 1000).toISOString(), schedule_status: "SCHEDULED" });
   const nextLessonId = await insertOne(client, "scheduled_lessons", { school_id: schoolId, academic_period_id: periodId, teaching_section_id: sectionId, timetable_version_id: versionId, timetable_slot_id: slotId, scheduled_date: tomorrow, starts_at: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(), ends_at: new Date(now.getTime() + 25 * 60 * 60 * 1000).toISOString(), schedule_status: "SCHEDULED" });
 
-  return { userId: user.id, adminUserId: adminId, email, password, schoolId, sectionId, currentLessonId, nextLessonId, currentCanonicalId, nextCanonicalId, currentPositionKind, currentTitle: titleFromRecord(currentRecord), nextTitle: titleFromRecord(nextRecord) };
+  return { userId: user.id, adminUserId: adminId, email, password, schoolId, sectionId, currentLessonId, nextLessonId, currentCanonicalId, nextCanonicalId, currentPositionKind, currentTitle: safeCurriculumPositionLabel, nextTitle: safeCurriculumPositionLabel };
   } catch (error) {
     if (createdSchoolId) await cleanupSchool(client, createdSchoolId, [user.id, adminId]);
     else {
@@ -334,7 +330,7 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
     const event = requireResult((await admin!.from("classroom_events").select("outcome, note").eq("scheduled_lesson_id", value.currentLessonId).single()).data, null) as Row;
     expect(event.outcome).toBe("PARTIALLY_DELIVERED");
     expect(event.note).toContain("Finish the microscope diagram");
-    const positions = requireResult((await admin!.from("teaching_section_curriculum_position_events").select("canonical_id, supersedes_event_id").eq("school_id", value.schoolId).eq("teaching_section_id", value.sectionId).order("confirmed_at", { ascending: true })).data, null) as Row[];
+    const positions = requireResult((await admin!.from("teaching_section_curriculum_position_events").select("id, canonical_id, supersedes_event_id").eq("school_id", value.schoolId).eq("teaching_section_id", value.sectionId).order("confirmed_at", { ascending: true })).data, null) as Row[];
     expect(positions).toHaveLength(2);
     expect(positions[1].canonical_id).toBe(value.nextCanonicalId);
     expect(positions[1].supersedes_event_id).toBe(positions[0].id);
