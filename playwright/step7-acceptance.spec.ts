@@ -228,6 +228,7 @@ type OverflowDiagnostic = {
   left: number;
   right: number;
   width: number;
+  scrollWidth: number;
 };
 
 async function findOverflow(page: Page): Promise<{ clientWidth: number; scrollWidth: number; offenders: OverflowDiagnostic[] }> {
@@ -241,13 +242,16 @@ async function findOverflow(page: Page): Promise<{ clientWidth: number; scrollWi
     };
     const offenders = Array.from(document.querySelectorAll<HTMLElement>("body *")).flatMap((element) => {
       const rect = element.getBoundingClientRect();
-      if (rect.width === 0 || (rect.right <= viewport + 1 && rect.left >= -1)) return [];
+      const overflowX = getComputedStyle(element).overflowX;
+      const leaksContent = overflowX === "visible" && element.scrollWidth > element.clientWidth + 1;
+      if (rect.width === 0 || (!leaksContent && rect.right <= viewport + 1 && rect.left >= -1)) return [];
       return [{
         selector: selectorFor(element),
         text: (element.innerText || "").replace(/\s+/g, " ").trim().slice(0, 160),
         left: Math.round(rect.left),
         right: Math.round(rect.right),
         width: Math.round(rect.width),
+        scrollWidth: element.scrollWidth,
       }];
     });
     return { clientWidth: viewport, scrollWidth: document.documentElement.scrollWidth, offenders };
