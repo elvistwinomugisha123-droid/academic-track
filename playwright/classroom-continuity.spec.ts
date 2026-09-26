@@ -20,7 +20,7 @@ test("teacher sees the own-lesson workflow and a reachable correction affordance
   await expect(correction).toBeVisible();
   await correction.click();
   await page.getByRole("button", { name: /^Changed$/i }).last().click();
-  await expect(page.locator("textarea[name=note]").last()).toBeRequired();
+  await expect(page.locator("textarea[name=note]").last()).toHaveAttribute("required", "");
   await expect(page.locator("input[name=reason]").last()).toHaveCount(0);
 });
 

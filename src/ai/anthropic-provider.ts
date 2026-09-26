@@ -46,13 +46,15 @@ function parseJson(text: string): unknown {
 
 async function generate<T>(system: string, payload: unknown, maxTokens: number, validate: (value: unknown) => T, selectedModel?: string): Promise<AnthropicResult<T>> {
   const started = performance.now();
+  const timeoutMs = Number(process.env.AI_REQUEST_TIMEOUT_MS || 45_000);
+  if (!Number.isFinite(timeoutMs) || timeoutMs < 1_000 || timeoutMs > 120_000) throw new Error("AI_REQUEST_TIMEOUT_MS must be between 1000 and 120000 milliseconds.");
   const response = await client().messages.create({
     model: selectedModel || modelName(),
     max_tokens: maxTokens,
     temperature: 0.2,
     system,
     messages: [{ role: "user", content: `Return only valid JSON matching the requested shape.\n\nContext:\n${JSON.stringify(payload)}` }],
-  });
+  }, { signal: AbortSignal.timeout(timeoutMs) });
   const text = response.content.filter((block) => block.type === "text").map((block) => block.text).join("\n");
   if (!text) throw new Error("Anthropic returned no text content.");
   return {

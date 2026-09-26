@@ -20,7 +20,7 @@ test("School Admin sees setup but no timetable lifecycle controls", async ({ pag
 
 test("DOS sees draft, readiness and lifecycle controls", async ({ page }) => {
   await signIn(page, "dos");
-  await expect(page.getByRole("button", { name: /Timetable/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Timetable Verify and activate$/i })).toBeVisible();
   await expect(page.getByText(/Create a draft timetable/i)).toBeVisible();
   await expect(page.getByText(/Deterministic readiness signals/i)).toBeVisible();
 });
@@ -29,7 +29,7 @@ test("Teacher sees own sections and schedule-intent language only", async ({ pag
   await signIn(page, "teacher");
   await expect(page.getByRole("heading", { name: /My Teaching Sections/i })).toBeVisible();
   await expect(page.getByText(/My schedule/i)).toBeVisible();
-  await expect(page.getByText(/schedule intent only/i)).toBeVisible();
+  await expect(page.getByText(/expected timetable occurrences only/i)).toBeVisible();
   await expect(page.getByRole("button", { name: /Verify|Activate/i })).toHaveCount(0);
 });
 
@@ -37,7 +37,7 @@ test("HOD and Principal receive read-oriented section presentation", async ({ pa
   await signIn(page, "hod");
   await expect(page.getByRole("button", { name: /Department Teaching Sections/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /Timetable/i })).toHaveCount(0);
-  await page.getByRole("button", { name: /Teaching Sections/i }).click();
+  await page.getByRole("button", { name: /^Department Teaching Sections$/i }).click();
   await page.getByRole("button", { name: /Overview/i }).click();
   await page.context().clearCookies();
   await signIn(page, "principal");
@@ -47,7 +47,7 @@ test("HOD and Principal receive read-oriented section presentation", async ({ pa
 
 test("programme targeting UI exposes school, class, stream and department scopes", async ({ page }) => {
   await signIn(page, "dos");
-  await page.getByRole("button", { name: /Programme/i }).click();
+  await page.getByRole("button", { name: /^Programme School calendar$/i }).click();
   const scope = page.getByLabel(/Target scope/i);
   await expect(scope).toHaveValue("SCHOOL");
   await expect(page.getByText(/No target required/i)).toBeVisible();

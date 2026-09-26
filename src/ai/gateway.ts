@@ -62,6 +62,14 @@ export async function generateStructured<T>(input: {
   validate: (value: unknown) => T;
 }): Promise<AIGatewayResult<T>> {
   const configuration = configuredAIGateway();
+  const payloadBytes = Buffer.byteLength(JSON.stringify(input.payload), "utf8");
+  const maximumPayloadBytes = Number(process.env.AI_MAX_PAYLOAD_BYTES || 120_000);
+  if (!Number.isFinite(maximumPayloadBytes) || maximumPayloadBytes < 1 || payloadBytes > maximumPayloadBytes) {
+    throw new AIGatewayError("CONFIGURATION", "The AI context exceeds the configured safety limit.");
+  }
+  if (!Number.isInteger(input.maxTokens) || input.maxTokens < 1 || input.maxTokens > 4_096) {
+    throw new AIGatewayError("CONFIGURATION", "The AI output limit must be between 1 and 4096 tokens.");
+  }
 
   try {
     const result = await generateAnthropicStructured({

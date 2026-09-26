@@ -46,7 +46,7 @@ async function signInFresh(page: Page, kind: FixtureKind, role: string, next: st
     try {
       await page.getByRole("button", { name: "Sign in" }).click();
       await waitForPath(page, next);
-      await expect(page.getByRole("banner")).toBeVisible({ timeout: 20_000 });
+      await expect(page.locator("header:visible").first()).toBeVisible({ timeout: 20_000 });
       return;
     } catch (error) {
       lastError = error;

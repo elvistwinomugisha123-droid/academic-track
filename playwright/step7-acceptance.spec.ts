@@ -273,6 +273,8 @@ async function captureResponsive(page: Page, state: string) {
 }
 
 test.describe("Step 7 authenticated teacher acceptance", () => {
+  test.describe.configure({ mode: "serial", retries: 0 });
+  test.setTimeout(180_000);
   test.beforeAll(async () => {
     if (!admin || !url || !publishableKey || !serviceRoleKey) throw new Error("Step 7 acceptance requires TEST_SUPABASE_URL, TEST_SUPABASE_PUBLISHABLE_KEY, and TEST_SUPABASE_SERVICE_ROLE_KEY.");
     fixture = await createFixture(admin);

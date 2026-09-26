@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AIGatewayError, configuredAIGateway } from "./gateway";
+import { AIGatewayError, configuredAIGateway, generateStructured } from "./gateway";
 
 describe("ATE AI gateway configuration", () => {
   it("uses the supported provider and explicit default model", () => {
@@ -15,5 +15,10 @@ describe("ATE AI gateway configuration", () => {
 
   it("fails closed for unsupported providers", () => {
     expect(() => configuredAIGateway({ AI_DEFAULT_PROVIDER: "unknown" })).toThrow(AIGatewayError);
+  });
+
+  it("rejects unsafe output and context limits before contacting a provider", async () => {
+    await expect(generateStructured({ system: "test", payload: {}, maxTokens: 4_097, validate: (value) => value })).rejects.toMatchObject({ code: "CONFIGURATION" });
+    await expect(generateStructured({ system: "test", payload: { text: "x".repeat(120_001) }, maxTokens: 10, validate: (value) => value })).rejects.toMatchObject({ code: "CONFIGURATION" });
   });
 });
