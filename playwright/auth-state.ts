@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { expect, type BrowserContext, type Page } from "@playwright/test";
 
-export type ProductRole = "teacher" | "hod" | "dos" | "principal";
+export type ProductRole = "schoolAdmin" | "teacher" | "hod" | "dos" | "principal";
 export type AssessmentRole = "teacher" | "dos";
 export type FixtureKind = "product" | "assessment";
 

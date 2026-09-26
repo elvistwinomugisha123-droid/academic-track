@@ -91,12 +91,14 @@ async function main() {
   const suffix = randomUUID().slice(0, 8);
   const password = `Ate-Test-${Date.now()}-${suffix}!`;
   const accounts = {
+    schoolAdmin: { email: `ate.admin+${suffix}@test.invalid`, name: "Sarah Nakato" },
     teacher: { email: `ate.teacher+${suffix}@test.invalid`, name: "Amina Nsubuga" },
     hod: { email: `ate.hod+${suffix}@test.invalid`, name: "Daniel Okello" },
     dos: { email: `ate.dos+${suffix}@test.invalid`, name: "Grace Namusoke" },
     principal: { email: `ate.principal+${suffix}@test.invalid`, name: "Peter Ouma" },
   } as const;
   const users = {
+    schoolAdmin: await ensureUser(client, accounts.schoolAdmin.email, accounts.schoolAdmin.name, password),
     teacher: await ensureUser(client, accounts.teacher.email, accounts.teacher.name, password),
     hod: await ensureUser(client, accounts.hod.email, accounts.hod.name, password),
     dos: await ensureUser(client, accounts.dos.email, accounts.dos.name, password),
@@ -117,11 +119,13 @@ async function main() {
   const schoolId = await insertOne(client, "schools", { name: "ATE Product Validation School", slug: fixtureSlug, timezone: "Africa/Kampala" });
   const departmentId = await insertOne(client, "departments", { school_id: schoolId, name: "Biology Department", code: `BIO-${suffix}` });
   const periodId = await insertOne(client, "academic_periods", { school_id: schoolId, name: "Term 3 2026", period_type: "TERM", academic_year: 2026, starts_on: periodStart, ends_on: periodEnd, status: "CURRENT" });
+  const schoolAdminMembershipId = await insertOne(client, "memberships", { school_id: schoolId, user_id: users.schoolAdmin.id, status: "ACTIVE", display_name: accounts.schoolAdmin.name, joined_at: now.toISOString() });
   const teacherMembershipId = await insertOne(client, "memberships", { school_id: schoolId, user_id: users.teacher.id, status: "ACTIVE", display_name: accounts.teacher.name, joined_at: now.toISOString() });
   const hodMembershipId = await insertOne(client, "memberships", { school_id: schoolId, user_id: users.hod.id, status: "ACTIVE", display_name: accounts.hod.name, joined_at: now.toISOString() });
   const dosMembershipId = await insertOne(client, "memberships", { school_id: schoolId, user_id: users.dos.id, status: "ACTIVE", display_name: accounts.dos.name, joined_at: now.toISOString() });
   const principalMembershipId = await insertOne(client, "memberships", { school_id: schoolId, user_id: users.principal.id, status: "ACTIVE", display_name: accounts.principal.name, joined_at: now.toISOString() });
   await client.from("role_grants").insert([
+    { membership_id: schoolAdminMembershipId, school_id: schoolId, role: "SCHOOL_ADMIN", scope_type: "SCHOOL", granted_by: users.schoolAdmin.id },
     { membership_id: teacherMembershipId, school_id: schoolId, role: "TEACHER", scope_type: "SCHOOL", granted_by: users.dos.id },
     { membership_id: hodMembershipId, school_id: schoolId, role: "HOD", scope_type: "DEPARTMENT", department_id: departmentId, granted_by: users.dos.id },
     { membership_id: dosMembershipId, school_id: schoolId, role: "DOS", scope_type: "SCHOOL", granted_by: users.dos.id },

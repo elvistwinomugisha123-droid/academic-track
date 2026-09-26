@@ -46,7 +46,7 @@ export default async function globalSetup() {
     const productPath = "output/playwright/product-fixture.json";
     if (existsSync(productPath)) {
       const fixture = JSON.parse(readFileSync(productPath, "utf8")) as ProductFixture;
-      const destinations: Record<string, string> = { teacher: "/workspace", hod: "/workspace/leadership/hod", dos: "/workspace/academic-operations", principal: "/workspace/leadership/principal" };
+      const destinations: Record<string, string> = { schoolAdmin: "/workspace", teacher: "/workspace", hod: "/workspace/leadership/hod", dos: "/workspace/academic-operations", principal: "/workspace/leadership/principal" };
       for (const role of Object.keys(destinations)) await signInAndSave(browser, role, fixture.accounts[role].email, fixture.password, destinations[role], `test-artifacts/auth-product-${role}.json`);
     }
 
