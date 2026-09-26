@@ -40,7 +40,7 @@ async function updateRun(runId: string, values: Record<string, unknown>) {
 
 function refresh(lessonId: string, sectionId: string) { revalidatePath(`/workspace/teacher/lessons/${lessonId}`); revalidatePath(`/workspace/teacher/sections/${sectionId}`); revalidatePath("/workspace"); }
 
-function blocked(context: TrustedLessonAIContext): AIProposal { return { ok: false, code: "RIGHTS_BLOCKED", error: "ATE cannot send this curriculum context to an external model under its current rights decision. You can continue by editing the saved artifact manually." }; }
+function blocked(context: TrustedLessonAIContext): AIProposal { return { ok: false, code: "RIGHTS_BLOCKED", error: "ATE drafting is unavailable for this curriculum source configuration. You can continue by editing the saved artifact manually." }; }
 function aiFailureMessage(error: unknown) { const message = error instanceof Error ? error.message : ""; return /ANTHROPIC_API_KEY|API key|not configured|fetch failed/i.test(message) ? "ATE drafting is unavailable right now. You can continue by writing the lesson plan manually." : message || "ATE could not prepare a valid structured proposal."; }
 
 async function runGeneration<T extends LessonArtifactType>(input: { context: TrustedLessonAIContext; type: T; operation: AIArtifactOperation; artifactId: string | null; expectedVersion: number | null; parentArtifactId: string | null; parentVersionId: string | null; currentArtifact: unknown | null; instruction?: string; selectedField?: string | null; expectedCanonicalId?: string | null }): Promise<AIProposal> {

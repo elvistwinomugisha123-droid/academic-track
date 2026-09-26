@@ -88,6 +88,14 @@ test.describe("ATE product walkthrough", () => {
     expect(lessonPdfResponse.status(), "lesson artifact PDF status").toBe(200);
     expect(lessonPdfResponse.headers()["content-type"], "lesson artifact PDF content type").toContain("application/pdf");
     expect((await lessonPdfResponse.body()).byteLength, "lesson artifact PDF body").toBeGreaterThan(100);
+    const lessonDocx = page.getByRole("link", { name: "DOCX" }).first();
+    await expect(lessonDocx).toBeVisible({ timeout: 60_000 });
+    const lessonDocxHref = await lessonDocx.getAttribute("href");
+    expect(lessonDocxHref).toBeTruthy();
+    const lessonDocxResponse = await page.request.get(lessonDocxHref!);
+    expect(lessonDocxResponse.status(), "lesson artifact DOCX status").toBe(200);
+    expect(lessonDocxResponse.headers()["content-type"], "lesson artifact DOCX content type").toContain("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    expect((await lessonDocxResponse.body()).byteLength, "lesson artifact DOCX body").toBeGreaterThan(1_000);
     await page.getByRole("button", { name: "Readiness" }).click();
     await page.getByLabel("Lesson focus").fill("Cell structure and microscope observation");
     await page.getByRole("button", { name: "Save preparation" }).click();

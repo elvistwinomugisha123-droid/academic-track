@@ -29,7 +29,7 @@ export function validateAssessment(input: {
   if (input.payload.durationMinutes !== input.blueprint.durationMinutes || input.payload.durationMinutes <= 0) issues.push({ code: "DURATION_INVALID", message: "Assessment duration must remain a positive value from the blueprint." });
   if (input.payload.purpose !== input.profile?.purpose) issues.push({ code: "PROFILE_PURPOSE_MISMATCH", message: "Assessment purpose does not match the active assessment profile." });
   if (!input.profile) issues.push({ code: "PROFILE_UNAVAILABLE", message: "No verified assessment profile is currently activated for this assessment." });
-  if (!input.profile || input.profile.rightsState === "RESTRICTED" || !input.exportAllowed || !input.profile.exportAllowed) issues.push({ code: "EXPORT_NOT_ALLOWED", message: "The active rights decision does not permit final assessment export." });
+  if (!input.profile || input.profile.rightsState === "RESTRICTED" || !input.exportAllowed || !input.profile.exportAllowed) issues.push({ code: "EXPORT_NOT_ALLOWED", message: "The active source configuration is not ready for final assessment export." });
   if (!input.blueprint.participatingSectionIds.every((id) => input.participatingSectionIds.includes(id))) issues.push({ code: "SECTION_OUT_OF_SCOPE", message: "Blueprint includes a Teaching Section outside the authorised assessment sections." });
   for (const [itemType, required] of requiredItemTypes) {
     const actual = input.payload.questions.filter((question) => question.itemType === itemType).length;

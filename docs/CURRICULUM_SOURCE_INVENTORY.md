@@ -2,7 +2,7 @@
 
 This inventory records the NCDC PDFs supplied for the ATE curriculum knowledge
 pipeline. It distinguishes source availability from structured extraction and
-runtime publication. Publication year is source metadata, not an expiry date.
+runtime publication. Publication year is retained only as source metadata.
 
 ## Corpus summary
 

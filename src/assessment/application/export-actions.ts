@@ -8,7 +8,7 @@ export async function resolveAssessmentExport(workspaceId: string) {
   const data = await loadAssessmentWorkspace(workspaceId, `/workspace/teacher/assessments/${workspaceId}`, { exportOnly: true });
   if (data.workspace.status !== "FINAL") return { ok: false as const, error: "Only a finalised assessment can be exported." };
   if (data.profileResolution.state !== "RESOLVED" || !data.runtimeProfile?.exportAllowed || data.runtimeProfile.rightsState !== "CLEARED" || data.runtimeProfile.formalArtifactAllowed !== true) {
-    return { ok: false as const, error: "Formal export is unavailable because the current assessment sources do not permit it." };
+    return { ok: false as const, error: "Formal export is unavailable for the current assessment source configuration." };
   }
   const client = await createSupabaseServerClient();
   const [school, subject, sections] = await Promise.all([

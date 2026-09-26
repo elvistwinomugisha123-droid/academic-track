@@ -119,14 +119,17 @@ test.describe("Assessment Studio walkthrough", () => {
     await page.goto(workspaceUrl);
     await expect(page.getByRole("link", { name: "Question Paper PDF" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Marking Guide PDF" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Question Paper DOCX" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Marking Guide DOCX" })).toBeVisible();
 
-    for (const linkName of ["Question Paper PDF", "Marking Guide PDF"]) {
+    for (const linkName of ["Question Paper PDF", "Marking Guide PDF", "Question Paper DOCX", "Marking Guide DOCX"]) {
       const href = await page.getByRole("link", { name: linkName }).getAttribute("href");
       expect(href).toBeTruthy();
       const response = await page.request.get(href!);
       expect(response.status(), `${linkName} status`).toBe(200);
-      expect(response.headers()["content-type"], `${linkName} content type`).toContain("application/pdf");
-      expect((await response.body()).byteLength, `${linkName} body`).toBeGreaterThan(100);
+      const isDocx = linkName.endsWith("DOCX");
+      expect(response.headers()["content-type"], `${linkName} content type`).toContain(isDocx ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document" : "application/pdf");
+      expect((await response.body()).byteLength, `${linkName} body`).toBeGreaterThan(isDocx ? 1_000 : 100);
     }
 
     assertClean();
