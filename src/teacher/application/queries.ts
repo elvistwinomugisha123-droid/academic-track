@@ -291,15 +291,24 @@ async function loadTeacherReadModelOnce(nextPath = "/workspace") {
       currentPosition: null as CurrentPosition | null,
     } satisfies TeacherLesson;
   }).filter((lesson): lesson is TeacherLesson => lesson !== null);
-  const knowledge = createPostgresKnowledgeClient();
   const contextBySection = new Map<string, GovernedCurriculumContext>();
-  try {
-    await Promise.all(sectionRows.map(async (section) => {
-      const context = await loadGovernedContext(knowledge, access.schoolId, section.id, todayInTimezone(String(school.timezone)));
-      contextBySection.set(section.id, context);
-    }));
-  } finally {
-    await knowledge.close();
+
+  if (sectionRows.length > 0) {
+    const knowledge = createPostgresKnowledgeClient();
+
+    try {
+      await Promise.all(sectionRows.map(async (section) => {
+        const context = await loadGovernedContext(
+          knowledge,
+          access.schoolId,
+          section.id,
+          todayInTimezone(String(school.timezone)),
+        );
+        contextBySection.set(section.id, context);
+      }));
+    } finally {
+      await knowledge.close();
+    }
   }
   const lessons = baseLessons.map((lesson) => ({ ...lesson, currentPosition: contextBySection.get(lesson.sectionId)?.current ?? null }));
   return { access, schoolName: String(school.name), schoolTimezone: String(school.timezone), sections: sectionRows, lessons, contextBySection, continuityWarning };
