@@ -59,6 +59,7 @@ export async function generateStructured<T>(input: {
   system: string;
   payload: unknown;
   maxTokens: number;
+  outputSchema?: { [key: string]: unknown };
   validate: (value: unknown) => T;
 }): Promise<AIGatewayResult<T>> {
   const configuration = configuredAIGateway();
