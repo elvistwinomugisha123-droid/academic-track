@@ -854,3 +854,29 @@
 .ask-composer button { display:grid; place-items:center; width:43px; color:#fff; background:#076dec; border:0; border-radius:10px; }
 .ask-composer button:disabled { opacity:.5; }
 .ask-composer small { color:var(--ate-muted); }
+
+/* Quiet editorial skin across the mobile workspace. */
+@media (max-width:1024px) {
+  :root { --ate-bg:#f8f7f3; --ate-border:#e5e7e6; --ate-radius-panel:19px; }
+  .mobile-header,.mobile-bottom-nav { background:#fffefa; }
+  .mobile-header { border-bottom-color:#eeece6; }
+  .content { background:var(--ate-bg); }
+  .content h1,.content h2,.content h3 { font-family:Georgia,"Times New Roman",serif; letter-spacing:-.025em; }
+  .content .button,.content button,.content input,.content textarea,.content select { font-family:inherit; }
+  .teacher-heading h1 { color:#102b4c; font-weight:600; line-height:1.08; }
+  .teacher-heading .lede { color:#697b89; }
+  .next-lesson { color:#203951; background:#fffefa; border:1px solid #e5e7e6; box-shadow:0 8px 26px rgb(21 49 79 / .06); }
+  .next-lesson-label .section-kicker { color:#116abb; }
+  .next-lesson-date,.next-lesson-time,.next-lesson-time strong { color:#51677c; }
+  .next-lesson-time svg { color:#0e78ce; }
+  .next-lesson h2 { color:#0f2b4e; font-weight:600; }
+  .next-context-grid { border-top-color:#e9eceb; }
+  .next-context-grid span { color:#607c8e; }
+  .next-context-grid strong { color:#102b4c; font-family:Georgia,"Times New Roman",serif; font-size:18px; font-weight:600; }
+  .next-context-grid p { color:#566d7b; }
+  .next-lesson-action { background:#fffefa; border:0; }
+  .next-lesson-action .button-primary { width:100%; justify-content:center; color:#fff; background:#0869e6; border-color:#0869e6; }
+  .teacher-attention-summary,.schedule-row,.ask-welcome,.ask-answer,.ask-suggestions button { background:#fffefa; box-shadow:0 3px 15px rgb(21 49 79 / .035); }
+  .artifact-editor,.pack-editor,.section-panel,.lesson-card,.leadership-panel,.setup-panel,.assignment-panel { background:#fffefa; }
+  .bottom-nav-ask svg { box-shadow:0 5px 14px rgb(7 95 231 / .28); }
+}
