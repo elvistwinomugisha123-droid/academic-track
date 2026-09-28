@@ -18,6 +18,7 @@ export type AcademicOperationsData = {
   lessons: Array<Record<string, string | null>>;
   events: Array<Record<string, string | null>>;
   eventTargets: Array<Record<string, string | null>>;
+  invitations: Array<Record<string, string | null>>;
   teachers: Array<{ membership_id: string; display_name: string }>;
 };
 
@@ -30,7 +31,7 @@ async function loadAcademicOperationsDataOnce(nextPath = "/workspace/academic-op
   const access = await requireWorkspaceAccess(undefined, nextPath);
   const client = await createSupabaseServerClient();
   const schoolId = access.schoolId;
-  const [periods, departments, levels, streams, subjects, sections, versions, slots, lessons, events, eventTargets] = await Promise.all([
+  const [periods, departments, levels, streams, subjects, sections, versions, slots, lessons, events, eventTargets, invitations] = await Promise.all([
     client.from("academic_periods").select("id, name, period_type, starts_on, ends_on, status").eq("school_id", schoolId).order("starts_on", { ascending: false }),
     client.from("departments").select("id, name, code").eq("school_id", schoolId).order("name"),
     client.from("class_levels").select("id, code, name, sort_order, status").eq("school_id", schoolId).order("sort_order"),
@@ -42,6 +43,9 @@ async function loadAcademicOperationsDataOnce(nextPath = "/workspace/academic-op
     client.from("scheduled_lessons").select("id, teaching_section_id, timetable_version_id, scheduled_date, starts_at, ends_at, schedule_status").eq("school_id", schoolId).order("scheduled_date").limit(80),
     client.from("school_programme_events").select("id, academic_period_id, event_type, title, starts_at, ends_at, status, notes").eq("school_id", schoolId).order("starts_at"),
     client.from("programme_event_targets").select("event_id, class_level_id, stream_id, department_id").eq("school_id", schoolId),
+    access.roles.includes("SCHOOL_ADMIN")
+      ? client.from("invitations").select("id, email_normalized, status, expires_at, accepted_at, created_at").eq("school_id", schoolId).order("created_at", { ascending: false })
+      : Promise.resolve({ data: [], error: null }),
   ]);
   const required = {
     periods: requiredRows(periods, "Academic periods could not be loaded."),
@@ -55,6 +59,7 @@ async function loadAcademicOperationsDataOnce(nextPath = "/workspace/academic-op
     lessons: requiredRows(lessons, "Scheduled lessons could not be loaded."),
     events: requiredRows(events, "Programme events could not be loaded."),
     eventTargets: requiredRows(eventTargets, "Programme event targets could not be loaded."),
+    invitations: requiredRows(invitations, "Teacher invitations could not be loaded."),
   };
   let teachers: Array<{ membership_id: string; display_name: string }> = [];
   if (access.roles.some((role) => role === "DOS" || role === "SCHOOL_ADMIN")) {
@@ -73,6 +78,7 @@ async function loadAcademicOperationsDataOnce(nextPath = "/workspace/academic-op
     lessons: required.lessons as AcademicOperationsData["lessons"],
     events: required.events as AcademicOperationsData["events"],
     eventTargets: required.eventTargets as AcademicOperationsData["eventTargets"],
+    invitations: required.invitations as AcademicOperationsData["invitations"],
     teachers,
   };
 }
