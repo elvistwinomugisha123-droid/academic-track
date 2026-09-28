@@ -289,7 +289,7 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await signIn(page, value);
 
-    await expect(page.getByRole("heading", { name: "Your teaching day." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Good (morning|afternoon|evening)/ })).toBeVisible();
     await expect(page.getByText(value.currentTitle, { exact: false })).toBeVisible();
     await captureResponsive(page, "teacher-home");
 
@@ -299,7 +299,7 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
     await captureResponsive(page, "teaching-section");
 
     await page.goto(`/workspace/teacher/lessons/${value.currentLessonId}`);
-    await expect(page.getByRole("heading", { name: "Prepare with the class in view." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Biology · Senior 1 East/ })).toBeVisible();
     await expect(page.getByRole("heading", { name: value.currentTitle, exact: true })).toBeVisible();
     await captureResponsive(page, "lesson-readiness");
 
