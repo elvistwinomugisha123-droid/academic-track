@@ -7,6 +7,7 @@ import { parseLessonPayload } from "@/artifacts/lesson";
 import { lessonArtifactTypes, type LessonArtifactType } from "@/artifacts/types";
 import { configuredAIGateway, generateStructured } from "@/ai/gateway";
 import { lessonArtifactSystemPrompt } from "@/ai/lesson-artifact-prompts";
+import { askATEOutputSchema, lessonArtifactOutputSchemas } from "@/ai/lesson-artifact-output-schema";
 import { ARTIFACT_PATCH_PROMPT_VERSION, ASK_ATE_PROMPT_VERSION, LESSON_PLAN_PROMPT_VERSION, TEACHING_PACK_PROMPT_VERSION, AIProposalInputSchema, buildTrustedLessonAIContext, canUseExternalAI, safeModelContext, validateGeneratedArtifact, type AIArtifactOperation, type TrustedLessonAIContext } from "@/ai/lesson-artifact-contracts";
 import { canonicalJson } from "@/ai/canonical-json";
 import { requireWorkspaceAccess } from "@/lib/auth/access";
@@ -57,6 +58,7 @@ async function runGeneration<T extends LessonArtifactType>(input: { context: Tru
     const result = await generateStructured({
       system: lessonArtifactSystemPrompt(input.operation, input.type, input.selectedField),
       payload: modelContext,
+      outputSchema: lessonArtifactOutputSchemas[input.type],
       maxTokens: input.type === "FORMAL_LESSON_PLAN" ? 4096 : 1800,
       validate: (value) => validateGeneratedArtifact(input.type, value, input.context, input.expectedCanonicalId),
     });
@@ -84,7 +86,7 @@ export async function askATEAboutLesson(input: unknown): Promise<{ ok: true; ans
     try {
       const result = await generateStructured({
         system: "You are Ask ATE, a teacher's contextual assistant. Answer the question using only the supplied lesson and governed context. Distinguish a suggestion from a curriculum fact. If the context does not support a factual answer, say what is missing. Never invent source wording, specific outcomes, classroom events, citations, or claim to save a lesson. Return only JSON: {\"answer\":string,\"suggestedFollowUps\":string[]} with at most three short follow-ups.",
-        payload: modelContext, maxTokens: 900, validate: (output) => AskATEAnswerSchema.parse(output),
+        payload: modelContext, maxTokens: 900, outputSchema: askATEOutputSchema, validate: (output) => AskATEAnswerSchema.parse(output),
       });
       await updateRun(runId, { status: "SUCCEEDED", validation_status: "PASSED", model: result.model, input_token_count: result.usage.inputTokens, output_token_count: result.usage.outputTokens, latency_ms: result.latencyMs, output_fingerprint: createHash("sha256").update(canonicalJson(result.output)).digest("hex") });
       return { ok: true, ...result.output };
