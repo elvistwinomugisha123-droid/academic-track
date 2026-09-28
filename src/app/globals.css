@@ -699,3 +699,55 @@
 }
 
 /* Sign-in composition: a quiet institutional rail and a focused working form. */
+
+/* Teacher home: the next action stays above historical exceptions. */
+.teacher-heading { border:0; padding-bottom:0; }
+.teacher-heading h1 { font-size:clamp(2rem,4vw,3.2rem); }
+.teacher-heading .lede { margin-top:7px; }
+.teacher-page { gap:23px; }
+.teacher-attention-summary { display:flex; align-items:center; gap:15px; min-height:78px; padding:16px 20px; background:#fff; border:1px solid var(--ate-border); border-radius:var(--ate-radius-panel); }
+.teacher-attention-summary > svg { flex:none; color:#a8721b; }
+.teacher-attention-summary > span:nth-child(2) { flex:1; min-width:0; }
+.teacher-attention-summary strong,.teacher-attention-summary small { display:block; }
+.teacher-attention-summary strong { color:var(--ate-navy); font-size:14px; }
+.teacher-attention-summary small { margin-top:3px; color:var(--ate-muted); font-size:12px; }
+.teacher-attention-review { display:inline-flex; align-items:center; gap:4px; color:var(--ate-blue); font-weight:700; white-space:nowrap; }
+.teacher-attention-summary:hover { border-color:#8bbdd7; }
+.mobile-header { position:relative; z-index:30; }
+.mobile-menu { position:relative; }
+.mobile-menu summary { display:flex; align-items:center; gap:7px; min-height:44px; padding:0 9px; color:#fff; border:1px solid #5f87aa; border-radius:8px; cursor:pointer; list-style:none; font-weight:650; }
+.mobile-menu summary::-webkit-details-marker { display:none; }
+.mobile-menu summary:focus-visible { outline:3px solid #8ed3ef; }
+.mobile-menu-panel { position:absolute; top:calc(100% + 8px); right:0; width:min(320px,calc(100vw - 32px)); max-height:calc(100dvh - 90px); overflow:auto; padding:13px; color:var(--ate-text); background:#fff; border:1px solid var(--ate-border); border-radius:12px; box-shadow:0 16px 40px rgb(11 35 67 / .22); }
+.mobile-menu-name { display:block; padding:8px 10px 13px; color:var(--ate-navy); font-weight:700; border-bottom:1px solid var(--ate-border); }
+.mobile-menu-panel nav { display:grid; gap:4px; padding:10px 0; }
+.mobile-menu-panel .nav-link { min-height:48px; color:var(--ate-navy); }
+.mobile-menu-panel .nav-link:hover,.mobile-menu-panel .nav-link.active { color:var(--ate-navy); background:#e8f2fa; }
+.mobile-menu-signout { padding:12px 9px 2px; border-top:1px solid var(--ate-border); }
+.mobile-menu-signout .button { min-height:42px; }
+@media (max-width:1024px) {
+  .ate-shell { display:block; }
+  .sidebar,.topbar { display:none; }
+  .mobile-header { min-height:62px; padding:0 18px; display:flex; align-items:center; justify-content:space-between; background:var(--ate-navy); }
+  .mobile-header .brand strong { color:#fff; }
+  .content { padding:30px 20px 64px; }
+}
+@media (max-width:767px) {
+  .teacher-page { gap:19px; }
+  .teacher-heading { padding:0; }
+  .teacher-heading h1 { font-size:clamp(1.85rem,8vw,2.5rem); line-height:1.12; }
+  .teacher-heading .lede { font-size:13px; line-height:1.45; }
+  .next-lesson { display:flex; flex-direction:column; }
+  .next-lesson-main { padding:21px 20px 8px; }
+  .next-lesson h2 { margin-top:17px; font-size:1.85rem; }
+  .next-lesson-time { margin-top:16px; }
+  .next-context-grid { margin-top:17px; padding-top:15px; gap:12px; }
+  .next-context-grid > div:nth-child(2) { display:none; }
+  .next-lesson-action { padding:13px 20px 20px; gap:11px; border:0; background:var(--ate-navy); }
+  .next-lesson-action .button { min-height:48px; }
+  .teacher-attention-summary { padding:14px; gap:11px; align-items:flex-start; }
+  .teacher-attention-review { align-self:center; font-size:12px; }
+  .teacher-attention-summary small { font-size:11px; }
+  .teacher-today .section-title p { display:none; }
+  .schedule-row { min-height:62px; }
+}
