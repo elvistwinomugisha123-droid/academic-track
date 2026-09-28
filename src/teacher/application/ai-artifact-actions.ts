@@ -44,7 +44,7 @@ async function updateRun(runId: string, values: Record<string, unknown>) {
 function refresh(lessonId: string, sectionId: string) { revalidatePath(`/workspace/teacher/lessons/${lessonId}`); revalidatePath(`/workspace/teacher/sections/${sectionId}`); revalidatePath("/workspace"); }
 
 function blocked(context: TrustedLessonAIContext): AIProposal { return { ok: false, code: "RIGHTS_BLOCKED", error: "ATE drafting is unavailable for this curriculum source configuration. You can continue by editing the saved artifact manually." }; }
-function aiFailureMessage(error: unknown) { const message = error instanceof Error ? error.message : ""; return /ANTHROPIC_API_KEY|API key|not configured|fetch failed/i.test(message) ? "ATE drafting is unavailable right now. You can continue by writing the lesson plan manually." : message || "ATE could not prepare a valid structured proposal."; }
+function aiFailureMessage(error: unknown) { const message = error instanceof Error ? error.message : ""; if (error instanceof z.ZodError || /invalid_output|json|parse|validation|zod|expected.*received/i.test(message)) return "ATE could not format this draft correctly. Please try generating it again. Your lesson has not changed."; return /ANTHROPIC_API_KEY|API key|not configured|fetch failed/i.test(message) ? "ATE drafting is unavailable right now. You can continue by writing the lesson plan manually." : message || "ATE could not prepare a valid structured proposal."; }
 
 async function runGeneration<T extends LessonArtifactType>(input: { context: TrustedLessonAIContext; type: T; operation: AIArtifactOperation; artifactId: string | null; expectedVersion: number | null; parentArtifactId: string | null; parentVersionId: string | null; currentArtifact: unknown | null; instruction?: string; selectedField?: string | null; expectedCanonicalId?: string | null }): Promise<AIProposal> {
   const version = promptVersion(input.operation);
@@ -57,7 +57,7 @@ async function runGeneration<T extends LessonArtifactType>(input: { context: Tru
     const result = await generateStructured({
       system: lessonArtifactSystemPrompt(input.operation, input.type, input.selectedField),
       payload: modelContext,
-      maxTokens: input.type === "FORMAL_LESSON_PLAN" ? 3000 : 1800,
+      maxTokens: input.type === "FORMAL_LESSON_PLAN" ? 4096 : 1800,
       validate: (value) => validateGeneratedArtifact(input.type, value, input.context, input.expectedCanonicalId),
     });
     const outputFingerprint = createHash("sha256").update(canonicalJson(result.output)).digest("hex");
@@ -67,6 +67,32 @@ async function runGeneration<T extends LessonArtifactType>(input: { context: Tru
     await updateRun(runId, { status: "FAILED", validation_status: "FAILED", latency_ms: Date.now() - started, error_code: error instanceof Error ? error.name : "GENERATION_FAILED" });
     return { ok: false, code: "UNAVAILABLE", error: aiFailureMessage(error) };
   }
+}
+
+const AskATEAnswerSchema = z.object({ answer: z.string().min(1), suggestedFollowUps: z.array(z.string()).max(3) });
+export async function askATEAboutLesson(input: unknown): Promise<{ ok: true; answer: string; suggestedFollowUps: string[] } | { ok: false; error: string }> {
+  try {
+    const value = z.object({ scheduledLessonId: uuid, question: z.string().trim().min(3).max(1000) }).parse(input);
+    const access = await requireWorkspaceAccess();
+    if (!access.roles.includes("TEACHER")) throw new Error("An active TEACHER role is required.");
+    const data = await loadLessonReadinessData(value.scheduledLessonId);
+    const context = buildTrustedLessonAIContext(data);
+    const modelContext = safeModelContext(context, null, value.question);
+    const contextFingerprint = fingerprint({ modelContext, artifactId: null, artifactCurrentVersion: null, parentArtifactId: null, parentVersionId: null, operation: "ASK_ATE", artifactType: "FORMAL_LESSON_PLAN", promptVersion: ASK_ATE_PROMPT_VERSION });
+    const runId = await createRun({ context, artifactId: null, artifactType: "FORMAL_LESSON_PLAN", operation: "ASK_ATE", promptVersion: ASK_ATE_PROMPT_VERSION, contextFingerprint });
+    if (!canUseExternalAI(context)) { await updateRun(runId, { status: "RIGHTS_BLOCKED", validation_status: "FAILED", error_code: "RIGHTS_BLOCKED" }); return { ok: false, error: "Ask ATE is unavailable for this class's current curriculum source." }; }
+    try {
+      const result = await generateStructured({
+        system: "You are Ask ATE, a teacher's contextual assistant. Answer the question using only the supplied lesson and governed context. Distinguish a suggestion from a curriculum fact. If the context does not support a factual answer, say what is missing. Never invent source wording, specific outcomes, classroom events, citations, or claim to save a lesson. Return only JSON: {\"answer\":string,\"suggestedFollowUps\":string[]} with at most three short follow-ups.",
+        payload: modelContext, maxTokens: 900, validate: (output) => AskATEAnswerSchema.parse(output),
+      });
+      await updateRun(runId, { status: "SUCCEEDED", validation_status: "PASSED", model: result.model, input_token_count: result.usage.inputTokens, output_token_count: result.usage.outputTokens, latency_ms: result.latencyMs, output_fingerprint: createHash("sha256").update(canonicalJson(result.output)).digest("hex") });
+      return { ok: true, ...result.output };
+    } catch (error) {
+      await updateRun(runId, { status: "FAILED", validation_status: "FAILED", error_code: error instanceof Error ? error.name : "GENERATION_FAILED" });
+      return { ok: false, error: aiFailureMessage(error) };
+    }
+  } catch (error) { return { ok: false, error: aiFailureMessage(error) }; }
 }
 
 export async function generateFormalLessonPlanDraft(scheduledLessonId: string): Promise<AIProposal> {
