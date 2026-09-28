@@ -6,7 +6,7 @@ const navigation = [
   { href: "/workspace", label: "Home", icon: BookOpen },
   { href: "/workspace/teacher/sections", label: "Teaching sections", icon: BookOpen },
   { href: "/workspace/classroom", label: "Classroom", icon: ClipboardCheck },
-  { href: "/workspace/academic-operations", label: "School operations", icon: CalendarDays },
+  { href: "/workspace/academic-operations", label: "School setup", icon: CalendarDays, role: "SCHOOL_ADMIN" },
   { href: "/workspace/leadership/hod", label: "Department Pulse", icon: Activity, role: "HOD" },
   { href: "/workspace/leadership/dos", label: "Academic Operations", icon: Activity, role: "DOS" },
   { href: "/workspace/leadership/principal", label: "Academic Assurance", icon: ShieldCheck, role: "PRINCIPAL" },
