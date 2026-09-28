@@ -4,10 +4,10 @@ import { formalArtifactRightsState, safeCurrentPositionTitle, safeCurriculumPosi
 import type { FormalLessonPlanPayload, LessonArtifactPayloadMap, LessonArtifactType } from "@/artifacts/types";
 import type { LessonReadinessData } from "@/teacher/application/queries";
 
-export const LESSON_PLAN_PROMPT_VERSION = "lesson-plan-v1";
-export const TEACHING_PACK_PROMPT_VERSION = "teaching-pack-v1";
-export const ARTIFACT_PATCH_PROMPT_VERSION = "artifact-patch-v1";
-export const ASK_ATE_PROMPT_VERSION = "ask-ate-v1";
+export const LESSON_PLAN_PROMPT_VERSION = "lesson-plan-v2";
+export const TEACHING_PACK_PROMPT_VERSION = "teaching-pack-v2";
+export const ARTIFACT_PATCH_PROMPT_VERSION = "artifact-patch-v2";
+export const ASK_ATE_PROMPT_VERSION = "ask-ate-v2";
 
 export type AIArtifactOperation = "GENERATE_FORMAL_LESSON_PLAN" | "GENERATE_TEACHING_PACK" | "PATCH_ARTIFACT" | "ASK_ATE";
 
