@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { canUseExternalAI, safeModelContext, validateGeneratedArtifact, type TrustedLessonAIContext } from "./lesson-artifact-contracts";
 import { canonicalJson } from "./canonical-json";
+import { lessonArtifactSystemPrompt } from "./lesson-artifact-prompts";
 
 const context: TrustedLessonAIContext = {
   schoolId: "00000000-0000-0000-0000-000000000001", membershipId: "00000000-0000-0000-0000-000000000002", userId: "00000000-0000-0000-0000-000000000003", scheduledLessonId: "00000000-0000-0000-0000-000000000004", teachingSectionId: "00000000-0000-0000-0000-000000000005", subjectName: "Biology", classLevelName: "S2", streamName: "East", durationMinutes: 40, lessonFocus: "Cell structure", intendedCoverage: "Cell parts", teacherNotes: "Use local materials", preparationNotes: "No projector", continuityNote: "Finish the diagram", previousOutcome: "PARTIALLY_DELIVERED", anchor: { canonicalId: "canon-1", profileId: "profile-1", positionKind: "TOPIC", safeLabel: "Cell structure", sourceId: "source-1", sourceLocator: "page:2", sourcePageStart: 2, sourcePageEnd: 2, rightsState: "CLEARED", externalAiAllowed: true, formalArtifactAllowed: true, exportAllowed: true }, protectedSourceWording: "Protected source wording" };
@@ -24,6 +25,16 @@ describe("lesson artifact AI trust boundary", () => {
     expect(() => validateGeneratedArtifact("ACTIVITY_SHEET", { title: "Activity", instructions: "Do this" }, context)).toThrow();
     const restricted = { ...context, anchor: { ...context.anchor!, formalArtifactAllowed: false, rightsState: "REVIEW_REQUIRED" as const } };
     expect(() => validateGeneratedArtifact("BOARD_NOTES", { title: "Board notes", keyPoints: ["Protected source wording"], examples: [], equations: [], prompts: [] }, restricted)).toThrow(/curriculum wording/);
+  });
+
+  it("tells the model the required plan and pack shapes before validating its response", () => {
+    const lessonPrompt = lessonArtifactSystemPrompt("GENERATE_FORMAL_LESSON_PLAN", "FORMAL_LESSON_PLAN");
+    expect(lessonPrompt).toContain('"teachingSequence"');
+    expect(lessonPrompt).toContain('"curriculumAnchor"');
+    expect(lessonPrompt).toContain("Do not transform differentiation into an array");
+    const packPrompt = lessonArtifactSystemPrompt("GENERATE_TEACHING_PACK", "ACTIVITY_SHEET");
+    expect(packPrompt).toContain('"observationResponseArea"');
+    expect(packPrompt).toContain("saved Formal Lesson Plan");
   });
 
   it("canonicalizes reordered proposal objects identically and keeps safe context rights-aware", () => {
