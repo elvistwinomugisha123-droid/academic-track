@@ -3,6 +3,7 @@ import { resolveEligibleScope } from "./eligibility";
 import { resolveAssessmentProfile } from "./profile";
 import { validateAssessment } from "./validation";
 import { assessmentLevelMatches } from "./curriculum-level";
+import { blueprintIssues } from "./blueprint";
 import type { AssessmentPayload, AssessmentProfile } from "./types";
 
 const profile: AssessmentProfile = { id: "profile", displayTitle: "Test-only Class Test", purpose: "CLASS_TEST", regime: "TEST_ONLY_SCHOOL_INTERNAL", authority: "ATE test fixture", sourceId: "source", sourceVersion: "test-v1", releaseId: "release", releaseVersion: "TEST-2026", verificationStatus: "VERIFIED", rightsState: "CLEARED", externalAiAllowed: true, exportAllowed: true, effectiveFrom: "2026-01-01", effectiveTo: null, allowsBroaderScope: false, requiresReview: false };
@@ -10,6 +11,12 @@ const question = (id: string, canonicalId: string, marks = 5) => ({ id, text: `Q
 const payload: AssessmentPayload = { title: "Biology class test", purpose: "CLASS_TEST", durationMinutes: 40, totalMarks: 10, instructions: ["Answer all questions."], blueprint: { participatingSectionIds: ["00000000-0000-0000-0000-000000000001"], scopeCanonicalIds: ["A", "B"], expectedEvidence: "Written responses", itemDistribution: { SHORT_ANSWER: 2 }, difficultyDistribution: { LOW: 0, MEDIUM: 2, HIGH: 0 }, marksDistribution: { SHORT_ANSWER: 10 }, totalMarks: 10, durationMinutes: 40, practicalRequirements: [], accessibilityConstraints: [], subjectConstraints: [], teacherNotes: "" }, questions: [question("q1", "A"), question("q2", "B")] };
 
 describe("Assessment Studio domain", () => {
+  it("requires a distribution before generation and checks the draft difficulty mix", () => {
+    expect(blueprintIssues({ ...payload.blueprint, itemDistribution: {}, marksDistribution: {} }).length).toBeGreaterThan(0);
+    const changed: AssessmentPayload = { ...payload, questions: [{ ...payload.questions[0], marks: 6, difficulty: "HIGH" }, { ...payload.questions[1], marks: 4 }] };
+    const result = validateAssessment({ payload: changed, blueprint: payload.blueprint, eligibleCanonicalIds: ["A", "B"], knownCanonicalIds: ["A", "B"], participatingSectionIds: payload.blueprint.participatingSectionIds, profile, exportAllowed: true });
+    expect(result.issues.map((issue) => issue.code)).toContain("DIFFICULTY_DISTRIBUTION_MISMATCH");
+  });
   it("blocks a Senior 2 topic from a Senior 1 class test", () => {
     expect(assessmentLevelMatches("Senior 1", "Senior 2")).toBe(false);
     expect(assessmentLevelMatches("S1", "Senior 1")).toBe(true);
