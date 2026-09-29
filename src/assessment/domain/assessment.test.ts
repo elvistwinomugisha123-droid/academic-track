@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { resolveEligibleScope } from "./eligibility";
 import { resolveAssessmentProfile } from "./profile";
 import { validateAssessment } from "./validation";
+import { assessmentLevelMatches } from "./curriculum-level";
 import type { AssessmentPayload, AssessmentProfile } from "./types";
 
 const profile: AssessmentProfile = { id: "profile", displayTitle: "Test-only Class Test", purpose: "CLASS_TEST", regime: "TEST_ONLY_SCHOOL_INTERNAL", authority: "ATE test fixture", sourceId: "source", sourceVersion: "test-v1", releaseId: "release", releaseVersion: "TEST-2026", verificationStatus: "VERIFIED", rightsState: "CLEARED", externalAiAllowed: true, exportAllowed: true, effectiveFrom: "2026-01-01", effectiveTo: null, allowsBroaderScope: false, requiresReview: false };
@@ -9,6 +10,11 @@ const question = (id: string, canonicalId: string, marks = 5) => ({ id, text: `Q
 const payload: AssessmentPayload = { title: "Biology class test", purpose: "CLASS_TEST", durationMinutes: 40, totalMarks: 10, instructions: ["Answer all questions."], blueprint: { participatingSectionIds: ["00000000-0000-0000-0000-000000000001"], scopeCanonicalIds: ["A", "B"], expectedEvidence: "Written responses", itemDistribution: { SHORT_ANSWER: 2 }, difficultyDistribution: { LOW: 0, MEDIUM: 2, HIGH: 0 }, marksDistribution: { SHORT_ANSWER: 10 }, totalMarks: 10, durationMinutes: 40, practicalRequirements: [], accessibilityConstraints: [], subjectConstraints: [], teacherNotes: "" }, questions: [question("q1", "A"), question("q2", "B")] };
 
 describe("Assessment Studio domain", () => {
+  it("blocks a Senior 2 topic from a Senior 1 class test", () => {
+    expect(assessmentLevelMatches("Senior 1", "Senior 2")).toBe(false);
+    expect(assessmentLevelMatches("S1", "Senior 1")).toBe(true);
+    expect(assessmentLevelMatches("Year 1", "Senior 1")).toBe(false);
+  });
   it("uses confirmed taught evidence and records explicit partial confirmations", () => {
     const result = resolveEligibleScope({ purpose: "CLASS_TEST", profileAllowsBroaderScope: false, sections: [{ sectionId: "a", confirmedCanonicalIds: ["A"], explicitlyConfirmedPartialCanonicalIds: ["B"], evidence: [{ canonicalId: "A", sectionId: "a", evidenceType: "CONFIRMED_DELIVERY", evidenceReferenceId: "event-a", confirmedByMembershipId: "teacher" }, { canonicalId: "B", sectionId: "a", evidenceType: "EXPLICIT_PARTIAL_SCOPE_CONFIRMATION", evidenceReferenceId: "scope-b", confirmedByMembershipId: "teacher" }] }] });
     expect(result.canonicalIds).toEqual(["A", "B"]);
@@ -37,5 +43,14 @@ describe("Assessment Studio domain", () => {
     const result = validateAssessment({ payload: { ...payload, totalMarks: 11, questions: [payload.questions[0], { ...payload.questions[1], marks: 6 }] }, blueprint: payload.blueprint, eligibleCanonicalIds: ["A"], knownCanonicalIds: ["A", "B"], participatingSectionIds: payload.blueprint.participatingSectionIds, profile, exportAllowed: true });
     expect(result.valid).toBe(false);
     expect(result.issues.map((issue) => issue.code)).toEqual(expect.arrayContaining(["TOTAL_MARKS_MISMATCH", "OUT_OF_SCOPE", "PAYLOAD_TOTAL_MARKS_MISMATCH"]));
+  });
+
+  it("rejects ambiguous question identities and marking rubrics with incorrect totals", () => {
+    const invalid: AssessmentPayload = { ...payload, questions: [
+      { ...payload.questions[0], rubric: [{ descriptor: "Explains the result", marks: 3 }] },
+      { ...payload.questions[1], id: "q1" },
+    ] };
+    const result = validateAssessment({ payload: invalid, blueprint: payload.blueprint, eligibleCanonicalIds: ["A", "B"], knownCanonicalIds: ["A", "B"], participatingSectionIds: payload.blueprint.participatingSectionIds, profile, exportAllowed: true });
+    expect(result.issues.map((issue) => issue.code)).toEqual(expect.arrayContaining(["DUPLICATE_QUESTION_ID", "RUBRIC_MARKS_MISMATCH"]));
   });
 });
