@@ -53,11 +53,11 @@ test.describe("ATE authenticated visual evidence", () => {
     const teacherHomeWidths = [360, 390, 430, 768, 1366, 1440];
 
     await signIn(page, "teacher", "/workspace");
-    await expect(page.getByRole("heading", { name: "Your teaching day." })).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole("heading", { name: /Good (morning|afternoon|evening)/ })).toBeVisible({ timeout: 60_000 });
     for (const width of teacherHomeWidths) await capture(page, width, width < 1000 ? 844 : 900, "teacher-home");
 
     await page.goto(`/workspace/teacher/lessons/${fixture!.nextLessonId}`);
-    await expect(page.getByRole("heading", { name: "Prepare with the class in view." })).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole("heading", { name: /Biology · Senior 1 East/ })).toBeVisible({ timeout: 60_000 });
     await capture(page, 390, 844, "teacher-readiness");
     await capture(page, 1440, 900, "teacher-readiness");
 
@@ -68,7 +68,7 @@ test.describe("ATE authenticated visual evidence", () => {
 
     await page.context().clearCookies();
     await signIn(page, "dos", "/workspace/academic-operations");
-    await expect(page.getByRole("heading", { name: /School structure that stays dependable/i })).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole("heading", { name: /Set up your school day/i })).toBeVisible({ timeout: 60_000 });
     await capture(page, 1440, 900, "dos-operations");
 
     await page.context().clearCookies();

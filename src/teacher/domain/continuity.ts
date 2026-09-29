@@ -13,6 +13,8 @@ export type PositionOption = {
   topicCode: string | null;
   level: string | null;
   term: string | null;
+  sourceEntityId?: string | null;
+  parentTopicSourceId?: string | null;
 };
 
 export type CurrentPosition = PositionOption & {

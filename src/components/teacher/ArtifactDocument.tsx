@@ -1,0 +1,5 @@
+import type { LessonRenderModel } from "@/artifacts/lesson-render";
+
+export function ArtifactDocument({ model }: { model: LessonRenderModel }) {
+  return <article className="artifact-document"><header><span className="section-kicker">Lesson document</span><h2>{model.title}</h2></header>{model.sections.map((section) => <section className="artifact-document-section" key={section.heading}><h3>{section.heading}</h3>{section.paragraphs?.map((value, index) => value && <p key={index}>{value}</p>)}{section.items && <ul>{section.items.map((item, index) => <li key={index}>{item}</li>)}</ul>}{section.sequence?.map((step, index) => <div className="artifact-document-step" key={step.label + index}><div><strong>{index + 1}. {step.label}</strong><span>{step.minutes} min</span></div><p><b>Teacher</b> {step.teacherActivity}</p><p><b>Learners</b> {step.learnerActivity}</p>{step.prompts.length > 0 && <ul>{step.prompts.map((prompt, i) => <li key={i}>{prompt}</li>)}</ul>}{step.formativeCheck && <p><b>Check for learning</b> {step.formativeCheck}</p>}</div>)}</section>)}</article>;
+}

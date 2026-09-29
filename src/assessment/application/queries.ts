@@ -13,6 +13,7 @@ export type AssessmentStudioListData = {
   subjects: Array<Record<string, unknown>>;
   periods: Array<Record<string, unknown>>;
   profiles: Array<Record<string, unknown>>;
+  subjectBindings: Array<Record<string, unknown>>;
   workspaces: Array<Record<string, unknown>>;
   purposes: typeof assessmentPurposes;
 };
@@ -21,17 +22,23 @@ async function loadAssessmentStudioListOnce(nextPath = "/workspace/teacher/asses
   const access = await requireWorkspaceAccess(undefined, nextPath);
   if (!access.roles.includes("TEACHER")) throw new Error("Assessment Studio is available to assigned teachers.");
   const client = await createSupabaseServerClient();
-  const [sections, subjects, periods, workspaces] = await Promise.all([
+  const [sections, subjects, periods, workspaces, levels, streams, subjectBindings] = await Promise.all([
     client.from("teaching_sections").select("id, academic_period_id, school_subject_id, class_level_id, stream_id, assignment_state, operational_status").eq("school_id", access.schoolId).eq("teacher_membership_id", access.membershipId).eq("assignment_state", "CONFIRMED").eq("operational_status", "ACTIVE"),
     client.from("school_subjects").select("id, name, code").eq("school_id", access.schoolId).order("name"),
     client.from("academic_periods").select("id, name, academic_year, starts_on, ends_on").eq("school_id", access.schoolId).order("starts_on", { ascending: false }),
     client.from("assessment_workspaces").select("id, title, purpose, status, duration_minutes, total_marks, current_version_id, updated_at").eq("school_id", access.schoolId).order("updated_at", { ascending: false }),
+    client.from("class_levels").select("id, name").eq("school_id", access.schoolId),
+    client.from("streams").select("id, name").eq("school_id", access.schoolId),
+    client.from("school_subject_curriculum_bindings").select("school_subject_id, subject_profile_id, status, effective_from, effective_to").eq("school_id", access.schoolId),
   ]);
-  for (const result of [sections, subjects, periods, workspaces]) if (result.error) throw new Error(`Assessment Studio data could not be loaded. ${result.error.code ?? ""} ${result.error.message ?? ""}`.trim());
+  for (const result of [sections, subjects, periods, workspaces, levels, streams, subjectBindings]) if (result.error) throw new Error(`Assessment Studio data could not be loaded. ${result.error.code ?? ""} ${result.error.message ?? ""}`.trim());
+  const levelNames = new Map((levels.data ?? []).map((row) => [row.id, row.name]));
+  const streamNames = new Map((streams.data ?? []).map((row) => [row.id, row.name]));
+  const namedSections = (sections.data ?? []).map((section) => ({ ...section, display_name: `${levelNames.get(section.class_level_id) || "Class"} · ${streamNames.get(section.stream_id) || "Stream"}` }));
   const knowledge = createPostgresKnowledgeClient();
   try {
-    const profiles = await knowledge.query<Record<string, unknown>>("select id, release_id, subject_profile_id, assessment_key, display_title, purpose, regime, status from knowledge_assessment_profiles where status = 'ACTIVE' and purpose = any($1::text[]) order by display_title", [assessmentPurposes]);
-    return { access, sections: sections.data ?? [], subjects: subjects.data ?? [], periods: periods.data ?? [], profiles: profiles.rows, workspaces: workspaces.data ?? [], purposes: assessmentPurposes };
+    const profiles = await knowledge.query<Record<string, unknown>>("select id, release_id, subject_profile_id, assessment_key, display_title, purpose, regime, status from knowledge_assessment_profiles where status = 'ACTIVE' and regime <> 'TEST_SYNTHETIC' and purpose = any($1::text[]) order by display_title", [assessmentPurposes]);
+    return { access, sections: namedSections, subjects: subjects.data ?? [], periods: periods.data ?? [], subjectBindings: subjectBindings.data ?? [], profiles: profiles.rows, workspaces: workspaces.data ?? [], purposes: assessmentPurposes };
   } finally {
     await knowledge.close();
   }
@@ -52,6 +59,7 @@ export type AssessmentWorkspaceData = {
   runtimeProfile: AssessmentProfile | null;
   profileResolution: ProfileResolution;
   partialScopeCandidates: Array<{ sectionId: string; canonicalId: string; evidenceReferenceId: string }>;
+  scopeLabels: Record<string, string>;
 };
 
 function records(value: unknown): Array<Record<string, unknown>> { return Array.isArray(value) ? value as Array<Record<string, unknown>> : []; }
@@ -158,7 +166,16 @@ async function loadAssessmentWorkspaceOnce(workspaceId: string, nextPath = `/wor
     if (!preparation || !runtimeProfile.profile?.allowsPartialScope || !stringValue(preparation.curriculum_canonical_id)) return [];
     return [{ sectionId, canonicalId: stringValue(preparation.curriculum_canonical_id), evidenceReferenceId: stringValue(classroomEvent.id) }];
   });
-  return { access, workspace: workspaceResult.data, sections: sections.data ?? [], scopeItems: scopeItems.data ?? [], version: current as AssessmentWorkspaceData["version"], versions: versions.data ?? [], profile: profileResult.rows[0] ?? null, runtimeProfile: runtimeProfile.profile, profileResolution: runtimeProfile, partialScopeCandidates };
+  const scopeIds = [...new Set((scopeItems.data ?? []).map((item) => String(item.canonical_id)).filter(Boolean))];
+  const labels = scopeIds.length ? await createPostgresKnowledgeClient() : null;
+  let scopeLabels: Record<string, string> = {};
+  if (labels) {
+    try {
+      const result = await labels.query<{ canonical_id: string; normalized: Record<string, unknown> }>("select r.canonical_id, r.normalized from knowledge_records r join knowledge_profile_records pr on pr.canonical_id=r.canonical_id where pr.subject_profile_id=$1 and pr.release_id=$2 and pr.status='APPROVED' and r.canonical_id = any($3::text[])", [String(workspaceResult.data.curriculum_subject_profile_id), String(profileResult.rows[0]?.release_id ?? ""), scopeIds]);
+      scopeLabels = Object.fromEntries(result.rows.map((row) => [row.canonical_id, typeof row.normalized?.title === "string" ? row.normalized.title : row.canonical_id]));
+    } finally { await labels.close(); }
+  }
+  return { access, workspace: workspaceResult.data, sections: sections.data ?? [], scopeItems: scopeItems.data ?? [], version: current as AssessmentWorkspaceData["version"], versions: versions.data ?? [], profile: profileResult.rows[0] ?? null, runtimeProfile: runtimeProfile.profile, profileResolution: runtimeProfile, partialScopeCandidates, scopeLabels };
 }
 
 export async function loadAssessmentWorkspace(workspaceId: string, nextPath = `/workspace/teacher/assessments/${workspaceId}`, options: { exportOnly?: boolean } = {}): Promise<AssessmentWorkspaceData> {

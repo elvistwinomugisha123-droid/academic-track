@@ -24,8 +24,8 @@ export type AnthropicResult<T> = {
   requestId?: string;
 };
 
-export async function generateAnthropicStructured<T>(input: { system: string; payload: unknown; maxTokens: number; validate: (value: unknown) => T; model?: string }): Promise<AnthropicResult<T>> {
-  return generate(input.system, input.payload, input.maxTokens, input.validate, input.model);
+export async function generateAnthropicStructured<T>(input: { system: string; payload: unknown; maxTokens: number; outputSchema?: { [key: string]: unknown }; validate: (value: unknown) => T; model?: string }): Promise<AnthropicResult<T>> {
+  return generate(input.system, input.payload, input.maxTokens, input.validate, input.model, input.outputSchema);
 }
 
 function modelName() {
@@ -44,7 +44,7 @@ function parseJson(text: string): unknown {
   return JSON.parse(trimmed);
 }
 
-async function generate<T>(system: string, payload: unknown, maxTokens: number, validate: (value: unknown) => T, selectedModel?: string): Promise<AnthropicResult<T>> {
+async function generate<T>(system: string, payload: unknown, maxTokens: number, validate: (value: unknown) => T, selectedModel?: string, outputSchema?: { [key: string]: unknown }): Promise<AnthropicResult<T>> {
   const started = performance.now();
   const timeoutMs = Number(process.env.AI_REQUEST_TIMEOUT_MS || 45_000);
   if (!Number.isFinite(timeoutMs) || timeoutMs < 1_000 || timeoutMs > 120_000) throw new Error("AI_REQUEST_TIMEOUT_MS must be between 1000 and 120000 milliseconds.");
@@ -53,6 +53,7 @@ async function generate<T>(system: string, payload: unknown, maxTokens: number, 
     max_tokens: maxTokens,
     temperature: 0.2,
     system,
+    ...(outputSchema ? { output_config: { format: { type: "json_schema" as const, schema: outputSchema } } } : {}),
     messages: [{ role: "user", content: `Return only valid JSON matching the requested shape.\n\nContext:\n${JSON.stringify(payload)}` }],
   }, { signal: AbortSignal.timeout(timeoutMs) });
   const text = response.content.filter((block) => block.type === "text").map((block) => block.text).join("\n");

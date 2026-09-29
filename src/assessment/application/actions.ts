@@ -7,6 +7,8 @@ import { createPostgresKnowledgeClient } from "@/knowledge/db/client";
 import { requireWorkspaceAccess } from "@/lib/auth/access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { userFacingError } from "@/lib/user-facing-error";
+import { loadAssessmentWorkspace } from "./queries";
+import { validateAssessment } from "@/assessment/domain/validation";
 
 const uuid = z.string().uuid();
 const createSchema = z.object({
@@ -24,6 +26,15 @@ const createSchema = z.object({
 
 function result(error: { message?: string } | null, fallback: string) { return error ? { ok: false as const, error: userFacingError(error, fallback) } : { ok: true as const }; }
 
+async function assessmentReviewError(workspaceId: string, expectedVersion: number): Promise<string | null> {
+  const data = await loadAssessmentWorkspace(workspaceId);
+  if (data.version.version_number !== expectedVersion) return "The assessment changed. Refresh it before submitting.";
+  const eligible = [...new Set(data.scopeItems.filter((item) => ["CONFIRMED_ELIGIBLE", "BROADER_PROFILE_PERMITTED"].includes(String(item.scope_state))).map((item) => String(item.canonical_id)))];
+  const scoped = data.workspace.purpose === "COMMON_STREAM_TEST" ? eligible.filter((id) => data.sections.every((section) => data.scopeItems.some((item) => String(item.canonical_id) === id && String(item.section_id) === String(section.teaching_section_id) && ["CONFIRMED_ELIGIBLE", "BROADER_PROFILE_PERMITTED"].includes(String(item.scope_state))))) : eligible;
+  const validation = validateAssessment({ payload: data.version.content_json, blueprint: data.version.content_json.blueprint, eligibleCanonicalIds: scoped, knownCanonicalIds: [...new Set(data.scopeItems.map((item) => String(item.canonical_id)))], participatingSectionIds: data.sections.map((section) => String(section.teaching_section_id)), profile: data.runtimeProfile, exportAllowed: Boolean(data.runtimeProfile?.exportAllowed) });
+  return validation.issues[0]?.message ?? null;
+}
+
 export async function createAssessmentWorkspace(input: unknown): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   try {
     const access = await requireWorkspaceAccess();
@@ -33,11 +44,12 @@ export async function createAssessmentWorkspace(input: unknown): Promise<{ ok: t
     if (sectionResult.error || !sectionResult.data || sectionResult.data.length !== value.sectionIds.length) return { ok: false, error: "Every participating Teaching Section must be assigned to you and active." };
     if (sectionResult.data.some((section) => section.school_subject_id !== value.schoolSubjectId || section.academic_period_id !== value.academicPeriodId)) return { ok: false, error: "Participating Teaching Sections must share the selected subject and academic period." };
     const knowledge = createPostgresKnowledgeClient();
-    let profile: { id: string; purpose: string; subject_profile_id: string | null; status: string } | undefined;
+    let profile: { id: string; purpose: string; subject_profile_id: string | null; status: string; regime: string } | undefined;
     try {
-      const profileResult = await knowledge.query<{ id: string; purpose: string; subject_profile_id: string | null; status: string }>("select id, purpose, subject_profile_id, status from knowledge_assessment_profiles where id=$1 and purpose=$2 and status='ACTIVE' limit 1", [value.assessmentProfileId, value.purpose]);
+      const profileResult = await knowledge.query<{ id: string; purpose: string; subject_profile_id: string | null; status: string; regime: string }>("select id, purpose, subject_profile_id, status, regime from knowledge_assessment_profiles where id=$1 and purpose=$2 and status='ACTIVE' limit 1", [value.assessmentProfileId, value.purpose]);
       profile = profileResult.rows[0];
     } finally { await knowledge.close(); }
+    if (profile?.regime === "TEST_SYNTHETIC") return { ok: false, error: "This assessment profile is reserved for testing and cannot be used for a school assessment." };
     if (!profile || (profile.subject_profile_id && profile.subject_profile_id !== value.curriculumSubjectProfileId)) return { ok: false, error: "No active assessment profile applies to this purpose and subject." };
     const [classroomEvents, preparations, scheduledLessons] = await Promise.all([
       client.from("classroom_events").select("id, scheduled_lesson_id, teaching_section_id, outcome, occurred_at, supersedes_event_id").eq("school_id", access.schoolId).in("teaching_section_id", value.sectionIds).order("occurred_at", { ascending: false }),
@@ -99,6 +111,8 @@ export async function confirmPartialAssessmentScope(workspaceId: string, section
 
 export async function finalizeAssessment(workspaceId: string, expectedVersion: number): Promise<{ ok: boolean; error?: string }> {
   try {
+    const validationError = await assessmentReviewError(uuid.parse(workspaceId), expectedVersion);
+    if (validationError) return { ok: false, error: validationError };
     const client = await createSupabaseServerClient();
     const response = await client.rpc("finalize_assessment_workspace", { p_workspace_id: uuid.parse(workspaceId), p_expected_version: expectedVersion });
     if (response.error) return { ok: false, error: userFacingError(response.error, "Assessment could not be finalised.") };
@@ -110,6 +124,8 @@ export async function finalizeAssessment(workspaceId: string, expectedVersion: n
 
 export async function submitAssessmentForReview(workspaceId: string, expectedVersion: number): Promise<{ ok: boolean; error?: string }> {
   try {
+    const validationError = await assessmentReviewError(uuid.parse(workspaceId), expectedVersion);
+    if (validationError) return { ok: false, error: validationError };
     const client = await createSupabaseServerClient();
     const response = await client.rpc("submit_assessment_for_review", { p_workspace_id: uuid.parse(workspaceId), p_expected_version: expectedVersion });
     if (response.error) return { ok: false, error: userFacingError(response.error, "Assessment could not be submitted for review.") };

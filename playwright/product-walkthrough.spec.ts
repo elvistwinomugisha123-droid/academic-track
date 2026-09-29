@@ -67,12 +67,12 @@ test.describe("ATE product walkthrough", () => {
     requireFixture();
     const assertClean = browserFailures(page);
     await signIn(page, "teacher");
-    await expect(page.getByRole("heading", { name: "Your teaching day." })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("heading", { name: /Good (morning|afternoon|evening)/ })).toBeVisible({ timeout: 30_000 });
     await page.goto(`/workspace/teacher/sections/${fixture!.sectionAId}`);
     await expect(page.getByText(/Curriculum source/i)).toBeVisible({ timeout: 30_000 });
     await page.goto(`/workspace/teacher/lessons/${fixture!.nextLessonId}`);
-    await expect(page.getByRole("heading", { name: "Prepare with the class in view." })).toBeVisible({ timeout: 30_000 });
-    await page.getByRole("button", { name: "Lesson Plan" }).click();
+    await expect(page.getByRole("heading", { name: /Biology · Senior 1 East/ })).toBeVisible({ timeout: 30_000 });
+    await page.getByRole("button", { name: "Lesson plan" }).click();
     await expect(page.getByRole("heading", { name: "Formal Lesson Plan" })).toBeVisible({ timeout: 30_000 });
     await page.getByRole("button", { name: "Create Formal Lesson Plan" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Formal Lesson Plan created as version 1" })).toBeVisible({ timeout: 60_000 });
@@ -96,7 +96,7 @@ test.describe("ATE product walkthrough", () => {
     expect(lessonDocxResponse.status(), "lesson artifact DOCX status").toBe(200);
     expect(lessonDocxResponse.headers()["content-type"], "lesson artifact DOCX content type").toContain("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
     expect((await lessonDocxResponse.body()).byteLength, "lesson artifact DOCX body").toBeGreaterThan(1_000);
-    await page.getByRole("button", { name: "Readiness" }).click();
+    await page.getByRole("button", { name: "Overview" }).click();
     await page.getByLabel("Lesson focus").fill("Cell structure and microscope observation");
     await page.getByRole("button", { name: "Save preparation" }).click();
     await expect(page.getByRole("status")).toContainText(/Preparation saved/i, { timeout: 30_000 });
@@ -110,7 +110,7 @@ test.describe("ATE product walkthrough", () => {
     const assertClean = browserFailures(page);
     await signIn(page, "teacher");
     await page.goto(`/workspace/teacher/lessons/${fixture!.unconfirmedLessonId}`);
-    await expect(page.getByRole("heading", { name: "Prepare with the class in view." })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("heading", { name: /Biology · Senior 1 East/ })).toBeVisible({ timeout: 30_000 });
     await page.getByRole("button", { name: "Partially delivered" }).click();
     await page.getByLabel("Unfinished work or factual note").fill("Finish the microscope diagram in the next lesson.");
     await page.getByRole("button", { name: "Record classroom outcome" }).click();
@@ -140,7 +140,7 @@ test.describe("ATE product walkthrough", () => {
     requireFixture();
     const assertClean = browserFailures(page);
     await signIn(page, "dos", "/workspace/academic-operations");
-    await expect(page.getByRole("heading", { name: /School structure that stays dependable/i })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("heading", { name: /Set up your school day/i })).toBeVisible({ timeout: 30_000 });
     await page.getByRole("button", { name: /^Programme/ }).click();
     const title = `Browser validation event ${Date.now()}`;
     const start = new Date(Date.now() + 2 * 60 * 60 * 1000);
@@ -165,7 +165,7 @@ test.describe("ATE product walkthrough", () => {
     const assertClean = browserFailures(page);
     await signIn(page, "teacher");
     await page.goto(`/workspace/teacher/lessons/${fixture!.nextLessonId}`);
-    await page.getByRole("button", { name: "Lesson Plan" }).click();
+    await page.getByRole("button", { name: "Lesson plan" }).click();
     await page.getByRole("button", { name: "Generate with ATE" }).click();
     await expect(page.getByRole("alert").filter({ hasText: /ATE cannot send this curriculum context|ATE drafting is unavailable/i })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByRole("button", { name: /Create Formal Lesson Plan|Generate with ATE/ }).first()).toBeEnabled();

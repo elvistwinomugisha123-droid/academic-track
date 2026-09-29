@@ -165,6 +165,8 @@ function optionFromKnowledgeRow(row: Row, allowSourceWording = true): PositionOp
     topicCode: normalized.topic_code == null ? null : String(normalized.topic_code),
     level: normalized.level == null ? null : String(normalized.level),
     term: normalized.term == null ? null : String(normalized.term),
+    sourceEntityId: normalized.sourceEntityId == null ? null : String(normalized.sourceEntityId),
+    parentTopicSourceId: normalized.parentId == null ? null : String(normalized.parentId),
   };
 }
 
@@ -193,7 +195,7 @@ function currentFromKnowledgeRow(row: Row | null): CurrentPosition | null {
   return { ...current, title: safeCurrentPositionTitle(current) };
 }
 
-async function loadGovernedContext(client: ReturnType<typeof createPostgresKnowledgeClient>, schoolId: string, sectionId: string, effectiveOn: string): Promise<GovernedCurriculumContext> {
+async function loadGovernedContext(client: ReturnType<typeof createPostgresKnowledgeClient>, schoolId: string, sectionId: string, classLevelName: string, effectiveOn: string): Promise<GovernedCurriculumContext> {
   const binding = await client.query<Row>(`select b.subject_profile_id, p.release_id, p.profile_key, p.display_title as profile_title, r.release_key, r.display_name as release_title
     from teaching_section_curriculum_bindings b
     join knowledge_subject_profiles p on p.id=b.subject_profile_id and p.status='ACTIVE' and p.runtime_status='PILOT_ACTIVE'
@@ -209,10 +211,15 @@ async function loadGovernedContext(client: ReturnType<typeof createPostgresKnowl
     join knowledge_records r on r.canonical_id=pr.canonical_id
     where pr.subject_profile_id=$1 and pr.status='APPROVED' and pr.runtime_status='PILOT_ACTIVE'
       and r.record_type in ('topic','learning_outcome')
-      and (pr.effective_from is null or pr.effective_from <= $2::date)
-      and (pr.effective_to is null or pr.effective_to >= $2::date)
-    order by coalesce(pr.ordering_key, ''), r.canonical_id limit 300`, [stringValue(profile, "subject_profile_id"), effectiveOn]);
-  const options = optionsResult.rows.map((row) => optionFromKnowledgeRow(row)).filter((option): option is PositionOption => Boolean(option));
+    order by coalesce(pr.ordering_key, ''), r.canonical_id limit 300`, [stringValue(profile, "subject_profile_id")]);
+  const allOptions = optionsResult.rows.map((row) => optionFromKnowledgeRow(row)).filter((option): option is PositionOption => Boolean(option));
+  const allTopics = allOptions.filter((option) => option.positionKind === "TOPIC");
+  const levelTopics = allTopics.filter((option) => option.level?.trim().toLowerCase() === classLevelName.trim().toLowerCase());
+  const availableTopics = levelTopics.length ? levelTopics : allTopics;
+  const topicSourceIds = new Set(availableTopics.map((option) => option.sourceEntityId).filter((id): id is string => Boolean(id)));
+  const options = allOptions.filter((option) => option.positionKind === "TOPIC"
+    ? availableTopics.some((topic) => topic.canonicalId === option.canonicalId)
+    : topicSourceIds.has(option.parentTopicSourceId || option.sourceEntityId?.replace(/-lo-\\d+$/, "") || ""));
   return {
     subjectProfileId: stringValue(profile, "subject_profile_id"),
     profileTitle: stringValue(profile, "profile_title"),
@@ -292,18 +299,15 @@ async function loadTeacherReadModelOnce(nextPath = "/workspace") {
     } satisfies TeacherLesson;
   }).filter((lesson): lesson is TeacherLesson => lesson !== null);
   const contextBySection = new Map<string, GovernedCurriculumContext>();
-
+  // A newly activated teacher may not have any assigned sections yet. Do not
+  // require the server-side knowledge database for that valid empty state.
+  // Once sections exist, curriculum context remains mandatory and is loaded
+  // through the governed PostgreSQL read model as before.
   if (sectionRows.length > 0) {
     const knowledge = createPostgresKnowledgeClient();
-
     try {
       await Promise.all(sectionRows.map(async (section) => {
-        const context = await loadGovernedContext(
-          knowledge,
-          access.schoolId,
-          section.id,
-          todayInTimezone(String(school.timezone)),
-        );
+        const context = await loadGovernedContext(knowledge, access.schoolId, section.id, section.classLevelName, todayInTimezone(String(school.timezone)));
         contextBySection.set(section.id, context);
       }));
     } finally {

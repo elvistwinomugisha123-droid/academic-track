@@ -7,6 +7,7 @@ import { parseLessonPayload } from "@/artifacts/lesson";
 import { lessonArtifactTypes, type LessonArtifactType } from "@/artifacts/types";
 import { configuredAIGateway, generateStructured } from "@/ai/gateway";
 import { lessonArtifactSystemPrompt } from "@/ai/lesson-artifact-prompts";
+import { askATEOutputSchema, lessonArtifactOutputSchemas } from "@/ai/lesson-artifact-output-schema";
 import { ARTIFACT_PATCH_PROMPT_VERSION, ASK_ATE_PROMPT_VERSION, LESSON_PLAN_PROMPT_VERSION, TEACHING_PACK_PROMPT_VERSION, AIProposalInputSchema, buildTrustedLessonAIContext, canUseExternalAI, safeModelContext, validateGeneratedArtifact, type AIArtifactOperation, type TrustedLessonAIContext } from "@/ai/lesson-artifact-contracts";
 import { canonicalJson } from "@/ai/canonical-json";
 import { requireWorkspaceAccess } from "@/lib/auth/access";
@@ -30,7 +31,10 @@ async function createRun(input: { context: TrustedLessonAIContext; artifactId: s
   const service = createSupabaseServiceRoleClient();
   const ai = configuredAIGateway();
   const result = await service.from("ai_generation_runs").insert({ school_id: input.context.schoolId, created_by_user_id: input.context.userId, created_by_membership_id: input.context.membershipId, scheduled_lesson_id: input.context.scheduledLessonId, artifact_id: input.artifactId, artifact_type: input.artifactType, operation: input.operation, provider: ai.provider, model: ai.model, prompt_version: input.promptVersion, context_fingerprint: input.contextFingerprint, status: "RUNNING", validation_status: "NOT_RUN", rights_state: rightsState(input.context) }).select("id").single();
-  if (result.error || !result.data) throw new Error("AI generation run could not be recorded.");
+  if (result.error || !result.data) {
+    console.error("AI generation run insert failed", { code: result.error?.code, status: result.status });
+    throw new Error("ATE could not start lesson generation right now. Your lesson work is still saved.");
+  }
   return result.data.id as string;
 }
 
@@ -41,7 +45,7 @@ async function updateRun(runId: string, values: Record<string, unknown>) {
 function refresh(lessonId: string, sectionId: string) { revalidatePath(`/workspace/teacher/lessons/${lessonId}`); revalidatePath(`/workspace/teacher/sections/${sectionId}`); revalidatePath("/workspace"); }
 
 function blocked(context: TrustedLessonAIContext): AIProposal { return { ok: false, code: "RIGHTS_BLOCKED", error: "ATE drafting is unavailable for this curriculum source configuration. You can continue by editing the saved artifact manually." }; }
-function aiFailureMessage(error: unknown) { const message = error instanceof Error ? error.message : ""; return /ANTHROPIC_API_KEY|API key|not configured|fetch failed/i.test(message) ? "ATE drafting is unavailable right now. You can continue by writing the lesson plan manually." : message || "ATE could not prepare a valid structured proposal."; }
+function aiFailureMessage(error: unknown) { const message = error instanceof Error ? error.message : ""; if (error instanceof z.ZodError || /invalid_output|json|parse|validation|zod|expected.*received/i.test(message)) return "ATE could not format this draft correctly. Please try generating it again. Your lesson has not changed."; return /ANTHROPIC_API_KEY|API key|not configured|fetch failed/i.test(message) ? "ATE drafting is unavailable right now. You can continue by writing the lesson plan manually." : message || "ATE could not prepare a valid structured proposal."; }
 
 async function runGeneration<T extends LessonArtifactType>(input: { context: TrustedLessonAIContext; type: T; operation: AIArtifactOperation; artifactId: string | null; expectedVersion: number | null; parentArtifactId: string | null; parentVersionId: string | null; currentArtifact: unknown | null; instruction?: string; selectedField?: string | null; expectedCanonicalId?: string | null }): Promise<AIProposal> {
   const version = promptVersion(input.operation);
@@ -54,7 +58,8 @@ async function runGeneration<T extends LessonArtifactType>(input: { context: Tru
     const result = await generateStructured({
       system: lessonArtifactSystemPrompt(input.operation, input.type, input.selectedField),
       payload: modelContext,
-      maxTokens: input.type === "FORMAL_LESSON_PLAN" ? 3000 : 1800,
+      outputSchema: lessonArtifactOutputSchemas[input.type],
+      maxTokens: input.type === "FORMAL_LESSON_PLAN" ? 4096 : 1800,
       validate: (value) => validateGeneratedArtifact(input.type, value, input.context, input.expectedCanonicalId),
     });
     const outputFingerprint = createHash("sha256").update(canonicalJson(result.output)).digest("hex");
@@ -66,6 +71,32 @@ async function runGeneration<T extends LessonArtifactType>(input: { context: Tru
   }
 }
 
+const AskATEAnswerSchema = z.object({ answer: z.string().min(1), suggestedFollowUps: z.array(z.string()).max(3) });
+export async function askATEAboutLesson(input: unknown): Promise<{ ok: true; answer: string; suggestedFollowUps: string[] } | { ok: false; error: string }> {
+  try {
+    const value = z.object({ scheduledLessonId: uuid, question: z.string().trim().min(3).max(1000) }).parse(input);
+    const access = await requireWorkspaceAccess();
+    if (!access.roles.includes("TEACHER")) throw new Error("An active TEACHER role is required.");
+    const data = await loadLessonReadinessData(value.scheduledLessonId);
+    const context = buildTrustedLessonAIContext(data);
+    const modelContext = safeModelContext(context, null, value.question);
+    const contextFingerprint = fingerprint({ modelContext, artifactId: null, artifactCurrentVersion: null, parentArtifactId: null, parentVersionId: null, operation: "ASK_ATE", artifactType: "FORMAL_LESSON_PLAN", promptVersion: ASK_ATE_PROMPT_VERSION });
+    const runId = await createRun({ context, artifactId: null, artifactType: "FORMAL_LESSON_PLAN", operation: "ASK_ATE", promptVersion: ASK_ATE_PROMPT_VERSION, contextFingerprint });
+    if (!canUseExternalAI(context)) { await updateRun(runId, { status: "RIGHTS_BLOCKED", validation_status: "FAILED", error_code: "RIGHTS_BLOCKED" }); return { ok: false, error: "Ask ATE is unavailable for this class's current curriculum source." }; }
+    try {
+      const result = await generateStructured({
+        system: "You are Ask ATE, a teacher's contextual assistant. Answer the question using only the supplied lesson and governed context. Distinguish a suggestion from a curriculum fact. If the context does not support a factual answer, say what is missing. Never invent source wording, specific outcomes, classroom events, citations, or claim to save a lesson. Return only JSON: {\"answer\":string,\"suggestedFollowUps\":string[]} with at most three short follow-ups.",
+        payload: modelContext, maxTokens: 900, outputSchema: askATEOutputSchema, validate: (output) => AskATEAnswerSchema.parse(output),
+      });
+      await updateRun(runId, { status: "SUCCEEDED", validation_status: "PASSED", model: result.model, input_token_count: result.usage.inputTokens, output_token_count: result.usage.outputTokens, latency_ms: result.latencyMs, output_fingerprint: createHash("sha256").update(canonicalJson(result.output)).digest("hex") });
+      return { ok: true, ...result.output };
+    } catch (error) {
+      await updateRun(runId, { status: "FAILED", validation_status: "FAILED", error_code: error instanceof Error ? error.name : "GENERATION_FAILED" });
+      return { ok: false, error: aiFailureMessage(error) };
+    }
+  } catch (error) { return { ok: false, error: aiFailureMessage(error) }; }
+}
+
 export async function generateFormalLessonPlanDraft(scheduledLessonId: string): Promise<AIProposal> {
   try {
     const access = await requireWorkspaceAccess();
@@ -74,7 +105,7 @@ export async function generateFormalLessonPlanDraft(scheduledLessonId: string): 
     const context = buildTrustedLessonAIContext(data);
     const artifact = data.artifacts.find((item) => item.artifactType === "FORMAL_LESSON_PLAN");
     const current = artifact?.currentContent ? parseLessonPayload("FORMAL_LESSON_PLAN", artifact.currentContent) : null;
-    return runGeneration({ context, type: "FORMAL_LESSON_PLAN", operation: "GENERATE_FORMAL_LESSON_PLAN", artifactId: artifact?.id || null, expectedVersion: artifact?.currentVersionNumber || null, parentArtifactId: null, parentVersionId: null, currentArtifact: current, expectedCanonicalId: context.anchor?.canonicalId || null });
+    return await runGeneration({ context, type: "FORMAL_LESSON_PLAN", operation: "GENERATE_FORMAL_LESSON_PLAN", artifactId: artifact?.id || null, expectedVersion: artifact?.currentVersionNumber || null, parentArtifactId: null, parentVersionId: null, currentArtifact: current, expectedCanonicalId: context.anchor?.canonicalId || null });
   } catch (error) { return { ok: false, code: "UNAVAILABLE", error: aiFailureMessage(error) }; }
 }
 
@@ -88,7 +119,7 @@ export async function generateTeachingPackDraft(input: unknown): Promise<AIPropo
     const plan = data.artifacts.find((item) => item.artifactType === "FORMAL_LESSON_PLAN");
     if (!plan?.currentVersionId || !plan.currentContent) throw new Error("Save the Formal Lesson Plan before generating a Teaching Pack artifact.");
     const child = data.artifacts.find((item) => item.artifactType === value.artifactType);
-    return runGeneration({ context, type: value.artifactType, operation: "GENERATE_TEACHING_PACK", artifactId: child?.id || null, expectedVersion: child?.currentVersionNumber || null, parentArtifactId: plan.id, parentVersionId: plan.currentVersionId, currentArtifact: child?.currentContent ? parseLessonPayload(value.artifactType, child.currentContent) : parseLessonPayload("FORMAL_LESSON_PLAN", plan.currentContent), instruction: "Create a useful lesson-specific Teaching Pack artifact from the saved Formal Lesson Plan." });
+    return await runGeneration({ context, type: value.artifactType, operation: "GENERATE_TEACHING_PACK", artifactId: child?.id || null, expectedVersion: child?.currentVersionNumber || null, parentArtifactId: plan.id, parentVersionId: plan.currentVersionId, currentArtifact: child?.currentContent ? parseLessonPayload(value.artifactType, child.currentContent) : parseLessonPayload("FORMAL_LESSON_PLAN", plan.currentContent), instruction: "Create a useful lesson-specific Teaching Pack artifact from the saved Formal Lesson Plan." });
   } catch (error) { return { ok: false, code: "UNAVAILABLE", error: error instanceof Error ? error.message : "ATE could not start Teaching Pack generation." }; }
 }
 
@@ -101,7 +132,7 @@ export async function proposeArtifactPatch(input: unknown): Promise<AIProposal> 
     const context = buildTrustedLessonAIContext(data);
     const artifact = data.artifacts.find((item) => item.id === value.artifactId && item.artifactType === value.artifactType);
     if (!artifact?.currentContent) throw new Error("The saved artifact could not be reopened.");
-    return runGeneration({ context, type: value.artifactType, operation: "PATCH_ARTIFACT", artifactId: artifact.id, expectedVersion: artifact.currentVersionNumber, parentArtifactId: artifact.parentArtifactId, parentVersionId: artifact.parentVersionId, currentArtifact: parseLessonPayload(value.artifactType, artifact.currentContent), instruction: value.instruction, selectedField: value.selectedField || null, expectedCanonicalId: value.artifactType === "FORMAL_LESSON_PLAN" ? context.anchor?.canonicalId || null : undefined });
+    return await runGeneration({ context, type: value.artifactType, operation: "PATCH_ARTIFACT", artifactId: artifact.id, expectedVersion: artifact.currentVersionNumber, parentArtifactId: artifact.parentArtifactId, parentVersionId: artifact.parentVersionId, currentArtifact: parseLessonPayload(value.artifactType, artifact.currentContent), instruction: value.instruction, selectedField: value.selectedField || null, expectedCanonicalId: value.artifactType === "FORMAL_LESSON_PLAN" ? context.anchor?.canonicalId || null : undefined });
   } catch (error) { return { ok: false, code: "UNAVAILABLE", error: error instanceof Error ? error.message : "ATE could not prepare this change." }; }
 }
 
@@ -114,7 +145,7 @@ export async function askATEForArtifact(input: unknown): Promise<AIProposal> {
     const context = buildTrustedLessonAIContext(data);
     const artifact = data.artifacts.find((item) => item.id === value.artifactId && item.artifactType === value.artifactType);
     if (!artifact?.currentContent) throw new Error("The saved artifact could not be reopened.");
-    return runGeneration({ context, type: value.artifactType, operation: "ASK_ATE", artifactId: artifact.id, expectedVersion: artifact.currentVersionNumber, parentArtifactId: artifact.parentArtifactId, parentVersionId: artifact.parentVersionId, currentArtifact: parseLessonPayload(value.artifactType, artifact.currentContent), instruction: value.instruction, selectedField: value.selectedField || null, expectedCanonicalId: value.artifactType === "FORMAL_LESSON_PLAN" ? context.anchor?.canonicalId || null : undefined });
+    return await runGeneration({ context, type: value.artifactType, operation: "ASK_ATE", artifactId: artifact.id, expectedVersion: artifact.currentVersionNumber, parentArtifactId: artifact.parentArtifactId, parentVersionId: artifact.parentVersionId, currentArtifact: parseLessonPayload(value.artifactType, artifact.currentContent), instruction: value.instruction, selectedField: value.selectedField || null, expectedCanonicalId: value.artifactType === "FORMAL_LESSON_PLAN" ? context.anchor?.canonicalId || null : undefined });
   } catch (error) { return { ok: false, code: "UNAVAILABLE", error: error instanceof Error ? error.message : "ATE could not prepare this change." }; }
 }
 
