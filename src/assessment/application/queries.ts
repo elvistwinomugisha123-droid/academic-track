@@ -59,6 +59,7 @@ export type AssessmentWorkspaceData = {
   runtimeProfile: AssessmentProfile | null;
   profileResolution: ProfileResolution;
   partialScopeCandidates: Array<{ sectionId: string; canonicalId: string; evidenceReferenceId: string }>;
+  scopeLabels: Record<string, string>;
 };
 
 function records(value: unknown): Array<Record<string, unknown>> { return Array.isArray(value) ? value as Array<Record<string, unknown>> : []; }
@@ -165,7 +166,16 @@ async function loadAssessmentWorkspaceOnce(workspaceId: string, nextPath = `/wor
     if (!preparation || !runtimeProfile.profile?.allowsPartialScope || !stringValue(preparation.curriculum_canonical_id)) return [];
     return [{ sectionId, canonicalId: stringValue(preparation.curriculum_canonical_id), evidenceReferenceId: stringValue(classroomEvent.id) }];
   });
-  return { access, workspace: workspaceResult.data, sections: sections.data ?? [], scopeItems: scopeItems.data ?? [], version: current as AssessmentWorkspaceData["version"], versions: versions.data ?? [], profile: profileResult.rows[0] ?? null, runtimeProfile: runtimeProfile.profile, profileResolution: runtimeProfile, partialScopeCandidates };
+  const scopeIds = [...new Set((scopeItems.data ?? []).map((item) => String(item.canonical_id)).filter(Boolean))];
+  const labels = scopeIds.length ? await createPostgresKnowledgeClient() : null;
+  let scopeLabels: Record<string, string> = {};
+  if (labels) {
+    try {
+      const result = await labels.query<{ canonical_id: string; normalized: Record<string, unknown> }>("select r.canonical_id, r.normalized from knowledge_records r join knowledge_profile_records pr on pr.canonical_id=r.canonical_id where pr.subject_profile_id=$1 and pr.release_id=$2 and pr.status='APPROVED' and r.canonical_id = any($3::text[])", [String(workspaceResult.data.curriculum_subject_profile_id), String(profileResult.rows[0]?.release_id ?? ""), scopeIds]);
+      scopeLabels = Object.fromEntries(result.rows.map((row) => [row.canonical_id, typeof row.normalized?.title === "string" ? row.normalized.title : row.canonical_id]));
+    } finally { await labels.close(); }
+  }
+  return { access, workspace: workspaceResult.data, sections: sections.data ?? [], scopeItems: scopeItems.data ?? [], version: current as AssessmentWorkspaceData["version"], versions: versions.data ?? [], profile: profileResult.rows[0] ?? null, runtimeProfile: runtimeProfile.profile, profileResolution: runtimeProfile, partialScopeCandidates, scopeLabels };
 }
 
 export async function loadAssessmentWorkspace(workspaceId: string, nextPath = `/workspace/teacher/assessments/${workspaceId}`, options: { exportOnly?: boolean } = {}): Promise<AssessmentWorkspaceData> {
