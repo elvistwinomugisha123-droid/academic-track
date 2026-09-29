@@ -23,6 +23,9 @@ function fingerprint(value: unknown) { return createHash("sha256").update(canoni
 export async function generateAssessmentDraft(workspaceId: string): Promise<AssessmentProposal> {
   try {
     const data = await loadAssessmentWorkspace(workspaceId);
+    const { blueprintIssues } = await import("@/assessment/domain/blueprint");
+    const blueprintError = blueprintIssues(data.version.content_json.blueprint)[0];
+    if (blueprintError) return { ok: false, code: "UNAVAILABLE", error: `${blueprintError} Save the blueprint before asking ATE to draft.` };
     const workspaceIdValue = uuid.parse(workspaceId);
     const profile = data.runtimeProfile;
     if (!profile || data.profileResolution.state !== "RESOLVED") return { ok: false, code: "UNAVAILABLE", error: data.profileResolution.explanation };
