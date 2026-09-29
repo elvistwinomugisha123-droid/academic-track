@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, BookOpen, CalendarDays, CircleAlert, Clock3 } from "lucide-react";
 import type { TeacherHomeData, TeacherLesson } from "@/teacher/application/queries";
+import { TeacherGreeting } from "./TeacherGreeting";
 
 function formatTime(value: string, timeZone: string) { return new Intl.DateTimeFormat("en-UG", { hour: "numeric", minute: "2-digit", timeZone }).format(new Date(value)); }
 function formatDate(value: string, timeZone: string) { return new Intl.DateTimeFormat("en-UG", { weekday: "long", day: "numeric", month: "long", timeZone }).format(new Date(value)); }
@@ -10,12 +11,10 @@ function previousStateLabel(lesson: TeacherLesson) { if (lesson.carryForwardStat
 export function TeacherHome({ data }: { data: TeacherHomeData }) {
   const next = data.nextLesson;
   const firstName = data.access.displayName.trim().split(/\s+/)[0] || "teacher";
-  const hour = Number(new Intl.DateTimeFormat("en-GB", { hour: "numeric", hourCycle: "h23", timeZone: data.schoolTimezone }).format(new Date()));
-  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const unconfirmed = data.attention.filter((item) => item.kind === "UNCONFIRMED");
   const otherAttention = data.attention.filter((item) => item.kind !== "UNCONFIRMED");
   return <div className="teacher-page">
-    <header className="teacher-heading"><div><p className="eyebrow">Teacher home</p><h1>{greeting}, {firstName}.</h1><p className="lede">{formatDate(new Date().toISOString(), data.schoolTimezone)} · {data.schoolName}</p></div></header>
+    <TeacherGreeting firstName={firstName} schoolName={data.schoolName} timeZone={data.schoolTimezone} initialNow={new Date().toISOString()} />
     {data.continuityWarning && <div className="teacher-message warning" role="status"><CircleAlert size={16} />{data.continuityWarning}</div>}
     <section className="next-lesson" aria-labelledby="next-lesson-title">{next ? <><div className="next-lesson-main"><div className="next-lesson-label"><span className="section-kicker">Next lesson</span><span className="next-lesson-date">{formatDate(next.startsAt, data.schoolTimezone)}</span></div><h2 id="next-lesson-title">{next.section.subjectName} · {next.section.classLevelName} {next.section.streamName}</h2><div className="next-lesson-time"><Clock3 size={18} /><strong>{formatTime(next.startsAt, data.schoolTimezone)}–{formatTime(next.endsAt, data.schoolTimezone)}</strong>{next.roomLabel && <span>{next.roomLabel}</span>}</div><div className="next-context-grid"><div><span>Topic</span><strong>{next.currentPosition?.title || "Choose the current topic"}</strong>{next.unfinishedWork && <p>Carry forward: {next.unfinishedWork}</p>}</div><div><span>Last lesson</span><strong>{previousStateLabel(next)}</strong></div></div></div><div className="next-lesson-action"><Link className="button button-primary" href={`/workspace/teacher/lessons/${next.id}`}><BookOpen size={17} />Prepare lesson <ArrowUpRight size={16} /></Link></div></> : <div className="teacher-empty"><BookOpen size={19} /><div><h2 id="next-lesson-title">No upcoming lesson is scheduled.</h2><p>Your lessons will appear here when the school timetable is active.</p></div></div>}</section>
     {unconfirmed.length > 0 && <Link className="teacher-attention-summary" href="/workspace/classroom"><CircleAlert size={20} /><span><strong>{unconfirmed.length} past {unconfirmed.length === 1 ? "lesson needs" : "lessons need"} a classroom record</strong><small>Confirm what happened when you are ready.</small></span><span className="teacher-attention-review">Review <ArrowUpRight size={16} /></span></Link>}
