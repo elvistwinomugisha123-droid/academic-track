@@ -7,6 +7,8 @@ import { createPostgresKnowledgeClient } from "@/knowledge/db/client";
 import { requireWorkspaceAccess } from "@/lib/auth/access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { userFacingError } from "@/lib/user-facing-error";
+import { loadAssessmentWorkspace } from "./queries";
+import { validateAssessment } from "@/assessment/domain/validation";
 
 const uuid = z.string().uuid();
 const createSchema = z.object({
@@ -23,6 +25,15 @@ const createSchema = z.object({
 });
 
 function result(error: { message?: string } | null, fallback: string) { return error ? { ok: false as const, error: userFacingError(error, fallback) } : { ok: true as const }; }
+
+async function assessmentReviewError(workspaceId: string, expectedVersion: number): Promise<string | null> {
+  const data = await loadAssessmentWorkspace(workspaceId);
+  if (data.version.version_number !== expectedVersion) return "The assessment changed. Refresh it before submitting.";
+  const eligible = [...new Set(data.scopeItems.filter((item) => ["CONFIRMED_ELIGIBLE", "BROADER_PROFILE_PERMITTED"].includes(String(item.scope_state))).map((item) => String(item.canonical_id)))];
+  const scoped = data.workspace.purpose === "COMMON_STREAM_TEST" ? eligible.filter((id) => data.sections.every((section) => data.scopeItems.some((item) => String(item.canonical_id) === id && String(item.section_id) === String(section.teaching_section_id) && ["CONFIRMED_ELIGIBLE", "BROADER_PROFILE_PERMITTED"].includes(String(item.scope_state))))) : eligible;
+  const validation = validateAssessment({ payload: data.version.content_json, blueprint: data.version.content_json.blueprint, eligibleCanonicalIds: scoped, knownCanonicalIds: [...new Set(data.scopeItems.map((item) => String(item.canonical_id)))], participatingSectionIds: data.sections.map((section) => String(section.teaching_section_id)), profile: data.runtimeProfile, exportAllowed: Boolean(data.runtimeProfile?.exportAllowed) });
+  return validation.issues[0]?.message ?? null;
+}
 
 export async function createAssessmentWorkspace(input: unknown): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   try {
@@ -100,6 +111,8 @@ export async function confirmPartialAssessmentScope(workspaceId: string, section
 
 export async function finalizeAssessment(workspaceId: string, expectedVersion: number): Promise<{ ok: boolean; error?: string }> {
   try {
+    const validationError = await assessmentReviewError(uuid.parse(workspaceId), expectedVersion);
+    if (validationError) return { ok: false, error: validationError };
     const client = await createSupabaseServerClient();
     const response = await client.rpc("finalize_assessment_workspace", { p_workspace_id: uuid.parse(workspaceId), p_expected_version: expectedVersion });
     if (response.error) return { ok: false, error: userFacingError(response.error, "Assessment could not be finalised.") };
@@ -111,6 +124,8 @@ export async function finalizeAssessment(workspaceId: string, expectedVersion: n
 
 export async function submitAssessmentForReview(workspaceId: string, expectedVersion: number): Promise<{ ok: boolean; error?: string }> {
   try {
+    const validationError = await assessmentReviewError(uuid.parse(workspaceId), expectedVersion);
+    if (validationError) return { ok: false, error: validationError };
     const client = await createSupabaseServerClient();
     const response = await client.rpc("submit_assessment_for_review", { p_workspace_id: uuid.parse(workspaceId), p_expected_version: expectedVersion });
     if (response.error) return { ok: false, error: userFacingError(response.error, "Assessment could not be submitted for review.") };
