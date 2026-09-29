@@ -33,11 +33,12 @@ export async function createAssessmentWorkspace(input: unknown): Promise<{ ok: t
     if (sectionResult.error || !sectionResult.data || sectionResult.data.length !== value.sectionIds.length) return { ok: false, error: "Every participating Teaching Section must be assigned to you and active." };
     if (sectionResult.data.some((section) => section.school_subject_id !== value.schoolSubjectId || section.academic_period_id !== value.academicPeriodId)) return { ok: false, error: "Participating Teaching Sections must share the selected subject and academic period." };
     const knowledge = createPostgresKnowledgeClient();
-    let profile: { id: string; purpose: string; subject_profile_id: string | null; status: string } | undefined;
+    let profile: { id: string; purpose: string; subject_profile_id: string | null; status: string; regime: string } | undefined;
     try {
-      const profileResult = await knowledge.query<{ id: string; purpose: string; subject_profile_id: string | null; status: string }>("select id, purpose, subject_profile_id, status from knowledge_assessment_profiles where id=$1 and purpose=$2 and status='ACTIVE' limit 1", [value.assessmentProfileId, value.purpose]);
+      const profileResult = await knowledge.query<{ id: string; purpose: string; subject_profile_id: string | null; status: string; regime: string }>("select id, purpose, subject_profile_id, status, regime from knowledge_assessment_profiles where id=$1 and purpose=$2 and status='ACTIVE' limit 1", [value.assessmentProfileId, value.purpose]);
       profile = profileResult.rows[0];
     } finally { await knowledge.close(); }
+    if (profile?.regime === "TEST_SYNTHETIC") return { ok: false, error: "This assessment profile is reserved for testing and cannot be used for a school assessment." };
     if (!profile || (profile.subject_profile_id && profile.subject_profile_id !== value.curriculumSubjectProfileId)) return { ok: false, error: "No active assessment profile applies to this purpose and subject." };
     const [classroomEvents, preparations, scheduledLessons] = await Promise.all([
       client.from("classroom_events").select("id, scheduled_lesson_id, teaching_section_id, outcome, occurred_at, supersedes_event_id").eq("school_id", access.schoolId).in("teaching_section_id", value.sectionIds).order("occurred_at", { ascending: false }),
