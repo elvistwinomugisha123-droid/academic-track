@@ -1,5 +1,13 @@
-import { AppShell } from "@/components/foundation/AppShell";
+import Link from "next/link";
+import { ArrowUpRight, BookOpenText, CalendarCheck2, Check, Sparkles } from "lucide-react";
 
 export default function Page() {
-  return <AppShell><section className="foundation-intro"><h1>Academic work needs a dependable place to begin.</h1><p className="lede">The workspace is ready for teacher-led academic work. Sign in with the account provided by your school to continue.</p><div className="foundation-note" role="status"><span className="status-dot" />No school or teacher data is loaded on this welcome page.</div></section></AppShell>;
+  return <main className="public-home">
+    <a className="skip-link" href="#welcome">Skip to content</a>
+    <header className="public-header"><Link href="/" className="public-brand" aria-label="ATE home"><span>A</span><strong>ATE<small>Academic Track Engine</small></strong></Link><Link className="public-header-link" href="/sign-in">Sign in <ArrowUpRight size={16} /></Link></header>
+    <div className="public-content" id="welcome"><section className="public-hero"><div className="public-copy"><span className="public-kicker">Made for the rhythm of teaching</span><h1>Start the day knowing what comes next.</h1><p>ATE brings your lesson, class context and teaching materials together in one calm workspace. Prepare with AI assistance, then make the final decisions yourself.</p><div className="public-actions"><Link href="/sign-in" className="public-cta">Enter your workspace <ArrowUpRight size={18} /></Link><span>Use the account provided by your school.</span></div></div>
+    <div className="public-illustration" aria-label="Illustration of a lesson moving from preparation to classroom notes"><div className="public-orb orb-one" /><div className="public-orb orb-two" /><div className="public-paper"><div className="public-paper-top"><span className="public-paper-mark"><BookOpenText size={20} /></span><span>YOUR TEACHING DAY</span><CalendarCheck2 size={18} /></div><div className="public-paper-title">A clear place to begin.</div><div className="public-paper-line long" /><div className="public-paper-line short" /><div className="public-lesson"><span className="public-lesson-icon"><BookOpenText size={23} /></span><div><small>UP NEXT</small><strong>Plan your next lesson</strong><span>With your class in view</span></div><ArrowUpRight size={18} /></div><div className="public-paper-footer"><Check size={16} />Your work stays connected to the lesson.</div></div><div className="public-spark"><Sparkles size={18} />ATE helps you prepare</div></div></section>
+    <section className="public-path" aria-label="What you can do in ATE"><div><span>01</span><h2>Prepare</h2><p>Begin with the confirmed curriculum position and what your class needs next.</p></div><div><span>02</span><h2>Teach</h2><p>Keep a useful lesson plan and teaching materials close at hand.</p></div><div><span>03</span><h2>Continue</h2><p>Record what happened and carry unfinished work forward.</p></div></section></div>
+    <footer className="public-footer">Academic Track Engine <span>Teacher-led academic work, connected.</span></footer>
+  </main>;
 }
