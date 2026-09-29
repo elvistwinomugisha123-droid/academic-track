@@ -13,7 +13,7 @@ import { TeachingPackWorkspace } from "./TeachingPackWorkspace";
 const outcomeLabels: Record<TeacherOutcome, string> = { DELIVERED: "Delivered as planned", PARTIALLY_DELIVERED: "Partially delivered", NOT_DELIVERED: "Not delivered", CHANGED: "Changed from plan" };
 function formatTime(value: string, timeZone: string) { return new Intl.DateTimeFormat("en-UG", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone }).format(new Date(value)); }
 
-export function LessonReadinessWorkspace({ data }: { data: LessonReadinessData }) {
+export function LessonReadinessWorkspace({ data, initialTab = "plan", editArtifactId }: { data: LessonReadinessData; initialTab?: "readiness" | "plan" | "pack"; editArtifactId?: string }) {
   const { lesson, curriculum } = data;
   const needsStartingPosition = !curriculum.current;
   const [lessonFocus, setLessonFocus] = useState(lesson.preparation?.lessonFocus || data.recommendedFocus);
@@ -27,7 +27,7 @@ export function LessonReadinessWorkspace({ data }: { data: LessonReadinessData }
   const [deliveryReason, setDeliveryReason] = useState(lesson.eventReason || "");
   const [proposalChoice, setProposalChoice] = useState("");
   const [message, setMessage] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"readiness" | "plan" | "pack">(needsStartingPosition ? "readiness" : "plan");
+  const [activeTab, setActiveTab] = useState<"readiness" | "plan" | "pack">(needsStartingPosition ? "readiness" : initialTab);
   const [pending, startTransition] = useTransition();
   const hasEnded = new Date(lesson.endsAt) <= new Date();
   const proposal = recordedOutcome ? deriveNextPosition({ outcome: recordedOutcome, current: curriculum.current, options: curriculum.options }) : null;
@@ -39,6 +39,7 @@ export function LessonReadinessWorkspace({ data }: { data: LessonReadinessData }
   return <div className="teacher-page readiness-page">
     <div className="readiness-topline"><Link className="back-link" href={`/workspace/teacher/sections/${lesson.section.id}`}><ArrowLeft size={15} />{lesson.section.subjectName} · {lesson.section.classLevelName} {lesson.section.streamName}</Link><span className="status status-neutral"><Clock3 size={13} />Scheduled lesson</span></div>
     <header className="teacher-heading readiness-heading"><div><p className="eyebrow">Your next lesson</p><h1>{lesson.section.subjectName} · {lesson.section.classLevelName} {lesson.section.streamName}</h1><p className="lede">{formatTime(lesson.startsAt, data.schoolTimezone)}{lesson.roomLabel ? ` · ${lesson.roomLabel}` : ""}<br />Topic: {curriculum.current?.title || "Choose the current topic"}</p></div></header>
+    {/transport in plants/i.test(curriculum.current?.title || "") && /senior\s*1|\bs1\b/i.test(lesson.section.classLevelName) && <div className="teacher-message warning" role="alert"><CircleAlert size={16} /><span>Check the curriculum position: NCDC lists Transport in Plants under Senior 2, Term 3. This class is Senior 1. Confirm the correct topic before using this plan with learners.</span></div>}
     {data.continuityWarning && <div className="teacher-message warning" role="status"><CircleAlert size={16} />{data.continuityWarning}</div>}
     {message && <div className={`teacher-message ${message.startsWith("Preparation saved") || message.startsWith("Recorded") || message.startsWith("Next") ? "success" : "error"}`} role="status">{message.startsWith("Preparation") || message.startsWith("Recorded") || message.startsWith("Next") ? <Check size={16} /> : <CircleAlert size={16} />}{message}</div>}
     <nav className="lesson-workspace-tabs" aria-label="Lesson workspace"><button className={activeTab === "readiness" ? "active" : ""} type="button" onClick={() => setActiveTab("readiness")}><Clock3 size={15} />Overview</button>{!needsStartingPosition && <><button className={activeTab === "plan" ? "active" : ""} type="button" onClick={() => setActiveTab("plan")}><FileText size={15} />Lesson plan{data.artifacts.some((artifact) => artifact.artifactType === "FORMAL_LESSON_PLAN") && <span>Saved</span>}</button><button className={activeTab === "pack" ? "active" : ""} type="button" onClick={() => setActiveTab("pack")}><PackageOpen size={15} />Teaching Pack{data.artifacts.filter((artifact) => artifact.artifactType !== "FORMAL_LESSON_PLAN").length > 0 && <span>{data.artifacts.filter((artifact) => artifact.artifactType !== "FORMAL_LESSON_PLAN").length}</span>}</button></>}</nav>
@@ -49,7 +50,7 @@ export function LessonReadinessWorkspace({ data }: { data: LessonReadinessData }
       </div>
       {proposal && <section className="proposal-panel" aria-labelledby="proposal-title"><div className="proposal-heading"><div><span className="section-kicker">Continuity proposal</span><h2 id="proposal-title">Decide what the next lesson inherits.</h2><p>Proposals remain separate from confirmed curriculum truth until you explicitly apply one.</p></div><span className="status status-info">Teacher decision required</span></div><div className="proposal-grid"><div><span>Current confirmed position</span><strong>{curriculum.current?.title || "Not set"}</strong><small>{recordedOutcome ? outcomeLabels[recordedOutcome] : "Current section context"}</small></div><div><span>Unfinished work</span><strong>{deliveryNote || "None recorded"}</strong><small>{recordedOutcome === "PARTIALLY_DELIVERED" ? "Carry forward to the next lesson" : "Based on the classroom record"}</small></div><div><span>Proposed next position</span><strong>{proposalPosition?.title || "No automatic successor"}</strong><small>{proposal.label}</small></div></div>{proposalPosition && <div className="proposal-actions"><label>Adjust proposal<select value={proposalChoice || proposalPosition.canonicalId} onChange={(event) => setProposalChoice(event.target.value)}>{curriculum.options.map((option) => <option key={option.canonicalId} value={option.canonicalId}>{option.positionKind === "TOPIC" ? "Topic" : "Learning outcome"} · {option.title}</option>)}</select></label>{proposalPosition.canonicalId === curriculum.current?.canonicalId && !proposalChoice ? <span className="carry-forward-confirmed"><Check size={15} />Current position will carry forward; no duplicate event is needed.</span> : <button className="button button-primary" disabled={pending || !selectedProposal} onClick={confirmProposal}>Confirm next position <ArrowUpRight size={15} /></button>}</div>}</section>}
     </>}
-    {!needsStartingPosition && activeTab === "plan" && <LessonPlanEditor data={data} />}
-    {!needsStartingPosition && activeTab === "pack" && <TeachingPackWorkspace data={data} onOpenPlan={() => setActiveTab("plan")} />}
+    {!needsStartingPosition && activeTab === "plan" && <LessonPlanEditor data={data} initialEdit={Boolean(editArtifactId && data.artifacts.some((item) => item.id === editArtifactId && item.artifactType === "FORMAL_LESSON_PLAN"))} />}
+    {!needsStartingPosition && activeTab === "pack" && <TeachingPackWorkspace data={data} editArtifactId={editArtifactId} onOpenPlan={() => setActiveTab("plan")} />}
   </div>;
 }
