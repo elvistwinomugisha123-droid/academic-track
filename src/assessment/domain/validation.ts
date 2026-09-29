@@ -15,10 +15,14 @@ export function validateAssessment(input: {
   const eligible = new Set(input.eligibleCanonicalIds);
   const known = new Set(input.knownCanonicalIds);
   const configuredMarks = input.payload.questions.reduce((total, question) => total + question.marks, 0);
+  const questionIds = new Set<string>();
   const requiredItemTypes = Object.entries(input.blueprint.itemDistribution).filter(([, count]) => count > 0);
   for (const question of input.payload.questions) {
+    if (questionIds.has(question.id)) issues.push({ code: "DUPLICATE_QUESTION_ID", message: `Question ID ${question.id} occurs more than once.`, questionId: question.id });
+    questionIds.add(question.id);
     if (question.marks <= 0) issues.push({ code: "QUESTION_MARKS_INVALID", message: `Question ${question.id} must have marks greater than zero.`, questionId: question.id });
     if (!question.markingGuide.length) issues.push({ code: "MARKING_GUIDE_MISSING", message: `Question ${question.id} is missing a marking guide.`, questionId: question.id });
+    if (question.rubric && question.rubric.reduce((total, row) => total + row.marks, 0) !== question.marks) issues.push({ code: "RUBRIC_MARKS_MISMATCH", message: `Question ${question.id} rubric marks do not equal its allocated marks.`, questionId: question.id });
     for (const canonicalId of question.canonicalIds) {
       if (!known.has(canonicalId)) issues.push({ code: "UNKNOWN_CURRICULUM_ID", message: `Question ${question.id} references an unknown curriculum ID.`, questionId: question.id });
       else if (!eligible.has(canonicalId)) issues.push({ code: "OUT_OF_SCOPE", message: `Question ${question.id} uses curriculum content outside the confirmed eligible scope.`, questionId: question.id });
