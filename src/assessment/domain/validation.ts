@@ -1,4 +1,11 @@
 import { AssessmentPayloadSchema, type AssessmentBlueprint, type AssessmentPayload, type AssessmentProfile, type AssessmentValidation, type ValidationIssue } from "./types";
+import { blueprintIssues } from "./blueprint";
+
+function stable(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stable).join(",")}]`;
+  if (value && typeof value === "object") return `{${Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([key, item]) => `${JSON.stringify(key)}:${stable(item)}`).join(",")}}`;
+  return JSON.stringify(value);
+}
 
 export function validateAssessment(input: {
   payload: AssessmentPayload;
@@ -12,6 +19,8 @@ export function validateAssessment(input: {
   const issues: ValidationIssue[] = [];
   const parsed = AssessmentPayloadSchema.safeParse(input.payload);
   if (!parsed.success) issues.push(...parsed.error.issues.map((issue) => ({ code: "SCHEMA_INVALID", message: issue.message, path: issue.path.join(".") })));
+  issues.push(...blueprintIssues(input.blueprint).map((message) => ({ code: "BLUEPRINT_INCOMPLETE", message })));
+  if (stable(input.payload.blueprint) !== stable(input.blueprint)) issues.push({ code: "BLUEPRINT_CHANGED", message: "The draft changed the approved blueprint. Save a new teacher blueprint first." });
   const eligible = new Set(input.eligibleCanonicalIds);
   const known = new Set(input.knownCanonicalIds);
   const configuredMarks = input.payload.questions.reduce((total, question) => total + question.marks, 0);
@@ -38,10 +47,16 @@ export function validateAssessment(input: {
   for (const [itemType, required] of requiredItemTypes) {
     const actual = input.payload.questions.filter((question) => question.itemType === itemType).length;
     if (actual !== required) issues.push({ code: "ITEM_DISTRIBUTION_MISMATCH", message: `Blueprint requires ${required} ${itemType} item(s), but the draft has ${actual}.` });
+    const allocated = input.payload.questions.filter((question) => question.itemType === itemType).reduce((sum, question) => sum + question.marks, 0);
+    if (allocated !== input.blueprint.marksDistribution[itemType]) issues.push({ code: "MARKS_DISTRIBUTION_MISMATCH", message: `Blueprint allocates ${input.blueprint.marksDistribution[itemType] || 0} marks to ${itemType}, but the draft has ${allocated}.` });
+  }
+  for (const difficulty of ["LOW", "MEDIUM", "HIGH"] as const) {
+    const actual = input.payload.questions.filter((question) => question.difficulty === difficulty).length;
+    if (actual !== (input.blueprint.difficultyDistribution[difficulty] || 0)) issues.push({ code: "DIFFICULTY_DISTRIBUTION_MISMATCH", message: `Blueprint requires ${input.blueprint.difficultyDistribution[difficulty] || 0} ${difficulty.toLowerCase()} difficulty question(s), but the draft has ${actual}.` });
   }
   const missingMarkingGuides = input.payload.questions.filter((question) => !question.markingGuide.length).length;
   const outOfScopeItems = input.payload.questions.filter((question) => question.canonicalIds.some((id) => !eligible.has(id))).length;
-  const blueprintDistributionSatisfied = !issues.some((issue) => issue.code === "ITEM_DISTRIBUTION_MISMATCH");
+  const blueprintDistributionSatisfied = !issues.some((issue) => ["BLUEPRINT_INCOMPLETE", "BLUEPRINT_CHANGED", "ITEM_DISTRIBUTION_MISMATCH", "MARKS_DISTRIBUTION_MISMATCH", "DIFFICULTY_DISTRIBUTION_MISMATCH"].includes(issue.code));
   return {
     valid: issues.length === 0,
     issues,
