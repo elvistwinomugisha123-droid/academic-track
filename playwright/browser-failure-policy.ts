@@ -4,14 +4,27 @@ const VERCEL_TELEMETRY_PATHS = new Set([
   "/_vercel/speed-insights/script.js",
 ]);
 
-export function isLocalPlaywrightTelemetryUrl(value: string) {
+function localPlaywrightUrl(value: string) {
   try {
     const url = new URL(value);
     return url.protocol === "http:"
       && LOCAL_PLAYWRIGHT_HOSTS.has(url.hostname)
       && url.port === "3000"
-      && VERCEL_TELEMETRY_PATHS.has(url.pathname);
+      ? url
+      : null;
   } catch {
-    return false;
+    return null;
   }
+}
+
+export function isLocalPlaywrightTelemetryUrl(value: string) {
+  const url = localPlaywrightUrl(value);
+  return Boolean(url && VERCEL_TELEMETRY_PATHS.has(url.pathname));
+}
+
+export function isLocalPlaywrightAuthRedirectUrl(value: string, protectedPath: string) {
+  const url = localPlaywrightUrl(value);
+  if (!url) return false;
+  if (url.pathname === protectedPath && !url.search) return true;
+  return url.pathname === "/sign-in" && url.searchParams.get("next") === protectedPath;
 }
