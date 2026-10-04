@@ -66,8 +66,17 @@ async function createTestUser(label: string): Promise<TestUser> {
 }
 
 async function signIn(user: TestUser) {
-  const { error } = await user.client.auth.signInWithPassword({ email: user.email, password: user.password });
-  expect(error).toBeNull();
+  // The remote TEST gateway can briefly return a plain-text 555 before Auth
+  // receives the request. Retry only that transport failure, never a real
+  // credential/authorization response.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { error } = await user.client.auth.signInWithPassword({ email: user.email, password: user.password });
+    if (!error) return;
+    const gatewayFailure = error.status === 555
+      || (error.name === "AuthUnknownError" && /Unexpected token 'I'.*Internal s/.test(error.message));
+    if (!gatewayFailure || attempt === 2) throw error;
+    await new Promise((resolve) => setTimeout(resolve, 1_000 * (attempt + 1)));
+  }
 }
 
 async function insertOne(table: string, values: Record<string, unknown>, select = "id"): Promise<string> {
@@ -79,9 +88,9 @@ async function insertOne(table: string, values: Record<string, unknown>, select 
 describe("isolated Step 4 academic operations integration", () => {
   beforeAll(async () => {
     requireConfigured();
-    [teacherA, teacherB, hodA, dosA, multiSchoolDos, principalA, adminA] = await Promise.all([
-      createTestUser("teacher-a"), createTestUser("teacher-b"), createTestUser("hod"), createTestUser("dos"), createTestUser("multi-school-dos"), createTestUser("principal"), createTestUser("admin"),
-    ]);
+    [teacherA, teacherB, hodA, dosA, multiSchoolDos, principalA, adminA] = [
+      await createTestUser("teacher-a"), await createTestUser("teacher-b"), await createTestUser("hod"), await createTestUser("dos"), await createTestUser("multi-school-dos"), await createTestUser("principal"), await createTestUser("admin"),
+    ];
     const schools = requireData((await admin!.from("schools").insert([
       { name: `Operations Test A ${suffix}`, slug: `${suffix}-a` },
       { name: `Operations Test B ${suffix}`, slug: `${suffix}-b` },
