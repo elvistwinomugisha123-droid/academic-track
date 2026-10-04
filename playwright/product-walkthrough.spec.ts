@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, mkdirSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import { restoreAuthState } from "./auth-state";
+import { observeBrowserFailures } from "./browser-failures";
 
 type Fixture = {
   sectionAId: string;
@@ -18,13 +19,9 @@ function requireFixture() {
   return fixture;
 }
 
-function browserFailures(page: Page) {
-  const failures: string[] = [];
-  page.on("console", (message) => { if (message.type() === "error") failures.push(`console: ${message.text()}`); });
-  page.on("pageerror", (error) => failures.push(`page: ${error.message}`));
-  page.on("requestfailed", (request) => { const errorText = request.failure()?.errorText || "failed"; const expectedAbort = errorText === "net::ERR_ABORTED" && (request.url().includes("_rsc=") || request.url().includes("/auth/v1/logout") || (request.method() === "POST" && request.url().includes("/workspace/teacher/lessons/"))); if (expectedAbort) return; failures.push(`request: ${request.method()} ${request.url()} — ${errorText}`); });
-  return () => expect(failures, "browser console, page and network failures").toEqual([]);
-}
+const browserFailures = (page: Page) => observeBrowserFailures(page, {
+  expectedRequestFailure: (request, errorText) => errorText === "net::ERR_ABORTED" && (request.url().includes("_rsc=") || request.url().includes("/auth/v1/logout") || (request.method() === "POST" && request.url().includes("/workspace/teacher/lessons/"))),
+});
 
 async function signIn(page: Page, role: keyof Fixture["accounts"], next = "/workspace") {
   await restoreAuthState(page, "product", role, next);
@@ -43,10 +40,7 @@ test.describe("ATE product walkthrough", () => {
   test.setTimeout(180_000);
 
   test("sign-in controls are accessible and usable", async ({ page }) => {
-    const failures: string[] = [];
-    page.on("console", (message) => { if (message.type() === "error") failures.push(`console: ${message.text()}`); });
-    page.on("pageerror", (error) => failures.push(`page: ${error.message}`));
-    page.on("requestfailed", (request) => { const errorText = request.failure()?.errorText || "failed"; if (errorText === "net::ERR_ABORTED" && request.url().includes("_rsc=")) return; failures.push(`request: ${request.method()} ${request.url()} — ${errorText}`); });
+    const assertClean = observeBrowserFailures(page, { expectedRequestFailure: (request, errorText) => errorText === "net::ERR_ABORTED" && request.url().includes("_rsc=") });
     await page.goto("/sign-in");
     await expect(page.getByRole("heading", { name: /sign in to your academic workspace/i })).toBeVisible();
     const password = page.getByRole("textbox", { name: "Password" });
@@ -60,7 +54,7 @@ test.describe("ATE product walkthrough", () => {
       await page.screenshot({ path: `output/playwright/sign-in-${width}.png`, fullPage: true });
       await expectNoOverflow(page, width);
     }
-    expect(failures, "browser console, page and network failures").toEqual([]);
+    assertClean();
   });
 
   test("teacher completes the core route sequence", async ({ page }) => {
@@ -183,12 +177,9 @@ test.describe("ATE product walkthrough", () => {
   });
 
   test("unauthenticated direct navigation returns to sign-in", async ({ page }) => {
-    const failures: string[] = [];
-    page.on("console", (message) => { if (message.type() === "error") failures.push(`console: ${message.text()}`); });
-    page.on("pageerror", (error) => failures.push(`page: ${error.message}`));
-    page.on("requestfailed", (request) => { const errorText = request.failure()?.errorText || "failed"; if (errorText === "net::ERR_ABORTED" && request.url().includes("_rsc=")) return; failures.push(`request: ${request.method()} ${request.url()} — ${errorText}`); });
+    const assertClean = observeBrowserFailures(page, { expectedRequestFailure: (request, errorText) => errorText === "net::ERR_ABORTED" && request.url().includes("_rsc=") });
     await page.goto("/workspace/teacher/sections");
     await expect(page).toHaveURL(/\/sign-in\?next=/);
-    expect(failures, "browser console, page and network failures").toEqual([]);
+    assertClean();
   });
 });

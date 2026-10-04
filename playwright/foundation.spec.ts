@@ -1,12 +1,9 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { observeBrowserFailures } from "./browser-failures";
 
-function browserFailures(page: Page) {
-  const failures: string[] = [];
-  page.on("console", (message) => { if (message.type() === "error") failures.push(`console: ${message.text()}`); });
-  page.on("pageerror", (error) => failures.push(`page: ${error.message}`));
-  page.on("requestfailed", (request) => { const errorText = request.failure()?.errorText || "failed"; if (errorText === "net::ERR_ABORTED" && request.url().includes("_rsc=")) return; failures.push(`request: ${request.method()} ${request.url()} — ${errorText}`); });
-  return () => expect(failures, "browser console, page and network failures").toEqual([]);
-}
+const browserFailures = (page: Parameters<typeof observeBrowserFailures>[0]) => observeBrowserFailures(page, {
+  expectedRequestFailure: (request, errorText) => errorText === "net::ERR_ABORTED" && request.url().includes("_rsc="),
+});
 
 test("foundation entry is truthful and navigable", async ({ page }) => {
   const assertClean = browserFailures(page);

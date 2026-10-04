@@ -89,3 +89,20 @@ jobs:
 
       - name: Browser smoke tests
         run: npm run test:e2e
+
+      - name: Upload browser failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: ignore
+          retention-days: 7
+          path: |
+            playwright-report/
+            test-results/
+            !playwright-report/**/*.zip
+            !test-results/**/*.zip
+            !playwright-report/**/*storage-state*.json
+            !test-results/**/*storage-state*.json
+            !playwright-report/**/auth-*.json
+            !test-results/**/auth-*.json

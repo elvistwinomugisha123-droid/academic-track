@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import { restoreAuthState } from "./auth-state";
+import { observeBrowserFailures } from "./browser-failures";
 
 type AssessmentFixture = {
   fixtureSuffix: string;
@@ -26,17 +27,9 @@ function requireFixture() {
   return fixture;
 }
 
-function browserFailures(page: Page) {
-  const failures: string[] = [];
-  page.on("console", (message) => { if (message.type() === "error") failures.push(`console: ${message.text()}`); });
-  page.on("pageerror", (error) => failures.push(`page: ${error.message}`));
-  page.on("requestfailed", (request) => {
-    const errorText = request.failure()?.errorText || "failed";
-    const expectedAbort = errorText === "net::ERR_ABORTED" && (request.url().includes("_rsc=") || (request.method() === "POST" && request.url().includes("/workspace/teacher/assessments")));
-    if (!expectedAbort) failures.push(`request: ${request.method()} ${request.url()} — ${errorText}`);
-  });
-  return () => expect(failures, "browser console, page and network failures").toEqual([]);
-}
+const browserFailures = (page: Page) => observeBrowserFailures(page, {
+  expectedRequestFailure: (request, errorText) => errorText === "net::ERR_ABORTED" && (request.url().includes("_rsc=") || (request.method() === "POST" && request.url().includes("/workspace/teacher/assessments"))),
+});
 
 async function signIn(page: Page, role: "teacher" | "dos" = "teacher", next = role === "teacher" ? "/workspace/teacher/assessments" : "/workspace/leadership/dos") {
   await restoreAuthState(page, "assessment", role, next);
