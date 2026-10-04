@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Academic Track Engine</title>
+  <rect width="512" height="512" fill="#0b1f3a"/>
+  <circle cx="256" cy="256" r="154" fill="none" stroke="#31bdde" stroke-width="14"/>
+  <path fill="#ffffff" d="M164 353 241 155h30l77 198h-33l-20-54h-81l-19 54h-31Zm60-81h61l-30-84-31 84Z"/>
+</svg>

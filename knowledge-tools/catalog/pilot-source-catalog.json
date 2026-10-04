@@ -1,0 +1,472 @@
+{
+  "schema_version": "ate-pilot-source-catalog-v1",
+  "authority": "National Curriculum Development Centre (NCDC)",
+  "contract": "Source inventory expectations carried forward from build_source_registry.py; entries identify supplied-file expectations, not verified curriculum facts, rights, or availability.",
+  "entries": [
+    {
+      "education_level": "advanced-secondary",
+      "subject": "Agriculture",
+      "sources": [
+        {
+          "relative_path": "a-level/Agriculture.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        },
+        {
+          "relative_path": "a-level-assessment/Agriculture-Assessment-Guidelines-01.04.Web_File.pdf",
+          "document_type": "assessment-guidelines",
+          "publication_year": 2026,
+          "purpose": "ASSESSMENT"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "Art and Design",
+      "sources": [
+        {
+          "relative_path": "a-level/Art & Design.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        },
+        {
+          "relative_path": "a-level-assessment/Art-Design_Assessment-Guidelines-24.02.Web_File.pdf",
+          "document_type": "assessment-guidelines",
+          "publication_year": 2026,
+          "purpose": "ASSESSMENT"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "Biology",
+      "sources": [
+        {
+          "relative_path": "a-level/Biology.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        },
+        {
+          "relative_path": "a-level-assessment/Biology-Assessment-Guidelines_Final-edit-13.05.2026_Web-file.pdf",
+          "document_type": "assessment-guidelines",
+          "publication_year": 2026,
+          "purpose": "ASSESSMENT"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "Chemistry",
+      "sources": [
+        {
+          "relative_path": "a-level/CHEMISTRY.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        },
+        {
+          "relative_path": "a-level-assessment/Chemistry-Assessment-Guidelines-01.04.Web_File.pdf",
+          "document_type": "assessment-guidelines",
+          "publication_year": 2026,
+          "purpose": "ASSESSMENT"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "Christian Religious Education",
+      "sources": [
+        {
+          "relative_path": "a-level/CRE SYLLABUS.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        },
+        {
+          "relative_path": "a-level-assessment/CRE-Assessment-Guidelines_Final-edit-16.04.2026_Web-file.pdf",
+          "document_type": "assessment-guidelines",
+          "publication_year": 2026,
+          "purpose": "ASSESSMENT"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "Economics",
+      "sources": [
+        {
+          "relative_path": "a-level/Economics.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        },
+        {
+          "relative_path": "a-level-assessment/Economics-Assessment-Guidelines_Final-edit-20.04.2026_Web-file.pdf",
+          "document_type": "assessment-guidelines",
+          "publication_year": 2026,
+          "purpose": "ASSESSMENT"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "Entrepreneurship Education",
+      "sources": [
+        {
+          "relative_path": "a-level/Entrepreneurship.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        },
+        {
+          "relative_path": "a-level-assessment/Entrepreneurship-Education-Assessment-Guidelines_Final-edit-21.04.2026_Web-file-2-1.pdf",
+          "document_type": "assessment-guidelines",
+          "publication_year": 2026,
+          "purpose": "ASSESSMENT"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "General Paper",
+      "sources": [
+        {
+          "relative_path": "a-level/General Paper.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        },
+        {
+          "relative_path": "a-level-assessment/General-Paper-Assessment-Guidelines_Final-edit-24.07.2026_Web-file.pdf",
+          "document_type": "assessment-guidelines",
+          "publication_year": 2026,
+          "purpose": "ASSESSMENT"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "Geography",
+      "sources": [
+        {
+          "relative_path": "a-level/Geography.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        },
+        {
+          "relative_path": "a-level-assessment/Geography-Assessment-Guidelines_Approved-Final-14.05.2026_Web-file.pdf",
+          "document_type": "assessment-guidelines",
+          "publication_year": 2026,
+          "purpose": "ASSESSMENT"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "History",
+      "sources": [
+        {
+          "relative_path": "a-level/HISTORY.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "Kiswahili",
+      "sources": [
+        {
+          "relative_path": "a-level/Kiswahili.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "Literature in English",
+      "sources": [
+        {
+          "relative_path": "a-level/Literature in English.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        },
+        {
+          "relative_path": "a-level-assessment/Literature-Assessment-Guidelines-01.04.Web_File.pdf",
+          "document_type": "assessment-guidelines",
+          "publication_year": 2026,
+          "purpose": "ASSESSMENT"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "Local Languages",
+      "sources": [
+        {
+          "relative_path": "a-level/Local Languages Framework.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        },
+        {
+          "relative_path": "a-level-assessment/Local-Languages-Assessment-Guidelines_Final-edit-20.04.2026_Web-file.pdf",
+          "document_type": "assessment-guidelines",
+          "publication_year": 2026,
+          "purpose": "ASSESSMENT"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "Music",
+      "sources": [
+        {
+          "relative_path": "a-level/MUSIC.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "Physics",
+      "sources": [
+        {
+          "relative_path": "a-level/Physics.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        },
+        {
+          "relative_path": "a-level-assessment/Physics-Assessment-Guidelines_Final-edit-15.04.2026_Web-file.pdf",
+          "document_type": "assessment-guidelines",
+          "publication_year": 2026,
+          "purpose": "ASSESSMENT"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "Principal Mathematics",
+      "sources": [
+        {
+          "relative_path": "a-level/PRINCIPAL MATHS.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        },
+        {
+          "relative_path": "a-level-assessment/Principle-Mathematics-Assessment-Guidelines-01.04.Web_File.pdf",
+          "document_type": "assessment-guidelines",
+          "publication_year": 2026,
+          "purpose": "ASSESSMENT"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "Subsidiary ICT",
+      "sources": [
+        {
+          "relative_path": "a-level/Subsidiary ICT.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        },
+        {
+          "relative_path": "a-level-assessment/ICT-Assessment-Guidelines-01.04.Web_File.pdf",
+          "document_type": "assessment-guidelines",
+          "publication_year": 2026,
+          "purpose": "ASSESSMENT"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "Subsidiary Mathematics",
+      "sources": [
+        {
+          "relative_path": "a-level/SUBSIDIARY MATHEMATICS.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        }
+      ]
+    },
+    {
+      "education_level": "advanced-secondary",
+      "subject": "Technical Drawing",
+      "sources": [
+        {
+          "relative_path": "a-level/TEchnical Drawing.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2025,
+          "purpose": "CURRICULUM"
+        }
+      ]
+    },
+    {
+      "education_level": "lower-secondary",
+      "subject": "Agriculture",
+      "sources": [
+        {
+          "relative_path": "o-level/AGRIC_SYLLABUS_compressed.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2019,
+          "purpose": "CURRICULUM"
+        }
+      ]
+    },
+    {
+      "education_level": "lower-secondary",
+      "subject": "Biology",
+      "sources": [
+        {
+          "relative_path": "o-level/Biology_Syllabus_compressed (1).pdf",
+          "document_type": "syllabus",
+          "publication_year": 2019,
+          "purpose": "CURRICULUM"
+        },
+        {
+          "relative_path": "o-level/Biology_Syllabus_compressed.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2019,
+          "purpose": "CURRICULUM"
+        }
+      ]
+    },
+    {
+      "education_level": "lower-secondary",
+      "subject": "Chemistry",
+      "sources": [
+        {
+          "relative_path": "o-level/chemistry syllbus.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2019,
+          "purpose": "CURRICULUM"
+        }
+      ]
+    },
+    {
+      "education_level": "lower-secondary",
+      "subject": "Christian Religious Education",
+      "sources": [
+        {
+          "relative_path": "o-level/CRE_syllabus_compressed.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2019,
+          "purpose": "CURRICULUM"
+        }
+      ]
+    },
+    {
+      "education_level": "lower-secondary",
+      "subject": "English Language",
+      "sources": [
+        {
+          "relative_path": "o-level/ENGLISH_SYLLABUS_compressed.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2019,
+          "purpose": "CURRICULUM"
+        }
+      ]
+    },
+    {
+      "education_level": "lower-secondary",
+      "subject": "Entrepreneurship Education",
+      "sources": [
+        {
+          "relative_path": "o-level/ENTREPRENEURSHIP_SYLLABUS_compressed.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2019,
+          "purpose": "CURRICULUM"
+        }
+      ]
+    },
+    {
+      "education_level": "lower-secondary",
+      "subject": "Geography",
+      "sources": [
+        {
+          "relative_path": "o-level/Georgraphy-Syllabus.pdf",
+          "document_type": "syllabus",
+          "publication_year": null,
+          "purpose": "CURRICULUM"
+        }
+      ]
+    },
+    {
+      "education_level": "lower-secondary",
+      "subject": "History and Political Education",
+      "sources": [
+        {
+          "relative_path": "o-level/Olevel-History-syllabus-June-2023.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2019,
+          "purpose": "CURRICULUM"
+        },
+        {
+          "relative_path": "o-level/HISTORY-AND-POLITICAL-EDUCATION-S.4-LEARNERS-BOOK-FINAL-07.11.2021_Web-file.pdf",
+          "document_type": "learner-book",
+          "publication_year": 2021,
+          "purpose": "CURRICULUM"
+        }
+      ]
+    },
+    {
+      "education_level": "lower-secondary",
+      "subject": "Literature in English",
+      "sources": [
+        {
+          "relative_path": "o-level/LITERATURE_SYLLABUS.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2019,
+          "purpose": "CURRICULUM"
+        }
+      ]
+    },
+    {
+      "education_level": "lower-secondary",
+      "subject": "Mathematics",
+      "sources": [
+        {
+          "relative_path": "o-level/Mathematics_Syllabus_compressed.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2019,
+          "purpose": "CURRICULUM"
+        }
+      ]
+    },
+    {
+      "education_level": "lower-secondary",
+      "subject": "Physics",
+      "sources": [
+        {
+          "relative_path": "o-level/PHYSICS_Syllabus_compressed.pdf",
+          "document_type": "syllabus",
+          "publication_year": 2019,
+          "purpose": "CURRICULUM"
+        }
+      ]
+    }
+  ],
+  "shared_sources": [
+    {
+      "education_level": "advanced-secondary",
+      "relative_path": "a-level-assessment/ASSESSMENT-FRAMEWORK-FOR-ADVANCED-SECONDARY-CURRICULUM-2026_Web-file.pdf",
+      "document_type": "assessment-framework",
+      "publication_year": 2026,
+      "purpose": "ASSESSMENT"
+    }
+  ]
+}

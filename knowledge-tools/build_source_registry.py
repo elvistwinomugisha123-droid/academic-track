@@ -19,67 +19,8 @@ ROOT = Path(__file__).resolve().parents[1]
 RAW_ROOT = ROOT / "knowledge-sources" / "raw"
 REGISTRY_PATH = ROOT / "knowledge-sources" / "derived" / "manifests" / "source-registry.json"
 
+CATALOG_PATH = ROOT / "knowledge-tools" / "catalog" / "pilot-source-catalog.json"
 AUTHORITY = "National Curriculum Development Centre (NCDC)"
-
-O_LEVEL: dict[str, tuple[str, str, int | None]] = {
-    "AGRIC_SYLLABUS_compressed.pdf": ("Agriculture", "syllabus", 2019),
-    "Biology_Syllabus_compressed (1).pdf": ("Biology", "syllabus", 2019),
-    "Biology_Syllabus_compressed.pdf": ("Biology", "syllabus", 2019),
-    "CRE_syllabus_compressed.pdf": ("Christian Religious Education", "syllabus", 2019),
-    "ENGLISH_SYLLABUS_compressed.pdf": ("English Language", "syllabus", 2019),
-    "ENTREPRENEURSHIP_SYLLABUS_compressed.pdf": ("Entrepreneurship Education", "syllabus", 2019),
-    "Georgraphy-Syllabus.pdf": ("Geography", "syllabus", None),
-    "Olevel-History-syllabus-June-2023.pdf": ("History and Political Education", "syllabus", 2019),
-    "HISTORY-AND-POLITICAL-EDUCATION-S.4-LEARNERS-BOOK-FINAL-07.11.2021_Web-file.pdf": (
-        "History and Political Education",
-        "learner-book",
-        2021,
-    ),
-    "LITERATURE_SYLLABUS.pdf": ("Literature in English", "syllabus", 2019),
-    "Mathematics_Syllabus_compressed.pdf": ("Mathematics", "syllabus", 2019),
-    "PHYSICS_Syllabus_compressed.pdf": ("Physics", "syllabus", 2019),
-    "chemistry syllbus.pdf": ("Chemistry", "syllabus", 2019),
-}
-
-A_LEVEL: dict[str, str] = {
-    "Agriculture.pdf": "Agriculture",
-    "Art & Design.pdf": "Art and Design",
-    "Biology.pdf": "Biology",
-    "CHEMISTRY.pdf": "Chemistry",
-    "CRE SYLLABUS.pdf": "Christian Religious Education",
-    "Economics.pdf": "Economics",
-    "Entrepreneurship.pdf": "Entrepreneurship Education",
-    "General Paper.pdf": "General Paper",
-    "Geography.pdf": "Geography",
-    "HISTORY.pdf": "History",
-    "Kiswahili.pdf": "Kiswahili",
-    "Literature in English.pdf": "Literature in English",
-    "Local Languages Framework.pdf": "Local Languages",
-    "MUSIC.pdf": "Music",
-    "PRINCIPAL MATHS.pdf": "Principal Mathematics",
-    "Physics.pdf": "Physics",
-    "SUBSIDIARY MATHEMATICS.pdf": "Subsidiary Mathematics",
-    "Subsidiary ICT.pdf": "Subsidiary ICT",
-    "TEchnical Drawing.pdf": "Technical Drawing",
-}
-
-ASSESSMENT: dict[str, str | None] = {
-    "ASSESSMENT-FRAMEWORK-FOR-ADVANCED-SECONDARY-CURRICULUM-2026_Web-file.pdf": None,
-    "Agriculture-Assessment-Guidelines-01.04.Web_File.pdf": "Agriculture",
-    "Art-Design_Assessment-Guidelines-24.02.Web_File.pdf": "Art and Design",
-    "Biology-Assessment-Guidelines_Final-edit-13.05.2026_Web-file.pdf": "Biology",
-    "CRE-Assessment-Guidelines_Final-edit-16.04.2026_Web-file.pdf": "Christian Religious Education",
-    "Chemistry-Assessment-Guidelines-01.04.Web_File.pdf": "Chemistry",
-    "Economics-Assessment-Guidelines_Final-edit-20.04.2026_Web-file.pdf": "Economics",
-    "Entrepreneurship-Education-Assessment-Guidelines_Final-edit-21.04.2026_Web-file-2-1.pdf": "Entrepreneurship Education",
-    "General-Paper-Assessment-Guidelines_Final-edit-24.07.2026_Web-file.pdf": "General Paper",
-    "Geography-Assessment-Guidelines_Approved-Final-14.05.2026_Web-file.pdf": "Geography",
-    "ICT-Assessment-Guidelines-01.04.Web_File.pdf": "Subsidiary ICT",
-    "Literature-Assessment-Guidelines-01.04.Web_File.pdf": "Literature in English",
-    "Local-Languages-Assessment-Guidelines_Final-edit-20.04.2026_Web-file.pdf": "Local Languages",
-    "Physics-Assessment-Guidelines_Final-edit-15.04.2026_Web-file.pdf": "Physics",
-    "Principle-Mathematics-Assessment-Guidelines-01.04.Web_File.pdf": "Principal Mathematics",
-}
 
 
 def sha256_file(path: Path) -> str:
@@ -133,35 +74,30 @@ def record(
 
 
 def main() -> None:
+    catalog = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
+    authority = catalog["authority"]
+    if authority != AUTHORITY:
+        raise ValueError(f"Unsupported source authority in {CATALOG_PATH.relative_to(ROOT)}: {authority}")
     records: list[dict[str, Any]] = []
-    for filename, (subject, document_type, publication_year) in O_LEVEL.items():
-        records.append(
-            record(
-                RAW_ROOT / "o-level" / filename,
-                education_level="lower-secondary",
-                subject=subject,
-                document_type=document_type,
-                publication_year=publication_year,
+    for entry in catalog["entries"]:
+        for source in entry["sources"]:
+            records.append(
+                record(
+                    RAW_ROOT / source["relative_path"],
+                    education_level=entry["education_level"],
+                    subject=entry["subject"],
+                    document_type=source["document_type"],
+                    publication_year=source["publication_year"],
+                )
             )
-        )
-    for filename, subject in A_LEVEL.items():
+    for source in catalog["shared_sources"]:
         records.append(
             record(
-                RAW_ROOT / "a-level" / filename,
-                education_level="advanced-secondary",
-                subject=subject,
-                document_type="syllabus",
-                publication_year=2025,
-            )
-        )
-    for filename, subject in ASSESSMENT.items():
-        records.append(
-            record(
-                RAW_ROOT / "a-level-assessment" / filename,
-                education_level="advanced-secondary",
-                subject=subject,
-                document_type="assessment-framework" if subject is None else "assessment-guidelines",
-                publication_year=2026,
+                RAW_ROOT / source["relative_path"],
+                education_level=source["education_level"],
+                subject=None,
+                document_type=source["document_type"],
+                publication_year=source["publication_year"],
             )
         )
 
@@ -185,7 +121,7 @@ def main() -> None:
 
     registry = {
         "schema_version": "ate-source-registry-v2",
-        "authority": AUTHORITY,
+        "authority": authority,
         "source_file_count": len(records),
         "unique_document_count": len(canonical_records),
         "duplicate_aliases": duplicate_aliases,
