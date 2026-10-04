@@ -10,6 +10,7 @@ test("teacher sees the own-lesson workflow and a reachable correction affordance
   await expect(page.getByRole("heading", { name: /What happened in class/i })).toBeVisible();
   await expect(page.getByText(/Schedule intent stays separate from classroom reality/i)).toBeVisible();
 
+  await page.getByText(/^Other scheduled and recorded lessons/).click();
   const recordedPartial = page.locator("article.lesson-card").filter({ has: page.locator(".confirmed-line").filter({ hasText: "Partially delivered" }) }).first();
   await expect(recordedPartial, "the deterministic product fixture includes one recorded partial lesson").toBeVisible();
   const correction = recordedPartial.getByRole("button", { name: /Correct this record/i });

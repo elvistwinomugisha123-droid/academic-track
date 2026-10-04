@@ -9,9 +9,11 @@ test("foundation entry is truthful and navigable", async ({ page }) => {
   const assertClean = browserFailures(page);
   await page.goto("/");
   await expect(page).toHaveTitle(/ATE/);
-  await expect(page.getByRole("heading", { name: /Ready for the next class/i })).toBeVisible();
-  await expect(page.getByText(/No school or teacher data is loaded/i)).toBeVisible();
-  await page.getByRole("link", { name: /Design system/i }).click();
+  await expect(page.getByRole("heading", { name: /Start the day knowing what comes next/i })).toBeVisible();
+  await expect(page.getByText(/Use the account provided by your school/i)).toBeVisible();
+  await page.getByRole("link", { name: /Enter your workspace/i }).click();
+  await expect(page.getByRole("heading", { name: /Sign in to your academic workspace/i })).toBeVisible();
+  await page.goto("/design-system");
   await expect(page.getByRole("heading", { name: /Quietly precise/i })).toBeVisible();
   assertClean();
 });

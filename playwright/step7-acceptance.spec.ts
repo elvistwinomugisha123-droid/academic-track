@@ -293,8 +293,8 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
 
     await page.goto(`/workspace/teacher/lessons/${value.currentLessonId}`);
     await expect(page.getByRole("heading", { name: lessonHeading })).toBeVisible();
-    await expect(page.getByRole("heading", { name: value.currentTitle, exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Overview" }).click();
+    await expect(page.getByRole("heading", { name: value.currentTitle, exact: true })).toBeVisible();
     await captureResponsive(page, "lesson-readiness");
 
     await page.getByLabel("Lesson focus").fill("Cell structure and microscope observation");
