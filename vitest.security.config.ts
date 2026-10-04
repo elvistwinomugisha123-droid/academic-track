@@ -11,7 +11,12 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/security/security.integration.test.ts", "src/academic-operations/academic-operations.integration.test.ts", "src/knowledge/curriculum-bindings.integration.test.ts", "src/artifacts/artifacts.integration.test.ts", "src/assessment/assessment.integration.test.ts"],
-    testTimeout: 15_000,
-    hookTimeout: 30_000,
+    // These suites share one remote isolated TEST Supabase project. Running files in
+    // parallel can exhaust its PostgREST/Auth connection pool and turn healthy tests
+    // into infrastructure timeouts. Keep the integration lane intentionally serial.
+    fileParallelism: false,
+    maxWorkers: 1,
+    testTimeout: 30_000,
+    hookTimeout: 60_000,
   },
 });
