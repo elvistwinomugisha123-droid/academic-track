@@ -2,6 +2,13 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import postgres from "postgres";
 import { runPilotHealthCheck, type PilotHealthProbes } from "../src/pilot-readiness/health";
+import {
+  evaluateNotificationCron,
+  NOTIFICATION_CRON_JOB_NAME,
+  NOTIFICATION_CRON_SECRET,
+  NOTIFICATION_SCHEDULER_URL_SECRET,
+  type SupabaseCronEvidence,
+} from "../src/pilot-readiness/supabase-cron";
 
 function loadLocalEnvironment() {
   const filePath = path.join(process.cwd(), ".env.local");
@@ -58,14 +65,53 @@ async function main() {
     async notifications() {
       const secrets = Boolean(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY && process.env.VAPID_SUBJECT && process.env.CRON_SECRET);
       const implementation = ["src/app/api/cron/notifications/route.ts", "src/notifications/scheduler.ts", "src/notifications/web-push.ts"].every((file) => existsSync(path.join(process.cwd(), file)));
-      const vercelConfig = existsSync(path.join(process.cwd(), "vercel.json")) ? readFileSync(path.join(process.cwd(), "vercel.json"), "utf8") : "";
-      const cronConfigured = vercelConfig.includes("/api/cron/notifications");
       let schema = false;
+      let cron = { configured: false, detail: "Supabase Cron cannot be checked until the database is configured." };
       if (sql) {
         const rows = await query<{ subscriptions: boolean; deliveries: boolean }>("select to_regclass('public.push_subscriptions') is not null as subscriptions, to_regclass('public.notification_deliveries') is not null as deliveries");
         schema = Boolean(rows[0]?.subscriptions && rows[0]?.deliveries);
+
+        const extensionRows = await query<{ pg_cron_installed: boolean; pg_net_installed: boolean }>(`select
+          exists(select 1 from pg_extension where extname='pg_cron') as pg_cron_installed,
+          exists(select 1 from pg_extension where extname='pg_net') as pg_net_installed`);
+        const extensions = extensionRows[0] ?? { pg_cron_installed: false, pg_net_installed: false };
+        const evidence: SupabaseCronEvidence = {
+          pgCronInstalled: extensions.pg_cron_installed,
+          pgNetInstalled: extensions.pg_net_installed,
+          schedulerUrlSecretValid: false,
+          cronSecretPresent: false,
+          jobPresent: false,
+          jobActive: false,
+          schedule: null,
+          commandUsesPgNet: false,
+          commandUsesVaultUrl: false,
+          commandUsesVaultSecret: false,
+          commandSetsBearerHeader: false,
+        };
+        if (extensions.pg_cron_installed && extensions.pg_net_installed) {
+          const vaultRows = await query<{ scheduler_url_valid: boolean; cron_secret_present: boolean }>(`select
+            exists(select 1 from vault.decrypted_secrets where name=$1 and decrypted_secret ~ '^https://[^/?#]+(?:/[^?#]*)?/api/cron/notifications$') as scheduler_url_valid,
+            exists(select 1 from vault.decrypted_secrets where name=$2 and length(decrypted_secret) >= 32) as cron_secret_present`, [NOTIFICATION_SCHEDULER_URL_SECRET, NOTIFICATION_CRON_SECRET]);
+          const jobRows = await query<{ active: boolean; schedule: string; command_uses_pg_net: boolean; command_uses_vault_url: boolean; command_uses_vault_secret: boolean; command_sets_bearer: boolean }>(`select
+            active,
+            schedule,
+            command ~* 'net\\.http_(get|post)' as command_uses_pg_net,
+            position($2 in command) > 0 as command_uses_vault_url,
+            position($3 in command) > 0 as command_uses_vault_secret,
+            command ~* 'Authorization' and command ~* 'Bearer' as command_sets_bearer
+          from cron.job where jobname=$1`, [NOTIFICATION_CRON_JOB_NAME, NOTIFICATION_SCHEDULER_URL_SECRET, NOTIFICATION_CRON_SECRET]);
+          const vault = vaultRows[0]; const job = jobRows[0];
+          Object.assign(evidence, {
+            schedulerUrlSecretValid: Boolean(vault?.scheduler_url_valid), cronSecretPresent: Boolean(vault?.cron_secret_present),
+            jobPresent: Boolean(job), jobActive: Boolean(job?.active), schedule: job?.schedule ?? null,
+            commandUsesPgNet: Boolean(job?.command_uses_pg_net), commandUsesVaultUrl: Boolean(job?.command_uses_vault_url),
+            commandUsesVaultSecret: Boolean(job?.command_uses_vault_secret), commandSetsBearerHeader: Boolean(job?.command_sets_bearer),
+          });
+        }
+        cron = evaluateNotificationCron(evidence);
       }
-      return { configured: secrets && schema && implementation && cronConfigured, detail: secrets && schema && implementation && cronConfigured ? "Push keys, sender identity, cron secret, scheduler and persistence tables are configured; delivery acceptance remains separate." : "Push requires its scheduler/cron route, NEXT_PUBLIC_VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT, CRON_SECRET and subscription/delivery tables." };
+      const configured = secrets && schema && implementation && cron.configured;
+      return { configured, detail: configured ? "Push keys, sender identity, protected route, persistence tables and Supabase Cron trigger are configured; delivery acceptance remains separate." : `Push requires its protected scheduler route, NEXT_PUBLIC_VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT, CRON_SECRET, persistence tables, and Supabase Cron/Vault trigger. ${cron.detail}` };
     },
   };
 
