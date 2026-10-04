@@ -33,7 +33,7 @@ test("foundation exposes a keyboard skip link", async ({ page }) => {
   await page.goto("/");
   const skipLink = page.getByRole("link", { name: /skip to content/i });
   await expect(skipLink).toBeAttached();
-  await page.getByRole("link", { name: "Sign in", exact: true }).focus();
+  await page.getByRole("link", { name: "ATE home", exact: true }).focus();
   await page.keyboard.press("Shift+Tab");
   await expect(skipLink).toBeFocused();
   await page.keyboard.press("Enter");

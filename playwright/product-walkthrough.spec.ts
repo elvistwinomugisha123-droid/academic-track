@@ -86,14 +86,13 @@ test.describe("ATE product walkthrough", () => {
 
     await page.goto(`/workspace/teacher/lessons/${fixture!.nextLessonId}?tab=pack`);
     await expect(page.getByRole("heading", { name: "Teaching Pack" })).toBeVisible({ timeout: 30_000 });
-    let savedMaterial = page.locator("a.saved-work-link").first();
+    const savedMaterial = page.locator("a.saved-work-link").first();
     if (!(await savedMaterial.isVisible().catch(() => false))) {
       await page.getByRole("button", { name: "Create" }).first().click();
-      await expect(page.getByRole("status")).toContainText(/created as version 1/i, { timeout: 60_000 });
-      savedMaterial = page.locator("a.saved-work-link").first();
+      await expect(page).toHaveURL(/\/artifacts\/[0-9a-f-]+$/, { timeout: 60_000 });
+    } else {
+      await savedMaterial.click();
     }
-    await expect(savedMaterial).toBeVisible({ timeout: 30_000 });
-    await savedMaterial.click();
     const lessonPdf = page.getByRole("link", { name: "PDF" }).first();
     await expect(lessonPdf).toBeVisible({ timeout: 60_000 });
     const lessonPdfHref = await lessonPdf.getAttribute("href");
