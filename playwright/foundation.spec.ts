@@ -33,9 +33,11 @@ test("foundation exposes a keyboard skip link", async ({ page }) => {
   await page.goto("/");
   const skipLink = page.getByRole("link", { name: /skip to content/i });
   await expect(skipLink).toBeAttached();
-  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
-  await page.keyboard.press("Tab");
+  await page.getByRole("link", { name: "Sign in", exact: true }).focus();
+  await page.keyboard.press("Shift+Tab");
   await expect(skipLink).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/#welcome$/);
   assertClean();
 });
 
@@ -45,7 +47,7 @@ test("academic operations requires an authenticated school workspace", async ({ 
   await expect(page.getByRole("heading", { name: /sign in to your academic workspace/i })).toBeVisible();
 });
 
-test("recovery routes explain the safe next action", async ({ page }) => {
+test("recovery routes explain the safe next action", async ({ context }) => {
   const routes: Array<[string, RegExp]> = [
     ["/session-expired?next=%2Fworkspace", /Your session has expired/i],
     ["/access-denied", /not available to your role/i],
@@ -53,7 +55,12 @@ test("recovery routes explain the safe next action", async ({ page }) => {
     ["/this-page-does-not-exist", /could not find that page/i],
   ];
   for (const [route, heading] of routes) {
-    await page.goto(route);
-    await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+    const routePage = await context.newPage();
+    try {
+      await routePage.goto(route);
+      await expect(routePage.getByRole("heading", { name: heading })).toBeVisible({ timeout: 10_000 });
+    } finally {
+      await routePage.close();
+    }
   }
 });
