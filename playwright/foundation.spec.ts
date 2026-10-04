@@ -33,8 +33,11 @@ test("foundation exposes a keyboard skip link", async ({ page }) => {
   await page.goto("/");
   const skipLink = page.getByRole("link", { name: /skip to content/i });
   await expect(skipLink).toBeAttached();
-  await page.getByRole("link", { name: "ATE home", exact: true }).focus();
-  await page.keyboard.press("Shift+Tab");
+  await expect(page.getByRole("heading", { name: /Start the day knowing what comes next/i })).toBeVisible();
+  const brand = page.getByRole("link", { name: "ATE home", exact: true });
+  await brand.focus();
+  await expect(brand).toBeFocused();
+  await brand.press("Shift+Tab");
   await expect(skipLink).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/#welcome$/);

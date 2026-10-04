@@ -321,7 +321,10 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
     await expect(proposalSelect).toBeVisible();
     await expect(proposalSelect.locator(`option[value="${value.nextCanonicalId}"]`)).toHaveCount(1);
     await proposalSelect.selectOption(value.nextCanonicalId);
-    await page.getByRole("button", { name: "Confirm next position" }).click();
+    await expect(proposalSelect).toHaveValue(value.nextCanonicalId);
+    const confirmPosition = page.getByRole("button", { name: "Confirm next position" });
+    await expect(confirmPosition).toBeEnabled({ timeout: 15_000 });
+    await confirmPosition.click();
     await expect(page.getByRole("status")).toContainText("Next curriculum position confirmed");
     await captureResponsive(page, "next-position-confirmation");
 
