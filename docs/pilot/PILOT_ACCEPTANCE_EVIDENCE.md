@@ -65,3 +65,39 @@
 ### Schema and migration impact
 
 No database schema or migration was added. The health check reads the existing schema contract and does not mutate institutional state.
+
+## Evidence update — Supabase notification trigger hardening
+
+**Date:** 4 October 2026
+
+**Implementation commit:** `ef90e2e`
+
+**Decision:** **Gate 5 remains IMPLEMENTED_NOT_PROVEN / BLOCKED_BY_EXTERNAL_ACTION**
+
+- The Web Push transport test now types its mock against the platform `fetch` signature, so GitHub Actions can inspect the request options without an unsafe cast.
+- The unsupported five-minute Vercel Cron declaration was removed. The protected route and deterministic scheduler remain unchanged.
+- The recurring trigger contract is now Supabase Cron every five minutes through `pg_net`, with both the endpoint URL and bearer credential read from Supabase Vault.
+- `npm run pilot:check` fails closed unless `pg_cron`, `pg_net`, valid named Vault entries, the active named five-minute job, its Vault-backed bearer-header command, notification schema and application configuration are all present.
+- No Cron job, Vault value, notification migration or live-database change was applied in this task.
+
+### External TEST and pilot actions still required
+
+1. Apply `drizzle/0038_pwa_push_notifications.sql` to TEST and run the security suite.
+2. Configure server-only VAPID values and `CRON_SECRET` in the target deployment.
+3. Follow `SUPABASE_NOTIFICATION_CRON_RUNBOOK.md` in TEST: enable `pg_cron`/`pg_net`, create the two named Vault secrets, create the five-minute job, and record safe run evidence.
+4. Repeat the reviewed setup in the dedicated pilot project; do not copy TEST secrets.
+5. Complete Android Chrome and installed iPhone Safari PWA/push acceptance on real devices.
+
+### Validation results for this update
+
+| Command | Result |
+|---|---|
+| `npm run typecheck` | ENVIRONMENT WARNING — the initial incomplete dependency tree could not resolve required packages; the verified PR failure in `web-push.test.ts` is corrected by a `typeof fetch` mock with no request-options cast. |
+| `npm run lint` | ENVIRONMENT WARNING — the locked ESLint executable was unavailable and the host ESLint 10 rejected the repository's ESLint 8 configuration. |
+| `npm test` | ENVIRONMENT WARNING — the locked Vitest executable was unavailable after dependency restoration failed. |
+| `npm run build` | ENVIRONMENT WARNING — the locked Next.js executable was unavailable after dependency restoration failed. |
+| `npm ci --ignore-scripts --no-audit --no-fund` | ENVIRONMENT WARNING — package retrieval progressed, then npm terminated with its internal `Exit handler never called!` error and left an incomplete dependency tree. |
+| Focused Supabase Cron contract assertions through `tsx` | PASS — complete evidence passes; a daily schedule fails closed. |
+| Static trigger configuration assertions | PASS — no Vercel cron remains and the runbook contains the named Vault-backed five-minute contract. |
+| `npm run pilot:check` | EXPECTED NOT READY — PWA assets pass, while the absent pilot DB/environment and Supabase Cron/Vault configuration fail closed without exposing values. |
+| `git diff --check` | PASS |
