@@ -9,19 +9,18 @@ test("teacher sees the own-lesson workflow and a reachable correction affordance
   await signIn(page, "teacher");
   await expect(page.getByRole("heading", { name: /What happened in class/i })).toBeVisible();
   await expect(page.getByText(/Schedule intent stays separate from classroom reality/i)).toBeVisible();
-  const delivered = page.getByRole("button", { name: /^Completed as planned$/i }).first();
-  const correction = page.getByRole("button", { name: /Correct this record/i }).first();
-  if (await correction.count() === 0) {
-    await expect(delivered).toBeVisible();
-    await delivered.click();
-    await expect(page.getByRole("status").filter({ hasText: /Confirmed: Delivered/i })).toBeVisible();
-    await expect(page.locator("article.lesson-card").first()).not.toContainText(/awaiting confirmation/i);
-  }
+
+  const recordedPartial = page.locator("article.lesson-card").filter({ has: page.locator(".confirmed-line").filter({ hasText: "Partially delivered" }) }).first();
+  await expect(recordedPartial, "the deterministic product fixture includes one recorded partial lesson").toBeVisible();
+  const correction = recordedPartial.getByRole("button", { name: /Correct this record/i });
   await expect(correction).toBeVisible();
   await correction.click();
-  await page.getByRole("button", { name: /^Something changed$/i }).last().click();
-  await expect(page.locator("textarea[name=note]").last()).toHaveAttribute("required", "");
-  await expect(page.locator("input[name=reason]").last()).toHaveCount(0);
+
+  const changed = recordedPartial.getByRole("button", { name: /^Something changed$/i });
+  await expect(changed).toBeEnabled();
+  await changed.click();
+  await expect(recordedPartial.locator("textarea[name=note]")).toHaveAttribute("required", "");
+  await expect(recordedPartial.locator("input[name=reason]")).toHaveCount(0);
 });
 
 test("teacher outcome surface stays usable at 390px and exposes the school timezone", async ({ page }) => {
