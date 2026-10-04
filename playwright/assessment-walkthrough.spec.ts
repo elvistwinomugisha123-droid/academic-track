@@ -53,20 +53,29 @@ test.describe("Assessment Studio walkthrough", () => {
     await page.getByRole("combobox", { name: "Purpose", exact: true }).selectOption("CLASS_TEST");
     await page.getByRole("combobox", { name: "Subject", exact: true }).selectOption(data.schoolSubjectId);
     await page.getByRole("combobox", { name: "Academic period", exact: true }).selectOption(data.periodId);
-    await page.getByRole("textbox", { name: "Assessment date", exact: true }).fill(data.assessmentDate);
-    await page.getByRole("textbox", { name: "Curriculum subject profile", exact: true }).fill(data.subjectProfileId);
-    await page.getByRole("combobox", { name: "Assessment profile", exact: true }).selectOption(data.assessmentProfileId);
+    await page.getByLabel("Assessment date", { exact: true }).fill(data.assessmentDate);
+    await page.getByRole("combobox", { name: "Assessment guidance", exact: true }).selectOption(data.assessmentProfileId);
     await page.getByRole("textbox", { name: "Title", exact: true }).fill(assessmentTitle);
     await page.getByRole("spinbutton", { name: "Duration (minutes)", exact: true }).fill("40");
     await page.getByRole("spinbutton", { name: "Total marks", exact: true }).fill("20");
-    await page.getByRole("checkbox", { name: new RegExp(data.sectionAId) }).check();
+    await page.getByRole("checkbox", { name: /TEST Level · TEST Stream A/i }).check();
     await page.getByRole("button", { name: "Open assessment workspace" }).click();
 
     await expect(page.getByRole("heading", { name: assessmentTitle, exact: true }).first()).toBeVisible({ timeout: 60_000 });
+
+    const typeGrid = page.locator(".assessment-blueprint-grid > div").first();
+    const shortAnswerRow = typeGrid.locator(".assessment-blueprint-row").filter({ hasText: "short answer" });
+    await shortAnswerRow.getByRole("spinbutton", { name: "Questions", exact: true }).fill("1");
+    await shortAnswerRow.getByRole("spinbutton", { name: "Marks", exact: true }).fill("20");
+    const difficultyGrid = page.locator(".assessment-blueprint-grid > div").nth(1);
+    await difficultyGrid.getByRole("spinbutton", { name: /medium/i }).fill("1");
+    await page.getByRole("button", { name: "Save blueprint" }).click();
+    await expect(page.getByRole("status")).toContainText("Saved as a new teacher version.", { timeout: 60_000 });
+
+    await page.reload();
     await page.getByRole("button", { name: "Add question" }).click();
-    await page.getByLabel("Question text").fill("Describe one observation a learner can make when viewing a prepared specimen through a microscope.");
-    await page.getByLabel("Marks").fill("20");
-    await page.getByLabel("Eligible curriculum IDs").fill(data.canonicalIds[0]);
+    await page.getByLabel("Question or scenario").fill("Describe one observation a learner can make when viewing a prepared specimen through a microscope.");
+    await page.locator(".question-editor").getByLabel("Marks").fill("20");
     await page.getByLabel("Marking guide").fill("Award 20 marks for a clear, scientifically accurate observation linked to the prepared specimen.");
     await page.getByRole("button", { name: "Save version" }).click();
     await expect(page.getByRole("status")).toContainText("Saved as a new teacher version.", { timeout: 60_000 });
