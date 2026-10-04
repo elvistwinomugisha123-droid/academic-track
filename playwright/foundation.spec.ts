@@ -9,10 +9,10 @@ test("foundation entry is truthful and navigable", async ({ page }) => {
   const assertClean = browserFailures(page);
   await page.goto("/");
   await expect(page).toHaveTitle(/ATE/);
-  await expect(page.getByRole("heading", { name: /Start the day knowing what comes next/i })).toBeVisible();
-  await expect(page.getByText(/ATE helps you prepare/i)).toBeVisible();
-  await page.getByRole("link", { name: /Sign in/i }).click();
-  await expect(page.getByRole("heading", { name: /Sign in to your academic workspace/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Ready for the next class/i })).toBeVisible();
+  await expect(page.getByText(/No school or teacher data is loaded/i)).toBeVisible();
+  await page.getByRole("link", { name: /Design system/i }).click();
+  await expect(page.getByRole("heading", { name: /Quietly precise/i })).toBeVisible();
   assertClean();
 });
 
@@ -29,8 +29,11 @@ test("foundation has no horizontal overflow at teacher width", async ({ page }) 
 test("foundation exposes a keyboard skip link", async ({ page }) => {
   const assertClean = browserFailures(page);
   await page.goto("/");
+  const skipLink = page.getByRole("link", { name: /skip to content/i });
+  await expect(skipLink).toBeAttached();
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
   await page.keyboard.press("Tab");
-  await expect(page.getByRole("link", { name: /skip to content/i })).toBeFocused();
+  await expect(skipLink).toBeFocused();
   assertClean();
 });
 
