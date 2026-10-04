@@ -33,7 +33,7 @@
 - Missing-record reminders bounded to one reminder per lesson within 24 hours.
 - At most one upcoming and one recovery alert per lesson/device, and one morning brief per local day/device.
 - Standards-based VAPID Web Push transport, retryable failure handling and automatic expiry on HTTP 404/410.
-- A protected Vercel cron endpoint scheduled every five minutes.
+- A protected scheduler endpoint designed for a five-minute Supabase Cron (`pg_cron` + `pg_net`) trigger.
 
 ## Required pilot configuration
 
@@ -42,14 +42,17 @@
 3. Store `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` and `CRON_SECRET` as server-only Vercel values.
 4. Store the matching `NEXT_PUBLIC_VAPID_PUBLIC_KEY` as the browser-visible public key.
 5. Set `VAPID_SUBJECT` to a monitored `mailto:` or HTTPS contact controlled by Bankai.
-6. Deploy over the canonical HTTPS pilot URL and ensure Vercel cron is enabled.
-7. Run `npm run pilot:check`; PWA/push checks pass configuration only after assets, schema, scheduler and values are all present.
+6. Deploy over the canonical HTTPS pilot URL. Vercel Cron is deliberately not used because the connected Hobby plan cannot run the required five-minute schedule.
+7. Follow `SUPABASE_NOTIFICATION_CRON_RUNBOOK.md`: enable `pg_cron` and `pg_net`, store the full scheduler URL and matching cron credential in Supabase Vault, and create the named five-minute job.
+8. Run `npm run pilot:check`; PWA/push checks pass configuration only after assets, schema, application values, Vault entries and the active Supabase Cron job are all present.
 
 Never reuse TEST credentials or place private VAPID/cron values in Git or `NEXT_PUBLIC_*` variables.
 
 ### Migration and recovery note
 
-The migration is additive and does not rewrite existing academic records. Apply it
+The migration is additive and does not rewrite existing academic records. The
+Supabase Cron job is an operator-managed external trigger and is intentionally not
+created by the application migration. Apply the migration
 to TEST before pilot. If deployment must be rolled back after subscriptions or
 delivery history exist, disable the cron and notification UI but retain the three
 tables for audit/recovery; do not drop delivery history as an ordinary rollback.
@@ -68,6 +71,7 @@ functions may be removed through a reviewed reverse migration.
 | Deep links | Encoded lesson links and service-worker allow-list to `/workspace` | IMPLEMENTED |
 | Delivery | Insert-before-send, duplicate suppression, bounded retry and expired subscription cleanup | IMPLEMENTED; live push pending |
 | Privacy | No curriculum wording, teacher notes, learner data or private artifacts in payload constructors | IMPLEMENTED |
+| Recurring trigger | Fail-closed Supabase `pg_cron`/`pg_net`/Vault contract at five-minute cadence | IMPLEMENTED; TEST job creation and run pending |
 
 ## Physical-device acceptance — not yet performed
 
