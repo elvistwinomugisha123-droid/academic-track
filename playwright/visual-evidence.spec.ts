@@ -50,7 +50,7 @@ test.describe("ATE authenticated visual evidence", () => {
     for (const width of teacherHomeWidths) await capture(page, width, width < 1000 ? 844 : 900, "teacher-home");
 
     await page.goto(`/workspace/teacher/lessons/${fixture!.nextLessonId}`);
-    await expect(page.getByRole("heading", { name: /Biology · Senior 1 East/ })).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole("heading", { name: /Biology · Senior 2 Stream A/ })).toBeVisible({ timeout: 60_000 });
     await capture(page, 390, 844, "teacher-readiness");
     await capture(page, 1440, 900, "teacher-readiness");
 

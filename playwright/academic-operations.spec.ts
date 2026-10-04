@@ -20,9 +20,11 @@ test("School Admin sees setup but no timetable lifecycle controls", async ({ pag
 
 test("DOS sees draft, readiness and lifecycle controls", async ({ page }) => {
   await signIn(page, "dos");
-  await expect(page.getByRole("button", { name: /^Timetable Verify and activate$/i })).toBeVisible();
-  await expect(page.getByText(/Create a draft timetable/i)).toBeVisible();
-  await expect(page.getByText(/Deterministic readiness signals/i)).toBeVisible();
+  const timetableTab = page.getByRole("button", { name: /^Timetable Verify and activate$/i });
+  await expect(timetableTab).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Start with a draft timetable/i })).toBeVisible();
+  await timetableTab.click();
+  await expect(page.getByRole("heading", { name: /Deterministic readiness signals/i })).toBeVisible();
 });
 
 test("Teacher sees own sections and schedule-intent language only", async ({ page }) => {
@@ -35,9 +37,10 @@ test("Teacher sees own sections and schedule-intent language only", async ({ pag
 
 test("HOD and Principal receive read-oriented section presentation", async ({ page }) => {
   await signIn(page, "hod");
-  await expect(page.getByRole("button", { name: /Department Teaching Sections/i })).toBeVisible();
+  const departmentSections = page.getByRole("button", { name: /Department Teaching Sections/i });
+  await expect(departmentSections).toBeVisible();
   await expect(page.getByRole("button", { name: /Timetable/i })).toHaveCount(0);
-  await page.getByRole("button", { name: /^Department Teaching Sections$/i }).click();
+  await departmentSections.click();
   await page.getByRole("button", { name: /Overview/i }).click();
   await page.context().clearCookies();
   await signIn(page, "principal");
@@ -52,7 +55,7 @@ test("programme targeting UI exposes school, class, stream and department scopes
   await expect(scope).toHaveValue("SCHOOL");
   await expect(page.getByText(/No target required/i)).toBeVisible();
   await scope.selectOption("CLASS_LEVEL");
-  await expect(page.getByLabel(/^Target$/i)).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Target", exact: true })).toBeVisible();
   await scope.selectOption("STREAM");
   await scope.selectOption("DEPARTMENT");
   await expect(page.getByText(/missed lesson/i)).toHaveCount(0);

@@ -11,12 +11,7 @@ type AssessmentFixture = { teacherEmail: string; dosEmail: string; teacherPasswo
 
 async function waitForPath(page: Page, expectedPath: string) {
   const expected = expectedPath.replace(/\/$/, "") || "/";
-  for (let attempt = 0; attempt < 180; attempt += 1) {
-    const actual = new URL(page.url()).pathname.replace(/\/$/, "") || "/";
-    if (actual === expected) return;
-    await page.waitForTimeout(250);
-  }
-  throw new Error(`Expected ${expectedPath}, received ${page.url()}.`);
+  await page.waitForURL((url) => (url.pathname.replace(/\/$/, "") || "/") === expected, { timeout: 6_000 });
 }
 
 const statePath = (kind: FixtureKind, role: string) => `test-artifacts/auth-${kind}-${role}.json`;
@@ -44,9 +39,9 @@ async function signInFresh(page: Page, kind: FixtureKind, role: string, next: st
     await page.getByLabel("Email address").fill(account.email);
     await page.getByRole("textbox", { name: "Password" }).fill(account.password);
     try {
-      await page.getByRole("button", { name: "Sign in" }).click();
+      await page.getByRole("button", { name: "Sign in" }).click({ timeout: 5_000 });
       await waitForPath(page, next);
-      await expect(page.locator("header:visible").first()).toBeVisible({ timeout: 20_000 });
+      await expect(page.locator("header:visible").first()).toBeVisible({ timeout: 3_000 });
       return;
     } catch (error) {
       lastError = error;
