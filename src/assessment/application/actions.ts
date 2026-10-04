@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { AssessmentPayloadSchema } from "@/assessment/domain/types";
+import { allowTestSyntheticAssessmentProfiles } from "@/assessment/domain/test-environment";
 import { createPostgresKnowledgeClient } from "@/knowledge/db/client";
 import { requireWorkspaceAccess } from "@/lib/auth/access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -49,7 +50,8 @@ export async function createAssessmentWorkspace(input: unknown): Promise<{ ok: t
       const profileResult = await knowledge.query<{ id: string; purpose: string; subject_profile_id: string | null; status: string; regime: string }>("select id, purpose, subject_profile_id, status, regime from knowledge_assessment_profiles where id=$1 and purpose=$2 and status='ACTIVE' limit 1", [value.assessmentProfileId, value.purpose]);
       profile = profileResult.rows[0];
     } finally { await knowledge.close(); }
-    if (profile?.regime === "TEST_SYNTHETIC") return { ok: false, error: "This assessment profile is reserved for testing and cannot be used for a school assessment." };
+    const allowSyntheticProfiles = allowTestSyntheticAssessmentProfiles({ flag: process.env.ATE_ALLOW_TEST_SYNTHETIC_ASSESSMENTS, supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL });
+    if (profile?.regime === "TEST_SYNTHETIC" && !allowSyntheticProfiles) return { ok: false, error: "This assessment profile is reserved for testing and cannot be used for a school assessment." };
     if (!profile || (profile.subject_profile_id && profile.subject_profile_id !== value.curriculumSubjectProfileId)) return { ok: false, error: "No active assessment profile applies to this purpose and subject." };
     const [classroomEvents, preparations, scheduledLessons] = await Promise.all([
       client.from("classroom_events").select("id, scheduled_lesson_id, teaching_section_id, outcome, occurred_at, supersedes_event_id").eq("school_id", access.schoolId).in("teaching_section_id", value.sectionIds).order("occurred_at", { ascending: false }),
@@ -130,7 +132,6 @@ export async function submitAssessmentForReview(workspaceId: string, expectedVer
     const response = await client.rpc("submit_assessment_for_review", { p_workspace_id: uuid.parse(workspaceId), p_expected_version: expectedVersion });
     if (response.error) return { ok: false, error: userFacingError(response.error, "Assessment could not be submitted for review.") };
     revalidatePath(`/workspace/teacher/assessments/${workspaceId}`);
-    revalidatePath("/workspace/teacher/assessments");
     revalidatePath("/workspace/leadership/hod");
     revalidatePath("/workspace/leadership/dos");
     revalidatePath("/workspace/leadership/principal");
