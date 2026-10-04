@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isLocalPlaywrightTelemetryUrl } from "../../playwright/browser-failure-policy";
+import { isLocalPlaywrightAuthRedirectUrl, isLocalPlaywrightTelemetryUrl } from "../../playwright/browser-failure-policy";
 
 describe("Playwright browser failure allow-list", () => {
   it.each([
@@ -17,5 +17,23 @@ describe("Playwright browser failure allow-list", () => {
     "not a URL",
   ])("preserves failure detection for %s", (url) => {
     expect(isLocalPlaywrightTelemetryUrl(url)).toBe(false);
+  });
+
+  it.each([
+    "http://127.0.0.1:3000/workspace/teacher/sections",
+    "http://localhost:3000/sign-in?next=%2Fworkspace%2Fteacher%2Fsections",
+  ])("recognises only the expected local auth redirect navigation %s", (url) => {
+    expect(isLocalPlaywrightAuthRedirectUrl(url, "/workspace/teacher/sections")).toBe(true);
+  });
+
+  it.each([
+    "https://pilot.example.com/workspace/teacher/sections",
+    "http://127.0.0.1:4000/workspace/teacher/sections",
+    "http://127.0.0.1:3000/workspace/teacher/sections?unexpected=1",
+    "http://127.0.0.1:3000/sign-in?next=%2Fworkspace%2Fteacher%2Fassessments",
+    "http://127.0.0.1:3000/sign-in",
+    "not a URL",
+  ])("does not broaden auth redirect suppression for %s", (url) => {
+    expect(isLocalPlaywrightAuthRedirectUrl(url, "/workspace/teacher/sections")).toBe(false);
   });
 });
