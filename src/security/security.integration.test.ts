@@ -193,8 +193,15 @@ describe("isolated Supabase security integration", () => {
     await teacherA.client.storage.from("school-files").remove([schoolFilePath]);
     expect((await admin!.storage.from("school-files").download(schoolFilePath)).error).toBeNull();
 
-    expect((await adminA.client.storage.from("school-files").remove([schoolFilePath])).error).toBeNull();
-    requireError((await admin!.storage.from("school-files").download(schoolFilePath)).error);
+    const removal = await adminA.client.storage.from("school-files").remove([schoolFilePath]);
+    expect(removal.error).toBeNull();
+    expect(removal.data).toEqual(expect.arrayContaining([expect.objectContaining({ name: schoolFilePath })]));
+    // Private Storage reads can briefly hit an already cached object after DELETE.
+    // The object must become inaccessible within this bounded window.
+    await expect.poll(
+      async () => (await admin!.storage.from("school-files").download(schoolFilePath)).error,
+      { timeout: 10_000, intervals: [250, 500, 1_000] },
+    ).toBeTruthy();
 
     await admin!.storage.from("school-files").remove([wrongSchoolPath]);
     await admin!.from("school_files").delete().eq("object_path", wrongSchoolPath);
