@@ -200,7 +200,7 @@ describe("isolated Supabase security integration", () => {
     // The object must become inaccessible within this bounded window.
     await expect.poll(
       async () => (await admin!.storage.from("school-files").download(schoolFilePath)).error,
-      { timeout: 10_000, intervals: [250, 500, 1_000] },
+      { timeout: 10_000, interval: 500 },
     ).toBeTruthy();
 
     await admin!.storage.from("school-files").remove([wrongSchoolPath]);
