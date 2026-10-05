@@ -1,0 +1,1615 @@
+{
+  "schemaVersion": "ate-curriculum-readiness-matrix-v1",
+  "generatedAt": "2026-10-03T06:18:05.262Z",
+  "catalogueContract": "Source inventory expectations carried forward from build_source_registry.py; entries identify supplied-file expectations, not verified curriculum facts, rights, or availability.",
+  "sourceRegistry": {
+    "status": "ABSENT_BY_DESIGN",
+    "path": "knowledge-sources/derived/manifests/source-registry.json",
+    "detail": "The registry is a generated, gitignored derivative of protected raw sources and must not be fabricated or restored without those sources."
+  },
+  "databaseEvidence": "NOT_AVAILABLE",
+  "summary": {
+    "READY": 0,
+    "NOT_READY": 0,
+    "BLOCKED_BY_EXTERNAL_SOURCE/ACTION": 30
+  },
+  "rows": [
+    {
+      "subject": "Agriculture",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/Agriculture.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Art and Design",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/Art & Design.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Biology",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/Biology.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Chemistry",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/CHEMISTRY.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Christian Religious Education",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/CRE SYLLABUS.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Economics",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/Economics.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Entrepreneurship Education",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/Entrepreneurship.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "General Paper",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/General Paper.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Geography",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/Geography.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "History",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/HISTORY.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "NOT_APPLICABLE",
+        "detail": "The source catalogue does not identify a subject assessment profile requirement."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Kiswahili",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/Kiswahili.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "NOT_APPLICABLE",
+        "detail": "The source catalogue does not identify a subject assessment profile requirement."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Literature in English",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/Literature in English.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Local Languages",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/Local Languages Framework.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Music",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/MUSIC.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "NOT_APPLICABLE",
+        "detail": "The source catalogue does not identify a subject assessment profile requirement."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Physics",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/Physics.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Principal Mathematics",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/PRINCIPAL MATHS.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Subsidiary ICT",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/Subsidiary ICT.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Subsidiary Mathematics",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/SUBSIDIARY MATHEMATICS.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "NOT_APPLICABLE",
+        "detail": "The source catalogue does not identify a subject assessment profile requirement."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Technical Drawing",
+      "educationLevel": "advanced-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/TEchnical Drawing.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "NOT_APPLICABLE",
+        "detail": "The source catalogue does not identify a subject assessment profile requirement."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Agriculture",
+      "educationLevel": "lower-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/o-level/AGRIC_SYLLABUS_compressed.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Biology",
+      "educationLevel": "lower-secondary",
+      "sourceIdentified": {
+        "status": "PASS",
+        "detail": "The committed historical Biology syllabus and framework manifests preserve source identity and checksums.",
+        "evidence": [
+          "curriculum-data/01_source_manifest.json"
+        ]
+      },
+      "extracted": {
+        "status": "PASS",
+        "detail": "The committed adapter input contains 588 entities and 1103 relationships."
+      },
+      "structurallyValidated": {
+        "status": "PASS",
+        "detail": "Committed structural checks pass with 26 explicitly open human-review items; this is not production approval.",
+        "evidence": [
+          "curriculum-data/08_validation_report.md",
+          "curriculum-data/09_human_review_queue.json"
+        ]
+      },
+      "provenancePresent": {
+        "status": "PASS",
+        "detail": "Every committed flat Biology entity resolves to a documented source and physical PDF page."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "Rights are known to be uncleared: the source reserves reproduction rights and permission/endorsement/licence was not inferred."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Chemistry",
+      "educationLevel": "lower-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/o-level/chemistry syllbus.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Christian Religious Education",
+      "educationLevel": "lower-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/o-level/CRE_syllabus_compressed.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "English Language",
+      "educationLevel": "lower-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/o-level/ENGLISH_SYLLABUS_compressed.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Entrepreneurship Education",
+      "educationLevel": "lower-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/o-level/ENTREPRENEURSHIP_SYLLABUS_compressed.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Geography",
+      "educationLevel": "lower-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/o-level/Georgraphy-Syllabus.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "History and Political Education",
+      "educationLevel": "lower-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/o-level/Olevel-History-syllabus-June-2023.pdf, knowledge-sources/raw/o-level/HISTORY-AND-POLITICAL-EDUCATION-S.4-LEARNERS-BOOK-FINAL-07.11.2021_Web-file.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Literature in English",
+      "educationLevel": "lower-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/o-level/LITERATURE_SYLLABUS.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Mathematics",
+      "educationLevel": "lower-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/o-level/Mathematics_Syllabus_compressed.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    },
+    {
+      "subject": "Physics",
+      "educationLevel": "lower-secondary",
+      "sourceIdentified": {
+        "status": "BLOCKED",
+        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/o-level/PHYSICS_Syllabus_compressed.pdf."
+      },
+      "extracted": {
+        "status": "BLOCKED",
+        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+      },
+      "structurallyValidated": {
+        "status": "BLOCKED",
+        "detail": "Structural validation requires source extraction."
+      },
+      "provenancePresent": {
+        "status": "BLOCKED",
+        "detail": "Provenance cannot be established without the authoritative source/extraction."
+      },
+      "rightsStateKnown": {
+        "status": "BLOCKED",
+        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+      },
+      "releasePublished": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "bindingValid": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "runtimeResolvable": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "lessonGenerationTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "teachingPackTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "askAteContextTest": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "assessmentProfile": {
+        "status": "BLOCKED",
+        "detail": "Database evidence is unavailable; no pilot runtime state is inferred from repository files."
+      },
+      "overallStatus": "BLOCKED_BY_EXTERNAL_SOURCE/ACTION"
+    }
+  ]
+}

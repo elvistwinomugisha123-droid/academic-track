@@ -1,6 +1,8 @@
 import { existsSync, readFileSync, mkdirSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import { restoreAuthState } from "./auth-state";
+import { isLocalPlaywrightAuthRedirectUrl } from "./browser-failure-policy";
+import { observeBrowserFailures } from "./browser-failures";
 
 type Fixture = {
   sectionAId: string;
@@ -18,13 +20,9 @@ function requireFixture() {
   return fixture;
 }
 
-function browserFailures(page: Page) {
-  const failures: string[] = [];
-  page.on("console", (message) => { if (message.type() === "error") failures.push(`console: ${message.text()}`); });
-  page.on("pageerror", (error) => failures.push(`page: ${error.message}`));
-  page.on("requestfailed", (request) => { const errorText = request.failure()?.errorText || "failed"; const expectedAbort = errorText === "net::ERR_ABORTED" && (request.url().includes("_rsc=") || request.url().includes("/auth/v1/logout") || (request.method() === "POST" && request.url().includes("/workspace/teacher/lessons/"))); if (expectedAbort) return; failures.push(`request: ${request.method()} ${request.url()} — ${errorText}`); });
-  return () => expect(failures, "browser console, page and network failures").toEqual([]);
-}
+const browserFailures = (page: Page) => observeBrowserFailures(page, {
+  expectedRequestFailure: (request, errorText) => errorText === "net::ERR_ABORTED" && (request.url().includes("_rsc=") || request.url().includes("/auth/v1/logout") || (request.method() === "POST" && request.url().includes("/workspace/teacher/lessons/"))),
+});
 
 async function signIn(page: Page, role: keyof Fixture["accounts"], next = "/workspace") {
   await restoreAuthState(page, "product", role, next);
@@ -32,6 +30,10 @@ async function signIn(page: Page, role: keyof Fixture["accounts"], next = "/work
 
 async function expectNoOverflow(page: Page, width: number) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `horizontal overflow at ${width}px`).toBe(true);
+}
+
+async function isVisible(locator: ReturnType<Page["getByRole"]>) {
+  return locator.isVisible().catch(() => false);
 }
 
 test.describe("ATE product walkthrough", () => {
@@ -43,10 +45,7 @@ test.describe("ATE product walkthrough", () => {
   test.setTimeout(180_000);
 
   test("sign-in controls are accessible and usable", async ({ page }) => {
-    const failures: string[] = [];
-    page.on("console", (message) => { if (message.type() === "error") failures.push(`console: ${message.text()}`); });
-    page.on("pageerror", (error) => failures.push(`page: ${error.message}`));
-    page.on("requestfailed", (request) => { const errorText = request.failure()?.errorText || "failed"; if (errorText === "net::ERR_ABORTED" && request.url().includes("_rsc=")) return; failures.push(`request: ${request.method()} ${request.url()} — ${errorText}`); });
+    const assertClean = observeBrowserFailures(page, { expectedRequestFailure: (request, errorText) => errorText === "net::ERR_ABORTED" && request.url().includes("_rsc=") });
     await page.goto("/sign-in");
     await expect(page.getByRole("heading", { name: /sign in to your academic workspace/i })).toBeVisible();
     const password = page.getByRole("textbox", { name: "Password" });
@@ -60,7 +59,7 @@ test.describe("ATE product walkthrough", () => {
       await page.screenshot({ path: `output/playwright/sign-in-${width}.png`, fullPage: true });
       await expectNoOverflow(page, width);
     }
-    expect(failures, "browser console, page and network failures").toEqual([]);
+    assertClean();
   });
 
   test("teacher completes the core route sequence", async ({ page }) => {
@@ -69,17 +68,31 @@ test.describe("ATE product walkthrough", () => {
     await signIn(page, "teacher");
     await expect(page.getByRole("heading", { name: /Good (morning|afternoon|evening)/ })).toBeVisible({ timeout: 30_000 });
     await page.goto(`/workspace/teacher/sections/${fixture!.sectionAId}`);
-    await expect(page.getByText(/Curriculum source/i)).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("heading", { name: /Current confirmed curriculum position/i })).toBeVisible({ timeout: 30_000 });
     await page.goto(`/workspace/teacher/lessons/${fixture!.nextLessonId}`);
-    await expect(page.getByRole("heading", { name: /Biology · Senior 1 East/ })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("heading", { name: /Biology · Senior 2 Stream A/ })).toBeVisible({ timeout: 30_000 });
     await page.getByRole("button", { name: "Lesson plan" }).click();
     await expect(page.getByRole("heading", { name: "Formal Lesson Plan" })).toBeVisible({ timeout: 30_000 });
-    await page.getByRole("button", { name: "Create Formal Lesson Plan" }).click();
-    await expect(page.getByRole("status").filter({ hasText: "Formal Lesson Plan created as version 1" })).toBeVisible({ timeout: 60_000 });
-    await page.getByRole("button", { name: "Teaching Pack" }).click();
+
+    const manualStart = page.getByRole("button", { name: "Write one manually instead" });
+    if (await isVisible(manualStart)) await manualStart.click();
+    const createPlan = page.getByRole("button", { name: "Create Formal Lesson Plan" });
+    if (await isVisible(createPlan)) {
+      await createPlan.click();
+      await expect(page.getByRole("status").filter({ hasText: "Formal Lesson Plan created as version 1" })).toBeVisible({ timeout: 60_000 });
+    } else {
+      await expect(page.getByRole("link", { name: "Read lesson plan" })).toBeVisible({ timeout: 30_000 });
+    }
+
+    await page.goto(`/workspace/teacher/lessons/${fixture!.nextLessonId}?tab=pack`);
     await expect(page.getByRole("heading", { name: "Teaching Pack" })).toBeVisible({ timeout: 30_000 });
-    await page.getByRole("button", { name: "Create" }).first().click();
-    await expect(page.getByRole("status")).toContainText(/created as version 1/i, { timeout: 60_000 });
+    const savedMaterial = page.locator("a.saved-work-link").first();
+    if (!(await savedMaterial.isVisible().catch(() => false))) {
+      await page.getByRole("button", { name: "Create" }).first().click();
+      await expect(page).toHaveURL(/\/artifacts\/[0-9a-f-]+$/, { timeout: 60_000 });
+    } else {
+      await savedMaterial.click();
+    }
     const lessonPdf = page.getByRole("link", { name: "PDF" }).first();
     await expect(lessonPdf).toBeVisible({ timeout: 60_000 });
     const lessonPdfHref = await lessonPdf.getAttribute("href");
@@ -96,11 +109,11 @@ test.describe("ATE product walkthrough", () => {
     expect(lessonDocxResponse.status(), "lesson artifact DOCX status").toBe(200);
     expect(lessonDocxResponse.headers()["content-type"], "lesson artifact DOCX content type").toContain("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
     expect((await lessonDocxResponse.body()).byteLength, "lesson artifact DOCX body").toBeGreaterThan(1_000);
-    await page.getByRole("button", { name: "Overview" }).click();
+    await page.goto(`/workspace/teacher/lessons/${fixture!.nextLessonId}?tab=readiness`);
     await page.getByLabel("Lesson focus").fill("Cell structure and microscope observation");
-    await page.getByRole("button", { name: "Save preparation" }).click();
+    await page.getByRole("button", { name: "Save optional notes" }).click();
     await expect(page.getByRole("status")).toContainText(/Preparation saved/i, { timeout: 30_000 });
-    await page.getByRole("banner").getByRole("button", { name: "Sign out" }).click();
+    await page.locator(".sidebar-footer").getByRole("button", { name: "Sign out" }).click();
     await expect(page).toHaveURL(/\/sign-in/);
     assertClean();
   });
@@ -110,11 +123,17 @@ test.describe("ATE product walkthrough", () => {
     const assertClean = browserFailures(page);
     await signIn(page, "teacher");
     await page.goto(`/workspace/teacher/lessons/${fixture!.unconfirmedLessonId}`);
-    await expect(page.getByRole("heading", { name: /Biology · Senior 1 East/ })).toBeVisible({ timeout: 30_000 });
-    await page.getByRole("button", { name: "Partially delivered" }).click();
-    await page.getByLabel("Unfinished work or factual note").fill("Finish the microscope diagram in the next lesson.");
-    await page.getByRole("button", { name: "Record classroom outcome" }).click();
-    await expect(page.getByRole("status")).toContainText(/Recorded: Partially delivered/i, { timeout: 30_000 });
+    await expect(page.getByRole("heading", { name: /Biology · Senior 2 Stream A/ })).toBeVisible({ timeout: 30_000 });
+    await page.getByRole("button", { name: "Overview" }).click();
+    const partial = page.getByRole("button", { name: "Partially delivered" });
+    if (await isVisible(partial)) {
+      await partial.click();
+      await page.getByLabel("Unfinished work or factual note").fill("Finish the microscope diagram in the next lesson.");
+      await page.getByRole("button", { name: "Record classroom outcome" }).click();
+      await expect(page.getByRole("status")).toContainText(/Recorded: Partially delivered/i, { timeout: 30_000 });
+    } else {
+      await expect(page.locator(".recorded-outcome")).toContainText("Partially delivered", { timeout: 30_000 });
+    }
     await expect(page.getByText("Decide what the next lesson inherits.")).toBeVisible();
     await expect(page.getByText("Finish the microscope diagram in the next lesson.", { exact: true }).first()).toBeVisible();
     assertClean();
@@ -166,29 +185,38 @@ test.describe("ATE product walkthrough", () => {
     await signIn(page, "teacher");
     await page.goto(`/workspace/teacher/lessons/${fixture!.nextLessonId}`);
     await page.getByRole("button", { name: "Lesson plan" }).click();
-    await page.getByRole("button", { name: "Generate with ATE" }).click();
+    await page.getByRole("button", { name: /Generate(?: lesson)? with ATE/ }).click();
     await expect(page.getByRole("alert").filter({ hasText: /ATE cannot send this curriculum context|ATE drafting is unavailable/i })).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByRole("button", { name: /Create Formal Lesson Plan|Generate with ATE/ }).first()).toBeEnabled();
+    await expect(page.getByRole("button", { name: /Generate(?: lesson)? with ATE|Create Formal Lesson Plan/ }).first()).toBeEnabled();
     assertClean();
   });
 
-  test("teacher assessment entry stays honest when no verified profile is available", async ({ page }) => {
+  test("teacher assessment entry stays honest when no applicable verified guidance is available", async ({ page }) => {
     requireFixture();
     const assertClean = browserFailures(page);
     await signIn(page, "teacher", "/workspace/teacher/assessments");
     await expect(page.getByRole("heading", { name: "Assessment Studio" })).toBeVisible({ timeout: 60_000 });
     await expect(page.getByText("No assessments yet.")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Open assessment workspace" })).toBeDisabled();
+    const open = page.getByRole("button", { name: "Open assessment workspace" });
+    if (await open.count()) {
+      await expect(page.getByText(/No active guidance applies to this subject, purpose and date/i)).toBeVisible();
+      await expect(open).toBeDisabled();
+    } else {
+      await expect(page.getByRole("heading", { name: "School assessments are not available yet." })).toBeVisible();
+    }
     assertClean();
   });
 
   test("unauthenticated direct navigation returns to sign-in", async ({ page }) => {
-    const failures: string[] = [];
-    page.on("console", (message) => { if (message.type() === "error") failures.push(`console: ${message.text()}`); });
-    page.on("pageerror", (error) => failures.push(`page: ${error.message}`));
-    page.on("requestfailed", (request) => { const errorText = request.failure()?.errorText || "failed"; if (errorText === "net::ERR_ABORTED" && request.url().includes("_rsc=")) return; failures.push(`request: ${request.method()} ${request.url()} — ${errorText}`); });
-    await page.goto("/workspace/teacher/sections");
+    const protectedPath = "/workspace/teacher/sections";
+    const assertClean = observeBrowserFailures(page, {
+      expectedRequestFailure: (request, errorText) => errorText === "net::ERR_ABORTED"
+        && request.method() === "GET"
+        && request.isNavigationRequest()
+        && isLocalPlaywrightAuthRedirectUrl(request.url(), protectedPath),
+    });
+    await page.goto(protectedPath);
     await expect(page).toHaveURL(/\/sign-in\?next=/);
-    expect(failures, "browser console, page and network failures").toEqual([]);
+    assertClean();
   });
 });

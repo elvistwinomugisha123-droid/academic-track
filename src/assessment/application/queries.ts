@@ -6,6 +6,7 @@ import { withTransientReadRetry } from "@/lib/supabase/retry";
 import { createPostgresKnowledgeClient } from "@/knowledge/db/client";
 import { assessmentPurposes, type AssessmentPayload, type AssessmentProfile, type ProfileResolution } from "@/assessment/domain/types";
 import { resolveRuntimeAssessmentProfile } from "@/assessment/domain/profile";
+import { allowTestSyntheticAssessmentProfiles } from "@/assessment/domain/test-environment";
 
 export type AssessmentStudioListData = {
   access: Awaited<ReturnType<typeof requireWorkspaceAccess>>;
@@ -35,9 +36,10 @@ async function loadAssessmentStudioListOnce(nextPath = "/workspace/teacher/asses
   const levelNames = new Map((levels.data ?? []).map((row) => [row.id, row.name]));
   const streamNames = new Map((streams.data ?? []).map((row) => [row.id, row.name]));
   const namedSections = (sections.data ?? []).map((section) => ({ ...section, display_name: `${levelNames.get(section.class_level_id) || "Class"} · ${streamNames.get(section.stream_id) || "Stream"}` }));
+  const allowSyntheticProfiles = allowTestSyntheticAssessmentProfiles({ flag: process.env.ATE_ALLOW_TEST_SYNTHETIC_ASSESSMENTS, supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL });
   const knowledge = createPostgresKnowledgeClient();
   try {
-    const profiles = await knowledge.query<Record<string, unknown>>("select id, release_id, subject_profile_id, assessment_key, display_title, purpose, regime, status from knowledge_assessment_profiles where status = 'ACTIVE' and regime <> 'TEST_SYNTHETIC' and purpose = any($1::text[]) order by display_title", [assessmentPurposes]);
+    const profiles = await knowledge.query<Record<string, unknown>>("select id, release_id, subject_profile_id, assessment_key, display_title, purpose, regime, status from knowledge_assessment_profiles where status = 'ACTIVE' and ($2::boolean or regime <> 'TEST_SYNTHETIC') and purpose = any($1::text[]) order by display_title", [assessmentPurposes, allowSyntheticProfiles]);
     return { access, sections: namedSections, subjects: subjects.data ?? [], periods: periods.data ?? [], subjectBindings: subjectBindings.data ?? [], profiles: profiles.rows, workspaces: workspaces.data ?? [], purposes: assessmentPurposes };
   } finally {
     await knowledge.close();

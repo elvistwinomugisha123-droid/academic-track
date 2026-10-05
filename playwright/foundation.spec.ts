@@ -1,20 +1,19 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { observeBrowserFailures } from "./browser-failures";
 
-function browserFailures(page: Page) {
-  const failures: string[] = [];
-  page.on("console", (message) => { if (message.type() === "error") failures.push(`console: ${message.text()}`); });
-  page.on("pageerror", (error) => failures.push(`page: ${error.message}`));
-  page.on("requestfailed", (request) => { const errorText = request.failure()?.errorText || "failed"; if (errorText === "net::ERR_ABORTED" && request.url().includes("_rsc=")) return; failures.push(`request: ${request.method()} ${request.url()} — ${errorText}`); });
-  return () => expect(failures, "browser console, page and network failures").toEqual([]);
-}
+const browserFailures = (page: Parameters<typeof observeBrowserFailures>[0]) => observeBrowserFailures(page, {
+  expectedRequestFailure: (request, errorText) => errorText === "net::ERR_ABORTED" && request.url().includes("_rsc="),
+});
 
 test("foundation entry is truthful and navigable", async ({ page }) => {
   const assertClean = browserFailures(page);
   await page.goto("/");
   await expect(page).toHaveTitle(/ATE/);
-  await expect(page.getByRole("heading", { name: /dependable place/i })).toBeVisible();
-  await expect(page.getByText(/No school or teacher data is loaded/i)).toBeVisible();
-  await page.getByRole("link", { name: /Design system/i }).click();
+  await expect(page.getByRole("heading", { name: /Start the day knowing what comes next/i })).toBeVisible();
+  await expect(page.getByText(/Use the account provided by your school/i)).toBeVisible();
+  await page.getByRole("link", { name: /Enter your workspace/i }).click();
+  await expect(page.getByRole("heading", { name: /Sign in to your academic workspace/i })).toBeVisible();
+  await page.goto("/design-system");
   await expect(page.getByRole("heading", { name: /Quietly precise/i })).toBeVisible();
   assertClean();
 });
@@ -32,8 +31,16 @@ test("foundation has no horizontal overflow at teacher width", async ({ page }) 
 test("foundation exposes a keyboard skip link", async ({ page }) => {
   const assertClean = browserFailures(page);
   await page.goto("/");
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("link", { name: /skip to content/i })).toBeFocused();
+  const skipLink = page.getByRole("link", { name: /skip to content/i });
+  await expect(skipLink).toBeAttached();
+  await expect(page.getByRole("heading", { name: /Start the day knowing what comes next/i })).toBeVisible();
+  const brand = page.getByRole("link", { name: "ATE home", exact: true });
+  await brand.focus();
+  await expect(brand).toBeFocused();
+  await brand.press("Shift+Tab");
+  await expect(skipLink).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/#welcome$/);
   assertClean();
 });
 
@@ -43,7 +50,7 @@ test("academic operations requires an authenticated school workspace", async ({ 
   await expect(page.getByRole("heading", { name: /sign in to your academic workspace/i })).toBeVisible();
 });
 
-test("recovery routes explain the safe next action", async ({ page }) => {
+test("recovery routes explain the safe next action", async ({ context }) => {
   const routes: Array<[string, RegExp]> = [
     ["/session-expired?next=%2Fworkspace", /Your session has expired/i],
     ["/access-denied", /not available to your role/i],
@@ -51,7 +58,12 @@ test("recovery routes explain the safe next action", async ({ page }) => {
     ["/this-page-does-not-exist", /could not find that page/i],
   ];
   for (const [route, heading] of routes) {
-    await page.goto(route);
-    await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+    const routePage = await context.newPage();
+    try {
+      await routePage.goto(route);
+      await expect(routePage.getByRole("heading", { name: heading })).toBeVisible({ timeout: 10_000 });
+    } finally {
+      await routePage.close();
+    }
   }
 });

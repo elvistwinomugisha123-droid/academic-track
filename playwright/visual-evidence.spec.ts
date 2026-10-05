@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import { restoreAuthState } from "./auth-state";
+import { observeBrowserFailures } from "./browser-failures";
 
 type ProductFixture = {
   nextLessonId: string;
@@ -18,17 +19,9 @@ function requireFixture() {
   return fixture;
 }
 
-function browserFailures(page: Page) {
-  const failures: string[] = [];
-  page.on("console", (message) => { if (message.type() === "error") failures.push(`console: ${message.text()}`); });
-  page.on("pageerror", (error) => failures.push(`page: ${error.message}`));
-  page.on("requestfailed", (request) => {
-    const errorText = request.failure()?.errorText || "failed";
-    if (errorText === "net::ERR_ABORTED" && request.url().includes("_rsc=")) return;
-    failures.push(`request: ${request.method()} ${request.url()} — ${errorText}`);
-  });
-  return () => expect(failures, "browser console, page and network failures").toEqual([]);
-}
+const browserFailures = (page: Page) => observeBrowserFailures(page, {
+  expectedRequestFailure: (request, errorText) => errorText === "net::ERR_ABORTED" && request.url().includes("_rsc="),
+});
 
 async function signIn(page: Page, role: keyof ProductFixture["accounts"], next: string) {
   await restoreAuthState(page, "product", role, next);
@@ -57,7 +50,7 @@ test.describe("ATE authenticated visual evidence", () => {
     for (const width of teacherHomeWidths) await capture(page, width, width < 1000 ? 844 : 900, "teacher-home");
 
     await page.goto(`/workspace/teacher/lessons/${fixture!.nextLessonId}`);
-    await expect(page.getByRole("heading", { name: /Biology · Senior 1 East/ })).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole("heading", { name: /Biology · Senior 2 Stream A/ })).toBeVisible({ timeout: 60_000 });
     await capture(page, 390, 844, "teacher-readiness");
     await capture(page, 1440, 900, "teacher-readiness");
 

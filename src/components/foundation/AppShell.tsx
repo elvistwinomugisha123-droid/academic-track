@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity, BookOpen, CalendarDays, CircleHelp, ClipboardCheck, Home, MoreHorizontal, MessageCircle, ShieldCheck, Users } from "lucide-react";
+import { Activity, Bell, BookOpen, CalendarDays, CircleHelp, ClipboardCheck, Home, MoreHorizontal, MessageCircle, ShieldCheck, Users } from "lucide-react";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 
 const navigation = [
@@ -8,6 +8,7 @@ const navigation = [
   { href: "/workspace/teacher/ask", label: "Ask ATE", icon: MessageCircle, role: "TEACHER" },
   { href: "/workspace/classroom", label: "Classroom", icon: ClipboardCheck, roles: ["TEACHER", "HOD", "DOS", "PRINCIPAL"] },
   { href: "/workspace/teacher/assessments", label: "Assessments", icon: BookOpen, role: "TEACHER" },
+  { href: "/workspace/notifications", label: "Notifications", icon: Bell, role: "TEACHER" },
   { href: "/workspace/academic-operations", label: "School setup", icon: CalendarDays, role: "SCHOOL_ADMIN" },
   { href: "/workspace/leadership/hod", label: "Department", icon: Activity, role: "HOD" },
   { href: "/workspace/leadership/dos", label: "Academic operations", icon: Activity, role: "DOS" },

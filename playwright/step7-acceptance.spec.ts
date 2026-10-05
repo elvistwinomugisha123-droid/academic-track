@@ -83,95 +83,87 @@ async function createFixture(client: TestAdmin): Promise<Fixture> {
 
   let schoolId = "";
   try {
-  schoolId = await insertOne(client, "schools", { name: `Step 7 Acceptance School ${suffix}`, slug: suffix, timezone: "Africa/Kampala" });
-  createdSchoolId = schoolId;
-  const departmentId = await insertOne(client, "departments", { school_id: schoolId, name: `Biology Department ${suffix}`, code: `BIO-${suffix}` });
-  const membershipId = await insertOne(client, "memberships", { school_id: schoolId, user_id: user.id, status: "ACTIVE", display_name: `Step 7 Teacher ${suffix}`, joined_at: now.toISOString() });
-  const adminMembershipId = await insertOne(client, "memberships", { school_id: schoolId, user_id: adminId, status: "ACTIVE", display_name: `Step 7 School Admin ${suffix}`, joined_at: now.toISOString() });
-  await insertOne(client, "role_grants", { membership_id: adminMembershipId, school_id: schoolId, role: "SCHOOL_ADMIN", scope_type: "SCHOOL", granted_by: adminId });
-  await insertOne(client, "role_grants", { membership_id: membershipId, school_id: schoolId, role: "TEACHER", scope_type: "SCHOOL", granted_by: adminId });
-  const periodId = await insertOne(client, "academic_periods", { school_id: schoolId, name: `Step 7 Term ${suffix}`, period_type: "TERM", academic_year: now.getUTCFullYear(), starts_on: periodStart, ends_on: periodEnd, status: "CURRENT" });
-  const levelId = await insertOne(client, "class_levels", { school_id: schoolId, code: `S2-${suffix}`, name: `Senior 2 ${suffix}` });
-  const streamId = await insertOne(client, "streams", { school_id: schoolId, class_level_id: levelId, code: `BLUE-${suffix}`, name: `Blue ${suffix}` });
-  const profile = requireResult((await client.from("knowledge_subject_profiles").select("id, governed_subject_id, education_level").eq("id", assessmentFixture.subjectProfileId).eq("status", "ACTIVE").eq("runtime_status", "PILOT_ACTIVE").single()).data, null) as Row;
-  const profileId = String(profile.id);
-  const subjectId = await insertOne(client, "school_subjects", {
-    school_id: schoolId,
-    department_id: departmentId,
-    code: `BIO-${suffix}`,
-    name: `Biology ${suffix}`,
-    curriculum_subject_id: String(profile.governed_subject_id),
-    curriculum_education_level: String(profile.education_level),
-  });
-  const sectionId = await insertOne(client, "teaching_sections", {
-    school_id: schoolId,
-    academic_period_id: periodId,
-    teacher_membership_id: membershipId,
-    school_subject_id: subjectId,
-    class_level_id: levelId,
-    stream_id: streamId,
-    assignment_state: "CONFIRMED",
-    confirmed_at: now.toISOString(),
-    created_by: user.id,
-  });
+    schoolId = await insertOne(client, "schools", { name: `Step 7 Acceptance School ${suffix}`, slug: suffix, timezone: "Africa/Kampala" });
+    createdSchoolId = schoolId;
+    const departmentId = await insertOne(client, "departments", { school_id: schoolId, name: `Biology Department ${suffix}`, code: `BIO-${suffix}` });
+    const membershipId = await insertOne(client, "memberships", { school_id: schoolId, user_id: user.id, status: "ACTIVE", display_name: `Step 7 Teacher ${suffix}`, joined_at: now.toISOString() });
+    const adminMembershipId = await insertOne(client, "memberships", { school_id: schoolId, user_id: adminId, status: "ACTIVE", display_name: `Step 7 School Admin ${suffix}`, joined_at: now.toISOString() });
+    await insertOne(client, "role_grants", { membership_id: adminMembershipId, school_id: schoolId, role: "SCHOOL_ADMIN", scope_type: "SCHOOL", granted_by: adminId });
+    await insertOne(client, "role_grants", { membership_id: membershipId, school_id: schoolId, role: "TEACHER", scope_type: "SCHOOL", granted_by: adminId });
+    const periodId = await insertOne(client, "academic_periods", { school_id: schoolId, name: `Step 7 Term ${suffix}`, period_type: "TERM", academic_year: now.getUTCFullYear(), starts_on: periodStart, ends_on: periodEnd, status: "CURRENT" });
+    const levelId = await insertOne(client, "class_levels", { school_id: schoolId, code: `S2-${suffix}`, name: `Senior 2 ${suffix}` });
+    const streamId = await insertOne(client, "streams", { school_id: schoolId, class_level_id: levelId, code: `BLUE-${suffix}`, name: `Blue ${suffix}` });
+    const profile = requireResult((await client.from("knowledge_subject_profiles").select("id, governed_subject_id, education_level").eq("id", assessmentFixture.subjectProfileId).eq("status", "ACTIVE").eq("runtime_status", "PILOT_ACTIVE").single()).data, null) as Row;
+    const profileId = String(profile.id);
+    const subjectId = await insertOne(client, "school_subjects", {
+      school_id: schoolId,
+      department_id: departmentId,
+      code: `BIO-${suffix}`,
+      name: `Biology ${suffix}`,
+      curriculum_subject_id: String(profile.governed_subject_id),
+      curriculum_education_level: String(profile.education_level),
+    });
+    const sectionId = await insertOne(client, "teaching_sections", {
+      school_id: schoolId,
+      academic_period_id: periodId,
+      teacher_membership_id: membershipId,
+      school_subject_id: subjectId,
+      class_level_id: levelId,
+      stream_id: streamId,
+      assignment_state: "CONFIRMED",
+      confirmed_at: now.toISOString(),
+      created_by: user.id,
+    });
 
-  const profileRows = requireResult((await client.from("knowledge_profile_records")
-    .select("canonical_id, ordering_key, effective_from, effective_to")
-    .eq("subject_profile_id", profileId)
-    .eq("status", "APPROVED")
-    .eq("runtime_status", "PILOT_ACTIVE")
-    .or(`effective_from.is.null,effective_from.lte.${today}`)
-    .or(`effective_to.is.null,effective_to.gte.${today}`)
-    .order("ordering_key", { ascending: true, nullsFirst: true })
-    .order("canonical_id", { ascending: true })).data, null) as Row[];
-  const recordRows = requireResult((await client.from("knowledge_records")
-    .select("canonical_id, record_type, normalized, source_wording")
-    .in("canonical_id", profileRows.map((row) => String(row.canonical_id)))
-    .in("record_type", ["topic", "learning_outcome"])).data, null) as Row[];
-  const recordById = new Map(recordRows.map((row) => [String(row.canonical_id), row]));
-  const selectableRecords = profileRows
-    .map((profileRow) => {
-      const record = recordById.get(String(profileRow.canonical_id));
-      return record ? { ...record, ordering_key: profileRow.ordering_key } : null;
-    })
-    .filter((record): record is Row => Boolean(record && (record.record_type === "topic" || record.record_type === "learning_outcome")))
-    .sort((left, right) => {
-      const orderingComparison = String(left.ordering_key ?? "").localeCompare(String(right.ordering_key ?? ""));
-      return orderingComparison || String(left.canonical_id).localeCompare(String(right.canonical_id));
-    })
-    .slice(0, 300);
-  const topics = selectableRecords.filter((record) => record.record_type === "topic");
-  const candidates = topics.length >= 2 ? topics : selectableRecords;
-  if (selectableRecords.length < 2) {
-    throw new Error(`Step 7 fixture requires at least two selectable curriculum positions; found ${selectableRecords.length}.`);
-  }
-  if (candidates.length < 2) {
-    throw new Error("Step 7 fixture could not select two distinct curriculum positions from the app-visible set.");
-  }
-  const currentRecord = candidates[0];
-  const nextRecord = candidates[1];
-  const currentCanonicalId = String(currentRecord.canonical_id);
-  const nextCanonicalId = String(nextRecord.canonical_id);
-  const selectableIds = new Set(selectableRecords.map((record) => String(record.canonical_id)));
-  if (!selectableIds.has(currentCanonicalId) || !selectableIds.has(nextCanonicalId)) {
-    throw new Error("Step 7 fixture selected a curriculum position outside the app-visible option set.");
-  }
-  if (currentCanonicalId === nextCanonicalId) {
-    throw new Error("Step 7 fixture requires two distinct selectable curriculum positions.");
-  }
-  const currentPositionKind = currentRecord.record_type === "topic" ? "TOPIC" : currentRecord.record_type === "learning_outcome" ? "LEARNING_OUTCOME" : null;
-  if (!currentPositionKind) throw new Error(`Unsupported curriculum position type: ${String(currentRecord.record_type)}.`);
+    const profileRows = requireResult((await client.from("knowledge_profile_records")
+      .select("canonical_id, ordering_key, effective_from, effective_to")
+      .eq("subject_profile_id", profileId)
+      .eq("status", "APPROVED")
+      .eq("runtime_status", "PILOT_ACTIVE")
+      .or(`effective_from.is.null,effective_from.lte.${today}`)
+      .or(`effective_to.is.null,effective_to.gte.${today}`)
+      .order("ordering_key", { ascending: true, nullsFirst: true })
+      .order("canonical_id", { ascending: true })).data, null) as Row[];
+    const recordRows = requireResult((await client.from("knowledge_records")
+      .select("canonical_id, record_type, normalized, source_wording")
+      .in("canonical_id", profileRows.map((row) => String(row.canonical_id)))
+      .in("record_type", ["topic", "learning_outcome"])).data, null) as Row[];
+    const recordById = new Map(recordRows.map((row) => [String(row.canonical_id), row]));
+    const selectableRecords = profileRows
+      .map((profileRow) => {
+        const record = recordById.get(String(profileRow.canonical_id));
+        return record ? { ...record, ordering_key: profileRow.ordering_key } : null;
+      })
+      .filter((record): record is Row => Boolean(record && (record.record_type === "topic" || record.record_type === "learning_outcome")))
+      .sort((left, right) => {
+        const orderingComparison = String(left.ordering_key ?? "").localeCompare(String(right.ordering_key ?? ""));
+        return orderingComparison || String(left.canonical_id).localeCompare(String(right.canonical_id));
+      })
+      .slice(0, 300);
+    const topics = selectableRecords.filter((record) => record.record_type === "topic");
+    const candidates = topics.length >= 2 ? topics : selectableRecords;
+    if (selectableRecords.length < 2) throw new Error(`Step 7 fixture requires at least two selectable curriculum positions; found ${selectableRecords.length}.`);
+    if (candidates.length < 2) throw new Error("Step 7 fixture could not select two distinct curriculum positions from the app-visible set.");
+    const currentRecord = candidates[0];
+    const nextRecord = candidates[1];
+    const currentCanonicalId = String(currentRecord.canonical_id);
+    const nextCanonicalId = String(nextRecord.canonical_id);
+    const selectableIds = new Set(selectableRecords.map((record) => String(record.canonical_id)));
+    if (!selectableIds.has(currentCanonicalId) || !selectableIds.has(nextCanonicalId)) throw new Error("Step 7 fixture selected a curriculum position outside the app-visible option set.");
+    if (currentCanonicalId === nextCanonicalId) throw new Error("Step 7 fixture requires two distinct selectable curriculum positions.");
+    const currentPositionKind = currentRecord.record_type === "topic" ? "TOPIC" : currentRecord.record_type === "learning_outcome" ? "LEARNING_OUTCOME" : null;
+    if (!currentPositionKind) throw new Error(`Unsupported curriculum position type: ${String(currentRecord.record_type)}.`);
 
-  await insertOne(client, "school_subject_curriculum_bindings", { school_id: schoolId, school_subject_id: subjectId, subject_profile_id: profileId, effective_from: periodStart, bound_by: adminId });
-  await insertOne(client, "teaching_section_curriculum_bindings", { school_id: schoolId, teaching_section_id: sectionId, subject_profile_id: profileId, effective_from: periodStart, bound_by: adminId });
-  await insertOne(client, "teaching_section_curriculum_position_events", { school_id: schoolId, teaching_section_id: sectionId, subject_profile_id: profileId, canonical_id: currentCanonicalId, position_kind: currentPositionKind, confirmed_by: user.id, confirmed_at: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString() });
+    await insertOne(client, "school_subject_curriculum_bindings", { school_id: schoolId, school_subject_id: subjectId, subject_profile_id: profileId, effective_from: periodStart, bound_by: adminId });
+    await insertOne(client, "teaching_section_curriculum_bindings", { school_id: schoolId, teaching_section_id: sectionId, subject_profile_id: profileId, effective_from: periodStart, bound_by: adminId });
+    await insertOne(client, "teaching_section_curriculum_position_events", { school_id: schoolId, teaching_section_id: sectionId, subject_profile_id: profileId, canonical_id: currentCanonicalId, position_kind: currentPositionKind, confirmed_by: user.id, confirmed_at: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString() });
 
-  const versionId = await insertOne(client, "timetable_versions", { school_id: schoolId, academic_period_id: periodId, version_number: 1, name: `Step 7 Acceptance Draft ${suffix}`, status: "DRAFT", effective_from: periodStart, created_by: user.id });
-  const slotId = await insertOne(client, "timetable_slots", { school_id: schoolId, timetable_version_id: versionId, teaching_section_id: sectionId, day_of_week: 1, starts_at: "08:00", ends_at: "09:00", room_label: "Biology Lab" });
-  const currentLessonId = await insertOne(client, "scheduled_lessons", { school_id: schoolId, academic_period_id: periodId, teaching_section_id: sectionId, timetable_version_id: versionId, timetable_slot_id: slotId, scheduled_date: today, starts_at: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(), ends_at: new Date(now.getTime() - 60 * 60 * 1000).toISOString(), schedule_status: "SCHEDULED" });
-  const nextLessonId = await insertOne(client, "scheduled_lessons", { school_id: schoolId, academic_period_id: periodId, teaching_section_id: sectionId, timetable_version_id: versionId, timetable_slot_id: slotId, scheduled_date: tomorrow, starts_at: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(), ends_at: new Date(now.getTime() + 25 * 60 * 60 * 1000).toISOString(), schedule_status: "SCHEDULED" });
+    const versionId = await insertOne(client, "timetable_versions", { school_id: schoolId, academic_period_id: periodId, version_number: 1, name: `Step 7 Acceptance Draft ${suffix}`, status: "DRAFT", effective_from: periodStart, created_by: user.id });
+    const slotId = await insertOne(client, "timetable_slots", { school_id: schoolId, timetable_version_id: versionId, teaching_section_id: sectionId, day_of_week: 1, starts_at: "08:00", ends_at: "09:00", room_label: "Biology Lab" });
+    const currentLessonId = await insertOne(client, "scheduled_lessons", { school_id: schoolId, academic_period_id: periodId, teaching_section_id: sectionId, timetable_version_id: versionId, timetable_slot_id: slotId, scheduled_date: today, starts_at: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(), ends_at: new Date(now.getTime() - 60 * 60 * 1000).toISOString(), schedule_status: "SCHEDULED" });
+    const nextLessonId = await insertOne(client, "scheduled_lessons", { school_id: schoolId, academic_period_id: periodId, teaching_section_id: sectionId, timetable_version_id: versionId, timetable_slot_id: slotId, scheduled_date: tomorrow, starts_at: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(), ends_at: new Date(now.getTime() + 25 * 60 * 60 * 1000).toISOString(), schedule_status: "SCHEDULED" });
 
-  return { userId: user.id, adminUserId: adminId, email, password, schoolId, sectionId, currentLessonId, nextLessonId, currentCanonicalId, nextCanonicalId, currentPositionKind, currentTitle: safeCurriculumPositionLabel, nextTitle: safeCurriculumPositionLabel };
+    return { userId: user.id, adminUserId: adminId, email, password, schoolId, sectionId, currentLessonId, nextLessonId, currentCanonicalId, nextCanonicalId, currentPositionKind, currentTitle: safeCurriculumPositionLabel, nextTitle: safeCurriculumPositionLabel };
   } catch (error) {
     if (createdSchoolId) await cleanupSchool(client, createdSchoolId, [user.id, adminId]);
     else {
@@ -286,11 +278,12 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
 
   test("completes preparation, classroom evidence, and continuity inheritance", async ({ page }) => {
     const value = fixture!;
+    const lessonHeading = new RegExp(`Biology ${suffix} · Senior 2 ${suffix} Blue ${suffix}`);
     await page.setViewportSize({ width: 390, height: 844 });
     await signIn(page, value);
 
     await expect(page.getByRole("heading", { name: /Good (morning|afternoon|evening)/ })).toBeVisible();
-    await expect(page.getByText(value.currentTitle, { exact: false })).toBeVisible();
+    await expect(page.locator(".next-context-grid strong").filter({ hasText: value.currentTitle }).first()).toBeVisible();
     await captureResponsive(page, "teacher-home");
 
     await page.goto(`/workspace/teacher/sections/${value.sectionId}`);
@@ -299,19 +292,21 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
     await captureResponsive(page, "teaching-section");
 
     await page.goto(`/workspace/teacher/lessons/${value.currentLessonId}`);
-    await expect(page.getByRole("heading", { name: /Biology · Senior 1 East/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: lessonHeading })).toBeVisible();
+    await page.getByRole("button", { name: "Overview" }).click();
     await expect(page.getByRole("heading", { name: value.currentTitle, exact: true })).toBeVisible();
     await captureResponsive(page, "lesson-readiness");
 
     await page.getByLabel("Lesson focus").fill("Cell structure and microscope observation");
-    await page.getByLabel("Intended coverage").fill("Identify cell structures and record one factual observation.");
-    await page.getByLabel("Teacher notes").fill("Bring the prepared slide set.");
-    await page.getByLabel("Preparation notes").fill("Start with the carry-forward diagram.");
-    await page.getByRole("button", { name: "Save preparation" }).click();
+    await page.getByLabel("Anything specific to cover?").fill("Identify cell structures and record one factual observation.");
+    await page.getByLabel("Your private reminder").fill("Bring the prepared slide set.");
+    await page.getByLabel("Resources or setup notes").fill("Start with the carry-forward diagram.");
+    await page.getByRole("button", { name: "Save optional notes" }).click();
     await expect(page.getByRole("status")).toContainText("Preparation saved");
     await captureResponsive(page, "saved-preparation");
 
     await page.reload();
+    await page.getByRole("button", { name: "Overview" }).click();
     await expect(page.getByLabel("Lesson focus")).toHaveValue("Cell structure and microscope observation");
     await expect(page.getByText(/Saved version/i)).toBeVisible();
 
@@ -326,7 +321,10 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
     await expect(proposalSelect).toBeVisible();
     await expect(proposalSelect.locator(`option[value="${value.nextCanonicalId}"]`)).toHaveCount(1);
     await proposalSelect.selectOption(value.nextCanonicalId);
-    await page.getByRole("button", { name: "Confirm next position" }).click();
+    await expect(proposalSelect).toHaveValue(value.nextCanonicalId);
+    const confirmPosition = page.getByRole("button", { name: "Confirm next position" });
+    await expect(confirmPosition).toBeEnabled({ timeout: 15_000 });
+    await confirmPosition.click();
     await expect(page.getByRole("status")).toContainText("Next curriculum position confirmed");
     await captureResponsive(page, "next-position-confirmation");
 
@@ -342,6 +340,8 @@ test.describe("Step 7 authenticated teacher acceptance", () => {
     expect(positions[1].supersedes_event_id).toBe(positions[0].id);
 
     await page.goto(`/workspace/teacher/lessons/${value.nextLessonId}`);
+    await expect(page.getByRole("heading", { name: lessonHeading })).toBeVisible();
+    await page.getByRole("button", { name: "Overview" }).click();
     await expect(page.getByRole("heading", { name: value.nextTitle, exact: true })).toBeVisible();
     await expect(page.locator(".readiness-card").filter({ hasText: "Last lesson" }).getByRole("heading", { name: "Partially delivered", exact: true })).toBeVisible();
     await expect(page.locator(".carry-forward-box").getByText(/Finish the microscope diagram/i)).toBeVisible();
