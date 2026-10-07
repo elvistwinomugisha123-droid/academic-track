@@ -22,6 +22,8 @@
     "step6:test-rollout": "tsx --tsconfig scripts/tsconfig.step6.json scripts/step6-test-rollout.ts",
     "knowledge:registry": "python knowledge-tools/build_source_registry.py",
     "knowledge:extract": "python knowledge-tools/extract_corpus.py",
+    "pilot:curriculum:manifests": "python knowledge-tools/pilot_curriculum_release.py",
+    "pilot:curriculum:publish": "NODE_OPTIONS=--conditions=react-server tsx scripts/publish-pilot-curriculum.ts",
     "db:knowledge:import": "tsx knowledge-tools/import/import-academic-knowledge.ts",
     "db:knowledge:import:production": "tsx knowledge-tools/import/import-academic-knowledge.ts --production-authorised"
   },

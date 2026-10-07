@@ -7,7 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export async function resolveAssessmentExport(workspaceId: string) {
   const data = await loadAssessmentWorkspace(workspaceId, `/workspace/teacher/assessments/${workspaceId}`, { exportOnly: true });
   if (data.workspace.status !== "FINAL") return { ok: false as const, error: "Only a finalised assessment can be exported." };
-  if (data.profileResolution.state !== "RESOLVED" || !data.runtimeProfile?.exportAllowed || data.runtimeProfile.rightsState !== "CLEARED" || data.runtimeProfile.formalArtifactAllowed !== true) {
+  if (data.profileResolution.state !== "RESOLVED" || !data.runtimeProfile?.exportAllowed || !["CLEARED", "OPERATOR_AUTHORIZED_FOR_PILOT"].includes(data.runtimeProfile.rightsState) || data.runtimeProfile.formalArtifactAllowed !== true) {
     return { ok: false as const, error: "Formal export is unavailable for the current assessment source configuration." };
   }
   const client = await createSupabaseServerClient();

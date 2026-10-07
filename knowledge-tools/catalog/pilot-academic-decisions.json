@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "ate-pilot-academic-decisions-v1",
+  "decisions": [
+    {
+      "decisionId": "pilot-chemistry-ao-table-2026-10-07",
+      "sourceId": "ncdc-advanced-secondary-chemistry-2026-9b0961b964",
+      "checksumSha256": "9b0961b96487040ee3a64509758718a976bbcef82dd2656a3c5c3ba3475eb611",
+      "issue": "CONSTRUCT_3_4_LABEL_CONFLICT",
+      "sourcePages": [9, 10, 26],
+      "selectedInterpretation": "Use the AO-to-construct and topic mapping printed in Table 1 on PDF pages 9–10. Retain the conflicting labels on the paper-structure page as provenance.",
+      "decisionAuthority": "FOUNDER_OPERATOR",
+      "decisionDate": "2026-10-07"
+    },
+    {
+      "decisionId": "pilot-framework-written-five-times-2026-10-07",
+      "sourceId": "ncdc-advanced-secondary-curriculum-2026-0d48fb4137",
+      "checksumSha256": "0d48fb4137672864224f89a77ad9987f058eaa971d2faabc74782ab70bf62cab",
+      "issue": "MAXIMUM_SCORE_FORMULA_CONFLICT",
+      "sourcePages": [20, 21],
+      "selectedInterpretation": "Use the written rule on PDF page 21: maximum score is five times the number of bases of assessment. Retain the contradictory worked example as provenance; do not derive score bands from it.",
+      "decisionAuthority": "FOUNDER_OPERATOR",
+      "decisionDate": "2026-10-07"
+    }
+  ]
+}

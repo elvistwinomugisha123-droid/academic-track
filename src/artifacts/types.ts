@@ -5,7 +5,7 @@ const AssessmentQuestionSchema = z.object({ id: z.string(), text: z.string(), ma
 export const AssessmentArtifactPayloadSchema = z.object({ title: z.string(), durationMinutes: z.number().nonnegative(), totalMarks: z.number().nonnegative(), questions: z.array(AssessmentQuestionSchema) });
 export type AssessmentArtifactPayload = z.infer<typeof AssessmentArtifactPayloadSchema>;
 
-export const LessonCurriculumAnchorSchema = z.object({ canonicalId: z.string().min(1), title: z.string(), positionKind: z.enum(["TOPIC", "LEARNING_OUTCOME"]).nullable(), profileId: z.string().nullable(), rightsState: z.enum(["CLEARED", "REVIEW_REQUIRED", "RESTRICTED", "UNKNOWN"]) });
+export const LessonCurriculumAnchorSchema = z.object({ canonicalId: z.string().min(1), title: z.string(), positionKind: z.enum(["TOPIC", "LEARNING_OUTCOME"]).nullable(), profileId: z.string().nullable(), rightsState: z.enum(["CLEARED", "OPERATOR_AUTHORIZED_FOR_PILOT", "REVIEW_REQUIRED", "RESTRICTED", "UNKNOWN"]) });
 export type LessonCurriculumAnchor = z.infer<typeof LessonCurriculumAnchorSchema>;
 
 export const LessonPlanSequenceItemSchema = z.object({ id: z.string().min(1), label: z.string(), minutes: z.number().int().nonnegative(), teacherActivity: z.string(), learnerActivity: z.string(), prompts: z.array(z.string()), formativeCheck: z.string() });
@@ -41,7 +41,7 @@ export type LessonSummaryPayload = z.infer<typeof LessonSummaryPayloadSchema>;
 export type HomeworkPayload = z.infer<typeof HomeworkPayloadSchema>;
 export type LessonArtifactPayloadMap = { FORMAL_LESSON_PLAN: FormalLessonPlanPayload; BOARD_NOTES: BoardNotesPayload; LEARNER_NOTES: LearnerNotesPayload; LESSON_SUMMARY: LessonSummaryPayload; ACTIVITY_SHEET: ActivitySheetPayload; HOMEWORK: HomeworkPayload };
 export const lessonArtifactTypes: LessonArtifactType[] = ["FORMAL_LESSON_PLAN", "BOARD_NOTES", "LEARNER_NOTES", "LESSON_SUMMARY", "ACTIVITY_SHEET", "HOMEWORK"];
-const CanonicalMetadataSchema = z.object({ artifactId: z.string(), versionId: z.string(), status: z.enum(["DRAFT", "REVIEW", "FINAL"]), ownerScope: z.string(), curriculumAnchorIds: z.array(z.string()), curriculumProfileId: z.string().optional(), rightsState: z.enum(["CLEARED", "REVIEW_REQUIRED", "RESTRICTED", "UNKNOWN"]).optional(), provenance: z.array(z.object({ category: z.string(), label: z.string(), sourceId: z.string().optional(), sourceLocation: z.string().optional(), rightsState: z.string().optional() })) });
+const CanonicalMetadataSchema = z.object({ artifactId: z.string(), versionId: z.string(), status: z.enum(["DRAFT", "REVIEW", "FINAL"]), ownerScope: z.string(), curriculumAnchorIds: z.array(z.string()), curriculumProfileId: z.string().optional(), rightsState: z.enum(["CLEARED", "OPERATOR_AUTHORIZED_FOR_PILOT", "REVIEW_REQUIRED", "RESTRICTED", "UNKNOWN"]).optional(), provenance: z.array(z.object({ category: z.string(), label: z.string(), sourceId: z.string().optional(), sourceLocation: z.string().optional(), rightsState: z.string().optional() })) });
 export const CanonicalArtifactVersionSchema = z.discriminatedUnion("artifactType", [
   CanonicalMetadataSchema.extend({ artifactType: z.literal("ASSESSMENT"), payload: z.union([AssessmentPayloadSchema, AssessmentArtifactPayloadSchema]) }),
   CanonicalMetadataSchema.extend({ artifactType: z.literal("FORMAL_LESSON_PLAN"), payload: FormalLessonPlanPayloadSchema }),

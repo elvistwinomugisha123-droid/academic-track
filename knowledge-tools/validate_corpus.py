@@ -6,6 +6,7 @@ import json
 import re
 from collections import Counter
 from pathlib import Path
+from pilot_verification import apply_verified_decisions
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "knowledge-sources" / "derived" / "manifests" / "source-registry.json"
@@ -30,13 +31,19 @@ def main() -> None:
     records = lines(STRUCTURED / "curriculum-items.jsonl") + lines(STRUCTURED / "assessment-items.jsonl")
     relationships = lines(RELATIONSHIPS)
     errors, warnings = [], []
+    expected_records = [{**item, "verificationStatus": "REVIEW_REQUIRED"} for item in records]
+    applied_decisions = apply_verified_decisions(expected_records, list(canonical_records.values()))
+    approved = {decision["recordId"]: decision["decisionId"] for decision in applied_decisions}
     identifiers = [item.get("id") for item in records]
     for duplicate, count in Counter(identifiers).items():
         if duplicate and count > 1: errors.append({"code": "DUPLICATE_ID", "id": duplicate, "count": count})
     span_ids = {item.get("id") for item in spans}
     for item in records:
         provenance = item.get("provenance", {})
-        if item.get("verificationStatus") == "VERIFIED": errors.append({"code": "AUTO_VERIFIED", "id": item.get("id")})
+        if item.get("verificationStatus") == "VERIFIED" and item.get("verificationDecisionId") != approved.get(item.get("id")):
+            errors.append({"code": "AUTO_VERIFIED", "id": item.get("id")})
+        if item.get("id") in approved and item.get("verificationStatus") != "VERIFIED":
+            errors.append({"code": "MISSING_VERIFICATION", "id": item.get("id")})
         if provenance.get("sourceId") not in sources: errors.append({"code": "UNKNOWN_SOURCE", "id": item.get("id")})
         if provenance.get("spanId") not in span_ids: errors.append({"code": "UNKNOWN_SOURCE_SPAN", "id": item.get("id")})
         if not isinstance(provenance.get("pageStart"), int) or provenance.get("pageStart", 0) < 1: errors.append({"code": "INVALID_PAGE", "id": item.get("id")})

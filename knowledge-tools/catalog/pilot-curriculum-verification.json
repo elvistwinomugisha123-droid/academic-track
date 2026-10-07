@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "ate-pilot-curriculum-operator-verification-v1",
+  "decisionId": "d74fda3c-a715-5ebd-b1f8-da2e3118d02d",
+  "decisionDate": "2026-10-07",
+  "decisionAuthority": "FOUNDER_OPERATOR_HUMAN_REVIEW",
+  "decisionSource": "Founder/operator controlled-pilot governance instruction in this task",
+  "state": "OPERATOR_VERIFIED_FOR_PILOT",
+  "scope": "CONTROLLED_PILOT_CURRICULUM_ONLY",
+  "basis": "Four named NCDC syllabuses, exact source SHA-256 values, source-page wording, parser versions, structural validation, closed syllabus layout queue, and validated parent/child relationships. Detailed assessment rules are excluded.",
+  "datasetChecksumSha256": "4168a0ad04c9de25beef6dd6606627e9bf9bd466ffe6191e4171bafbb0f991ed",
+  "parserVersions": ["ate-pilot-layout-1", "ate-pilot-layout-2"],
+  "sourceChecksums": {
+    "ncdc-lower-secondary-mathematics-2019-83e3739a34": "83e3739a34ebe5cb52b25b500971265e3e90d48179e7aefa5cf75b4c0c41911e",
+    "ncdc-lower-secondary-chemistry-2019-176ad60b42": "176ad60b4227e83068a7f3fcb51832c609fee1b067778bdc333a039a051a73bd",
+    "ncdc-advanced-secondary-chemistry-2025-a6f0531fb4": "a6f0531fb4111bae1217a55753b02142b047c7ba4a7178d92702eb30691ed335",
+    "ncdc-advanced-secondary-principal-mathematics-2025-9f06a325b7": "9f06a325b71f693f82b2baa7639ddcde2de0a697d2203ff5d90110ee813f11d6"
+  }
+}

@@ -29,6 +29,13 @@ const rightsLimitedPosition: CurrentPosition = {
 };
 
 describe("rights-safe lesson plan defaults", () => {
+  it("keeps explicitly pilot-authorized wording and state distinct from general clearance", () => {
+    const pilot = { ...rightsLimitedPosition, rightsStatus: "OPERATOR_AUTHORIZED_FOR_PILOT" as const, productionUseStatus: "PERMITTED" as const, formalArtifactAllowed: true };
+    const focus = recommendedFocus({ current: pilot, previousOutcome: null, unfinishedWork: null, scheduledSubject: "Chemistry" });
+    expect(focus).toContain(protectedWording);
+    expect(formalArtifactRightsState(pilot)).toBe("OPERATOR_AUTHORIZED_FOR_PILOT");
+  });
+
   it("keeps governed identifiers and provenance metadata while neutralising protected wording", () => {
     const focus = recommendedFocus({ current: rightsLimitedPosition, previousOutcome: null, unfinishedWork: null, scheduledSubject: "Biology" });
     const plan = createInitialFormalLessonPlan({

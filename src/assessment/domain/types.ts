@@ -70,7 +70,7 @@ export type AssessmentProfile = {
   releaseId: string;
   releaseVersion: string;
   verificationStatus: "VERIFIED" | "UNVERIFIED";
-  rightsState: "CLEARED" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN";
+  rightsState: "CLEARED" | "OPERATOR_AUTHORIZED_FOR_PILOT" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN";
   externalAiAllowed: boolean;
   exportAllowed: boolean;
   effectiveFrom: string;

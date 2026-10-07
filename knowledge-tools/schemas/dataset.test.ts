@@ -24,7 +24,8 @@ describe.skipIf(!corpusAvailable)("generated ATE knowledge corpus", () => {
     expect(spans).not.toHaveLength(0);
     expect(curriculum).not.toHaveLength(0);
     expect(assessment).not.toHaveLength(0);
-    expect(links).toHaveLength(curriculum.length + assessment.length);
+    expect(links.filter((link) => (link as { relationshipType?: string }).relationshipType === "SOURCE_DEFINES_ENTITY"))
+      .toHaveLength(curriculum.length + assessment.length);
     spans.forEach((span) => sourceMetadataSchema.parse(span.source));
     curriculum.forEach((item) => curriculumItemSchema.parse(item));
     assessment.forEach((item) => assessmentItemSchema.parse(item));

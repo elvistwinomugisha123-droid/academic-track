@@ -130,7 +130,7 @@ export type LessonArtifactRecord = {
   curriculumPositionEventId: string | null;
   curriculumCanonicalId: string | null;
   updatedAt: string;
-  rightsState: "CLEARED" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN";
+  rightsState: "CLEARED" | "OPERATOR_AUTHORIZED_FOR_PILOT" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN";
   provenance: unknown[];
   potentiallyStale: boolean;
 };

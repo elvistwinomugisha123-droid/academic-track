@@ -14,7 +14,7 @@ const curriculumAnchor = object({
   title: string,
   positionKind: { anyOf: [{ type: "string", enum: ["TOPIC", "LEARNING_OUTCOME"] }, { type: "null" }] },
   profileId: { anyOf: [string, { type: "null" }] },
-  rightsState: { type: "string", enum: ["CLEARED", "REVIEW_REQUIRED", "RESTRICTED", "UNKNOWN"] },
+  rightsState: { type: "string", enum: ["CLEARED", "OPERATOR_AUTHORIZED_FOR_PILOT", "REVIEW_REQUIRED", "RESTRICTED", "UNKNOWN"] },
 });
 
 const teachingStep = object({

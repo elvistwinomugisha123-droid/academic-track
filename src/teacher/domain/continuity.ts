@@ -27,7 +27,7 @@ export type CurrentPosition = PositionOption & {
   sourcePageStart: number;
   sourcePageEnd: number;
   sourceChecksum: string;
-  rightsStatus?: "CLEARED" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN";
+  rightsStatus?: "CLEARED" | "OPERATOR_AUTHORIZED_FOR_PILOT" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN";
   productionUseStatus?: "PERMITTED" | "PERMISSION_PENDING" | "BLOCKED";
   formalArtifactAllowed?: boolean;
   externalAiAllowed?: boolean;
@@ -39,15 +39,15 @@ export const safeCurriculumPositionLabel = "Current confirmed curriculum positio
 
 export function safeCurrentPositionTitle(current: Pick<CurrentPosition, "title" | "rightsStatus" | "productionUseStatus" | "formalArtifactAllowed">): string {
   const sourceWordedArtifactUseAllowed = current.formalArtifactAllowed !== false
-    && (current.rightsStatus === undefined || current.rightsStatus === "CLEARED")
+    && (current.rightsStatus === undefined || current.rightsStatus === "CLEARED" || current.rightsStatus === "OPERATOR_AUTHORIZED_FOR_PILOT")
     && (current.productionUseStatus === undefined || current.productionUseStatus === "PERMITTED");
   return sourceWordedArtifactUseAllowed ? current.title : safeCurriculumPositionLabel;
 }
 
-export function formalArtifactRightsState(current: Pick<CurrentPosition, "rightsStatus" | "productionUseStatus" | "formalArtifactAllowed">): "CLEARED" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN" {
+export function formalArtifactRightsState(current: Pick<CurrentPosition, "rightsStatus" | "productionUseStatus" | "formalArtifactAllowed">): "CLEARED" | "OPERATOR_AUTHORIZED_FOR_PILOT" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN" {
   if (current.rightsStatus === "RESTRICTED") return "RESTRICTED";
-  if (current.rightsStatus === "CLEARED" && current.productionUseStatus === "PERMITTED" && current.formalArtifactAllowed) return "CLEARED";
-  if (current.rightsStatus === "REVIEW_REQUIRED" || current.rightsStatus === "CLEARED") return "REVIEW_REQUIRED";
+  if ((current.rightsStatus === "CLEARED" || current.rightsStatus === "OPERATOR_AUTHORIZED_FOR_PILOT") && current.productionUseStatus === "PERMITTED" && current.formalArtifactAllowed) return current.rightsStatus;
+  if (current.rightsStatus === "REVIEW_REQUIRED" || current.rightsStatus === "CLEARED" || current.rightsStatus === "OPERATOR_AUTHORIZED_FOR_PILOT") return "REVIEW_REQUIRED";
   return current.rightsStatus ?? "UNKNOWN";
 }
 

@@ -151,6 +151,10 @@ export async function buildCurriculumReadinessMatrix(input: { root?: string; dat
   const root = input.root ?? process.cwd();
   const catalog = CatalogSchema.parse(await readJson(path.join(root, "knowledge-tools", "catalog", "pilot-source-catalog.json")));
   const registry = await loadRegistry(root);
+  const pilotAuthorizationPath = path.join(root, "knowledge-tools", "catalog", "pilot-operator-authorization.json");
+  const pilotAuthorization = await exists(pilotAuthorizationPath)
+    ? await readJson<{ state: string; decision_source: string; sources: Array<{ relative_path: string; sha256: string }> }>(pilotAuthorizationPath)
+    : null;
   const legacy = await inspectLegacyBiology(root);
   const rows: CurriculumReadinessRow[] = [];
 
@@ -177,11 +181,23 @@ export async function buildCurriculumReadinessMatrix(input: { root?: string; dat
     const provenancePresent = isLegacyBiology && legacy.provenancePresent
       ? pass("Every committed flat Biology entity resolves to a documented source and physical PDF page.")
       : registrySources.length > 0 ? fail("Provenance must be proven by the generated validation report before readiness.") : blocked("Provenance cannot be established without the authoritative source/extraction.");
+    const requiredPilotPaths = entry.education_level === "advanced-secondary" && ["Chemistry", "Principal Mathematics"].includes(entry.subject)
+      ? [...entry.sources.map((source) => source.relative_path), ...catalog.shared_sources.filter((source) => source.education_level === "advanced-secondary" && source.document_type === "assessment-framework").map((source) => source.relative_path)]
+      : entry.sources.map((source) => source.relative_path);
+    const explicitPilotAuthorization = pilotAuthorization?.state === "OPERATOR_AUTHORIZED_FOR_PILOT" && Boolean(pilotAuthorization.decision_source)
+      && requiredPilotPaths.every((relativePath) => {
+        const source = registry.records?.find((record) => record.local_path === `knowledge-sources/raw/${relativePath}`);
+        const decision = pilotAuthorization.sources.find((item) => item.relative_path === relativePath);
+        return source?.rights_status === "OPERATOR_AUTHORIZED_FOR_PILOT" && source.authorization_reference === pilotAuthorization.decision_source
+          && source.checksum_sha256 === decision?.sha256 && source.production_use_status === "PERMITTED";
+      });
     const rightsStateKnown = isLegacyBiology && legacy.rightsKnown
       ? blocked("Rights are known to be uncleared: the source reserves reproduction rights and permission/endorsement/licence was not inferred.")
-      : registrySources.length > 0 && registrySources.every((record) => ![null, undefined, "", "UNKNOWN"].includes(record.rights_status as never))
-        ? pass("Every registered source has an explicit non-UNKNOWN rights state.")
-        : blocked("A current, checksum-bound rights decision is absent or UNKNOWN.");
+      : explicitPilotAuthorization
+        ? pass("All required sources have checksum-matched, explicit operator authorization for this controlled pilot; this does not establish wider rights.")
+      : registrySources.length > 0 && registrySources.every((record) => record.rights_status === "CLEARED" && record.production_use_status === "PERMITTED")
+        ? pass("Every registered source declares cleared production use; database decisions still require separate validation.")
+        : blocked("No matching eligible rights or controlled-pilot operator authorization is recorded for every required source.");
 
     let db: DatabaseEvidence | null = null;
     if (input.database) {

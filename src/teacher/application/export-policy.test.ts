@@ -16,4 +16,8 @@ describe("lesson artifact export policy", () => {
   it("fails closed when a governed source decision cannot be reconstructed", () => {
     expect(canExportLessonArtifact({ artifactRightsState: "UNKNOWN", governedAnchor: true, sourceDecision: null, content: { title: "Teacher work" } })).toMatchObject({ allowed: false });
   });
+  it("allows protected wording for an explicit pilot decision and denies unknown", () => {
+    expect(canExportLessonArtifact({ artifactRightsState: "OPERATOR_AUTHORIZED_FOR_PILOT", governedAnchor: true, sourceDecision: { ...cleared, rightsStatus: "OPERATOR_AUTHORIZED_FOR_PILOT" }, content: { title: "Protected wording" } })).toEqual({ allowed: true });
+    expect(canExportLessonArtifact({ artifactRightsState: "UNKNOWN", governedAnchor: true, sourceDecision: { ...cleared, rightsStatus: "UNKNOWN" }, content: { title: "Protected wording" } })).toMatchObject({ allowed: false });
+  });
 });

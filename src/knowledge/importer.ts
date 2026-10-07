@@ -45,6 +45,21 @@ export const defaultKnowledgeImportPaths: KnowledgeImportPaths = {
 async function jsonFile<T>(filePath: string): Promise<T> { return JSON.parse(await readFile(filePath, "utf8")) as T; }
 async function jsonLines<T>(filePath: string): Promise<T[]> { return (await readFile(filePath, "utf8")).split("\n").filter(Boolean).map((line) => JSON.parse(line) as T); }
 function reviewState(value: string): VerificationStatus { return value === "UNVERIFIED" ? "UNVERIFIED" : "REVIEW_REQUIRED"; }
+const PILOT_NAMESPACE = "ab22a0e7-2f33-4cf8-a772-843b11742f64";
+const PILOT_SYLLABUS_IDS = new Set([
+  "ncdc-lower-secondary-mathematics-2019-83e3739a34",
+  "ncdc-lower-secondary-chemistry-2019-176ad60b42",
+  "ncdc-advanced-secondary-chemistry-2025-a6f0531fb4",
+  "ncdc-advanced-secondary-principal-mathematics-2025-9f06a325b7",
+]);
+function pilotCanonicalUuid(sourceId: string, checksum: string, candidateId: string): string {
+  const namespace = Buffer.from(PILOT_NAMESPACE.replace(/-/g, ""), "hex");
+  const bytes = createHash("sha1").update(namespace).update(`${sourceId}:${checksum}:${candidateId}`, "utf8").digest().subarray(0, 16);
+  bytes[6] = (bytes[6] & 0x0f) | 0x50;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = bytes.toString("hex");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
 
 function sourceFromRegistry(record: RegistryRecord): KnowledgeSource {
   return {
@@ -110,7 +125,8 @@ async function importAcademicKnowledgeInTransaction(client: KnowledgeSqlClient, 
     const identity = await client.query<{ canonical_id: string; candidate_content_sha256: string }>("SELECT canonical_id, candidate_content_sha256 FROM knowledge_record_identity_mappings WHERE source_id=$1 AND source_checksum_sha256=$2 AND candidate_id=$3 AND importer_version=$4 AND schema_version=$5", [record.provenance.sourceId, source.checksumSha256, record.id, ACADEMIC_KNOWLEDGE_IMPORTER_VERSION, ACADEMIC_KNOWLEDGE_SCHEMA_VERSION]);
     const conflictingIdentity = await client.query<{ canonical_id: string; candidate_content_sha256: string }>("SELECT canonical_id, candidate_content_sha256 FROM knowledge_record_identity_mappings WHERE source_id=$1 AND source_checksum_sha256=$2 AND candidate_id=$3 AND importer_version=$4 AND schema_version=$5 LIMIT 1", [record.provenance.sourceId, source.checksumSha256, record.id, ACADEMIC_KNOWLEDGE_IMPORTER_VERSION, ACADEMIC_KNOWLEDGE_SCHEMA_VERSION]);
     if (conflictingIdentity.rows[0] && conflictingIdentity.rows[0].candidate_content_sha256 !== candidateContentSha256) throw new Error(`Candidate ${record.id} changed content under the same source/import/schema identity; explicit reviewed remapping is required.`);
-    const canonicalId = identity.rows[0]?.canonical_id ?? randomUUID();
+    const canonicalId = identity.rows[0]?.canonical_id ?? (PILOT_SYLLABUS_IDS.has(record.provenance.sourceId)
+      ? pilotCanonicalUuid(record.provenance.sourceId, source.checksumSha256, record.id) : randomUUID());
     if (!identity.rows[0]) identityRows.push([record.provenance.sourceId, source.checksumSha256, record.id, ACADEMIC_KNOWLEDGE_IMPORTER_VERSION, ACADEMIC_KNOWLEDGE_SCHEMA_VERSION, candidateContentSha256, canonicalId]);
     candidateToCanonical.set(`${record.provenance.sourceId}::${record.id}`, canonicalId);
     const sourceCandidates = canonicalByCandidate.get(record.id) ?? new Map<string, string>();
@@ -133,6 +149,10 @@ async function importAcademicKnowledgeInTransaction(client: KnowledgeSqlClient, 
   for (const rawRelationship of relationships) {
     const relationship = relationshipSchema.parse(rawRelationship);
     if (!allowedSources.has(relationship.provenance.sourceId) || !allowedSpans.has(relationship.provenance.spanId)) continue;
+    // Source ownership is represented by knowledge_records.source_id and its
+    // release-source membership. A source ID cannot satisfy the record-to-record
+    // foreign key on knowledge_relationships.from_canonical_id.
+    if (relationship.relationshipType === "SOURCE_DEFINES_ENTITY" && relationship.fromId === relationship.provenance.sourceId) continue;
     const fromCanonicalId = resolveRelationshipEndpoint(relationship.fromId, relationship.provenance.sourceId, relationship.id, "from");
     const toCanonicalId = resolveRelationshipEndpoint(relationship.toId, relationship.provenance.sourceId, relationship.id, "to");
     relationshipRows.push([relationship.id, relationship.relationshipType, fromCanonicalId, toCanonicalId, relationship.provenance.sourceId, relationship.provenance.spanId, reviewState(relationship.verificationStatus)]);

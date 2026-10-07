@@ -1,5 +1,5 @@
 export type EducationLevel = "lower-secondary" | "advanced-secondary" | "cross-level";
-export type RightsStatus = "CLEARED" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN";
+export type RightsStatus = "CLEARED" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN" | "OPERATOR_AUTHORIZED_FOR_PILOT";
 export type VerificationStatus = "UNVERIFIED" | "REVIEW_REQUIRED" | "VERIFIED";
 export type ProductionUseStatus = "PERMITTED" | "PERMISSION_PENDING" | "BLOCKED";
 export type ImportMode = "DEVELOPMENT" | "PRODUCTION_AUTHORISED";

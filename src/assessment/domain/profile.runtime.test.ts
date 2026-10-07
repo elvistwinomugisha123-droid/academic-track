@@ -29,6 +29,13 @@ describe("runtime assessment profile resolver", () => {
     expect(resolved.profile?.exportAllowed).toBe(false);
   });
 
+  it("permits explicit operator pilot authorization while unknown stays closed for AI and export", () => {
+    const pilot = resolveRuntimeAssessmentProfile({ ...base, sources: [{ ...base.sources[0], rightsStatus: "OPERATOR_AUTHORIZED_FOR_PILOT" as const }] });
+    expect(pilot.profile).toMatchObject({ rightsState: "OPERATOR_AUTHORIZED_FOR_PILOT", productionUseStatus: "PERMITTED", externalAiAllowed: true, exportAllowed: true });
+    const unknown = resolveRuntimeAssessmentProfile({ ...base, sources: [{ ...base.sources[0], rightsStatus: "UNKNOWN" as const, productionUseStatus: "PERMISSION_PENDING" as const }] });
+    expect(unknown.profile).toMatchObject({ rightsState: "REVIEW_REQUIRED", externalAiAllowed: false, exportAllowed: false });
+  });
+
   it("does not resolve an expired governed release", () => {
     const resolved = resolveRuntimeAssessmentProfile({ ...base, release: { ...base.release, effectiveTo: "2026-02-28" } });
     expect(resolved.state).toBe("UNAVAILABLE");

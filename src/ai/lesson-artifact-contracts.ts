@@ -36,7 +36,7 @@ export type TrustedLessonAIContext = {
     sourceLocator: string | null;
     sourcePageStart: number | null;
     sourcePageEnd: number | null;
-    rightsState: "CLEARED" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN";
+    rightsState: "CLEARED" | "OPERATOR_AUTHORIZED_FOR_PILOT" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN";
     externalAiAllowed: boolean;
     formalArtifactAllowed: boolean;
     exportAllowed: boolean;

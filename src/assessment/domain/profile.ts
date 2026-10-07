@@ -64,13 +64,14 @@ export function resolveRuntimeAssessmentProfile(input: RuntimeAssessmentProfileI
   const subjectBindingApplicable = input.subjectBinding?.status === "ACTIVE" && isDateApplicable(input.assessmentDate, input.subjectBinding.effectiveFrom, input.subjectBinding.effectiveTo);
   const sectionBindingsApplicable = input.sectionIds.length > 0 && input.sectionIds.every((sectionId) => input.sectionBindings.some((binding) => binding.sectionId === sectionId && binding.status === "ACTIVE" && isDateApplicable(input.assessmentDate, binding.effectiveFrom, binding.effectiveTo)));
   const allRightsCleared = input.sources.length > 0 && input.sources.every((source) => source.rightsStatus === "CLEARED" && source.productionUseStatus === "PERMITTED");
+  const allPilotAuthorised = input.sources.length > 0 && input.sources.every((source) => ["CLEARED", "OPERATOR_AUTHORIZED_FOR_PILOT"].includes(source.rightsStatus) && source.productionUseStatus === "PERMITTED");
   const hasRestrictedRights = input.sources.some((source) => source.rightsStatus === "RESTRICTED" || source.productionUseStatus === "BLOCKED");
   const rightsState: AssessmentProfile["rightsState"] = input.sources.length === 0
     ? "UNKNOWN"
     : hasRestrictedRights
       ? "RESTRICTED"
-      : allRightsCleared
-        ? "CLEARED"
+      : allPilotAuthorised
+        ? allRightsCleared ? "CLEARED" : "OPERATOR_AUTHORIZED_FOR_PILOT"
         : "REVIEW_REQUIRED";
   const applicable = releaseApplicable && profileApplicable && subjectProfileApplicable && subjectBindingApplicable === true && sectionBindingsApplicable;
   const profile: AssessmentProfile = {
@@ -85,15 +86,15 @@ export function resolveRuntimeAssessmentProfile(input: RuntimeAssessmentProfileI
     releaseVersion: input.release.versionLabel,
     verificationStatus: applicable ? "VERIFIED" : "UNVERIFIED",
     rightsState,
-    externalAiAllowed: allRightsCleared && input.sources.every((source) => source.externalAiAllowed),
-    exportAllowed: allRightsCleared && input.sources.every((source) => source.exportAllowed),
+    externalAiAllowed: allPilotAuthorised && input.sources.every((source) => source.externalAiAllowed),
+    exportAllowed: allPilotAuthorised && input.sources.every((source) => source.exportAllowed),
     effectiveFrom: input.release.effectiveFrom,
     effectiveTo: input.release.effectiveTo,
     allowsBroaderScope: input.profile.allowsBroaderScope,
     allowsPartialScope: input.profile.allowsPartialScope,
     requiresReview: input.profile.requiresReview,
-    productionUseStatus: allRightsCleared ? "PERMITTED" : hasRestrictedRights ? "BLOCKED" : "PERMISSION_PENDING",
-    formalArtifactAllowed: allRightsCleared && input.sources.every((source) => source.formalArtifactAllowed),
+    productionUseStatus: allPilotAuthorised ? "PERMITTED" : hasRestrictedRights ? "BLOCKED" : "PERMISSION_PENDING",
+    formalArtifactAllowed: allPilotAuthorised && input.sources.every((source) => source.formalArtifactAllowed),
     releaseStatus: input.release.status as AssessmentProfile["releaseStatus"],
     subjectProfileStatus: input.subjectProfile.status as AssessmentProfile["subjectProfileStatus"],
     subjectProfileRuntimeStatus: input.subjectProfile.runtimeStatus as AssessmentProfile["subjectProfileRuntimeStatus"],
@@ -125,7 +126,7 @@ export function resolveAssessmentProfile(input: {
     candidate.verificationStatus === "VERIFIED" &&
     candidate.effectiveFrom <= input.effectiveOn &&
     (candidate.effectiveTo === null || candidate.effectiveTo >= input.effectiveOn) &&
-    candidate.rightsState !== "RESTRICTED"
+    ["CLEARED", "OPERATOR_AUTHORIZED_FOR_PILOT"].includes(candidate.rightsState) && candidate.productionUseStatus === "PERMITTED"
   );
   const candidate = matching.sort((left, right) => Number(right.subjectProfileId === input.subjectProfileId) - Number(left.subjectProfileId === input.subjectProfileId))[0];
   if (!candidate) return { state: "UNAVAILABLE", profile: null, explanation: "No verified assessment profile is currently activated for this subject and purpose." };

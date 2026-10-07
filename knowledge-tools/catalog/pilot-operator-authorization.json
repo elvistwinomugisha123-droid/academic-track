@@ -1,0 +1,15 @@
+{
+  "schema_version": "ate-pilot-operator-authorization-v1",
+  "state": "OPERATOR_AUTHORIZED_FOR_PILOT",
+  "decision_source": "Founder/operator instruction in the Academic Track cloud task, 2026-10-06",
+  "scope": "Controlled ATE pilot only; private storage, extraction, structured representation, retrieval, curriculum grounding, AI lesson preparation, Teaching Pack, Ask ATE, assessment drafting, internal exports, bindings, and runtime. No public raw-PDF publication or wider redistribution claim.",
+  "sources": [
+    {"relative_path":"a-level/CHEMISTRY.pdf","sha256":"a6f0531fb4111bae1217a55753b02142b047c7ba4a7178d92702eb30691ed335"},
+    {"relative_path":"a-level/PRINCIPAL MATHS.pdf","sha256":"9f06a325b71f693f82b2baa7639ddcde2de0a697d2203ff5d90110ee813f11d6"},
+    {"relative_path":"a-level-assessment/ASSESSMENT-FRAMEWORK-FOR-ADVANCED-SECONDARY-CURRICULUM-2026_Web-file.pdf","sha256":"0d48fb4137672864224f89a77ad9987f058eaa971d2faabc74782ab70bf62cab"},
+    {"relative_path":"a-level-assessment/Chemistry-Assessment-Guidelines-01.04.Web_File.pdf","sha256":"9b0961b96487040ee3a64509758718a976bbcef82dd2656a3c5c3ba3475eb611"},
+    {"relative_path":"a-level-assessment/Principle-Mathematics-Assessment-Guidelines-01.04.Web_File.pdf","sha256":"9874365d71881c259d6463ad9b628eed2ffd4c8bd2585844ce41e2cedb20a196"},
+    {"relative_path":"o-level/Mathematics_Syllabus_compressed.pdf","sha256":"83e3739a34ebe5cb52b25b500971265e3e90d48179e7aefa5cf75b4c0c41911e"},
+    {"relative_path":"o-level/chemistry syllbus.pdf","sha256":"176ad60b4227e83068a7f3fcb51832c609fee1b067778bdc333a039a051a73bd"}
+  ]
+}

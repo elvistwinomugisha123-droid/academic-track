@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const verificationStateSchema = z.enum(["UNVERIFIED", "REVIEW_REQUIRED", "VERIFIED"]);
 export const extractionConfidenceSchema = z.enum(["HIGH", "MEDIUM", "LOW"]);
-export const rightsStatusSchema = z.enum(["CLEARED", "REVIEW_REQUIRED", "RESTRICTED", "UNKNOWN"]);
+export const rightsStatusSchema = z.enum(["CLEARED", "REVIEW_REQUIRED", "RESTRICTED", "UNKNOWN", "OPERATOR_AUTHORIZED_FOR_PILOT"]);
 
 export const provenanceSchema = z.object({
   sourceId: z.string().min(1),

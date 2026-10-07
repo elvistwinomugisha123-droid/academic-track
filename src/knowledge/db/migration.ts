@@ -6,6 +6,9 @@ import type { KnowledgeSqlClient } from "./client";
 const migrationPaths = [
   path.join(process.cwd(), "drizzle", "0000_academic_knowledge.sql"),
   path.join(process.cwd(), "drizzle", "0008_academic_knowledge_governance.sql"),
+  path.join(process.cwd(), "drizzle", "0040_operator_pilot_source_authorization.sql"),
+  path.join(process.cwd(), "drizzle", "0041_curriculum_release_unknown_effective_date.sql"),
+  path.join(process.cwd(), "drizzle", "0042_pilot_curriculum_operator_verification.sql"),
 ];
 
 function splitSqlStatements(sql: string): string[] {

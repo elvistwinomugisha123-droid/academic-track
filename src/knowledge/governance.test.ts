@@ -2,7 +2,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { applyAcademicKnowledgeMigration } from "./db/migration";
 import type { KnowledgeSqlClient } from "./db/client";
-import { activateKnowledgeRelease, activateKnowledgeReleaseForControlledPilot, recordKnowledgeRightsDecision, recordKnowledgeVerificationDecision, resolveKnowledgeConflict, submitKnowledgeReleaseForReview, supersedeKnowledgeRelease } from "./governance";
+import { activateKnowledgeRelease, activateKnowledgeReleaseForControlledPilot, recordKnowledgePilotOperatorAuthorization, recordKnowledgeRightsDecision, recordKnowledgeVerificationDecision, resolveKnowledgeConflict, submitKnowledgeReleaseForReview, supersedeKnowledgeRelease } from "./governance";
 import { retrieveExactKnowledge } from "./retrieval";
 
 const sourceId = "TEST_SYNTHETIC_SOURCE";
@@ -103,8 +103,16 @@ describe("central Academic Knowledge governance", () => {
     expect(await retrieveExactKnowledge(client, { ...request, use: "EXTERNAL_AI" })).toHaveLength(1);
     expect((await retrieveExactKnowledge(client, request))[0].canonicalId).toBe((await retrieveExactKnowledge(client, request))[0].canonicalId);
     await recordKnowledgeRightsDecision(client, { sourceId, rightsStatus: "UNKNOWN", productionUseStatus: "PERMISSION_PENDING", externalAiAllowed: false, formalArtifactAllowed: false, exportAllowed: false, attributionRequired: true, decisionSource: "TEST_SYNTHETIC_PILOT_ONLY_REVIEW", actorUserId: actorId });
+    await expect(retrieveExactKnowledge(client, { ...request, use: "CONTROLLED_PILOT" })).rejects.toMatchObject({ code: "RIGHTS_DENIED" });
+    await expect(recordKnowledgePilotOperatorAuthorization(client, { sourceId, expectedChecksumSha256: "f".repeat(64), decisionSource: "TEST_SYNTHETIC_OPERATOR", actorUserId: actorId, evidenceReference: "test:operator-instruction" })).rejects.toThrow();
+    await expect(client.query("UPDATE knowledge_sources SET rights_status='OPERATOR_AUTHORIZED_FOR_PILOT' WHERE source_id=$1", [sourceId])).rejects.toThrow();
+    const decisionId = await recordKnowledgePilotOperatorAuthorization(client, { sourceId, expectedChecksumSha256: checksum, decisionSource: "TEST_SYNTHETIC_OPERATOR", actorUserId: actorId, evidenceReference: "test:operator-instruction" });
+    const decision = await client.query<{ source_checksum_sha256: string; decision_source: string }>("SELECT source_checksum_sha256,decision_source FROM knowledge_rights_decisions WHERE decision_id=$1", [decisionId]);
+    expect(decision.rows[0]).toMatchObject({ source_checksum_sha256: checksum, decision_source: "TEST_SYNTHETIC_OPERATOR" });
     const pilotOnlyRecord = await retrieveExactKnowledge(client, { ...request, use: "CONTROLLED_PILOT" });
     expect(pilotOnlyRecord[0].sourceWording).toBe("Synthetic source wording");
+    expect((await retrieveExactKnowledge(client, { ...request, use: "EXTERNAL_AI" })).length).toBe(1);
+    await expect(retrieveExactKnowledge(client, request)).rejects.toMatchObject({ code: "RIGHTS_DENIED" });
   });
 
   it("blocks open conflicts, wrong profiles, and superseded releases", async () => {
@@ -150,7 +158,7 @@ describe("central Academic Knowledge governance", () => {
 });
 
 describe("historical controlled-pilot applicability", () => {
-  it("allows unknown source applicability only for a bounded controlled pilot", async () => {
+  it("allows unknown applicability only with an explicit bounded pilot authorization", async () => {
     const database = new PGlite();
     const client = pgliteClient(database);
     const actor = "00000000-0000-0000-0000-000000000301";
@@ -182,12 +190,14 @@ describe("historical controlled-pilot applicability", () => {
       await client.query("update knowledge_sources set effective_from=null where source_id=$1", [source]);
       const productionWithUnknownApplicability = await activateKnowledgeRelease(client, release, actor, "PRODUCTION");
       expect(productionWithUnknownApplicability.issues.map((issue) => issue.code)).toContain("EFFECTIVE_DATE_MISMATCH");
+      expect((await activateKnowledgeReleaseForControlledPilot(client, release, actor)).issues.map((issue) => issue.code)).toContain("RIGHTS_DENIED");
+      await recordKnowledgePilotOperatorAuthorization(client, { sourceId: source, expectedChecksumSha256: "a".repeat(64), decisionSource: "TEST_SYNTHETIC_OPERATOR", actorUserId: actor, evidenceReference: "test:historical-pilot" });
       const activated = await activateKnowledgeReleaseForControlledPilot(client, release, actor);
       expect(activated.activated).toBe(true);
       await client.query("select public.activate_knowledge_profile_pilot($1,$2,$3)", [profile, actor, "Synthetic bounded historical controlled pilot."]);
       const pilot = await retrieveExactKnowledge(client, { use: "CONTROLLED_PILOT", releaseId: release, subjectProfileId: profile, effectiveOn: "2019-06-01", recordTypes: ["topic"] });
       expect(pilot[0].sourceWording).toBe("Historical pilot wording");
-      await expect(retrieveExactKnowledge(client, { use: "FORMAL_ARTIFACT", releaseId: release, subjectProfileId: profile, effectiveOn: "2019-06-01", recordTypes: ["topic"] })).rejects.toMatchObject({ code: "RIGHTS_DENIED" });
+      expect(await retrieveExactKnowledge(client, { use: "FORMAL_ARTIFACT", releaseId: release, subjectProfileId: profile, effectiveOn: "2019-06-01", recordTypes: ["topic"] })).toHaveLength(1);
     } finally {
       await client.close();
     }

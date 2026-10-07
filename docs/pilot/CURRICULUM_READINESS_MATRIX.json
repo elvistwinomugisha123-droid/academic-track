@@ -1,11 +1,11 @@
 {
   "schemaVersion": "ate-curriculum-readiness-matrix-v1",
-  "generatedAt": "2026-10-03T06:18:05.262Z",
+  "generatedAt": "2026-10-07T06:14:57.608Z",
   "catalogueContract": "Source inventory expectations carried forward from build_source_registry.py; entries identify supplied-file expectations, not verified curriculum facts, rights, or availability.",
   "sourceRegistry": {
-    "status": "ABSENT_BY_DESIGN",
+    "status": "AVAILABLE",
     "path": "knowledge-sources/derived/manifests/source-registry.json",
-    "detail": "The registry is a generated, gitignored derivative of protected raw sources and must not be fabricated or restored without those sources."
+    "detail": "Generated from local private sources; not committed."
   },
   "databaseEvidence": "NOT_AVAILABLE",
   "summary": {
@@ -35,7 +35,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -88,7 +88,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -141,7 +141,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -177,24 +177,28 @@
       "subject": "Chemistry",
       "educationLevel": "advanced-secondary",
       "sourceIdentified": {
-        "status": "BLOCKED",
-        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/CHEMISTRY.pdf."
+        "status": "PASS",
+        "detail": "2 checksum-identified private source record(s) are available.",
+        "evidence": [
+          "ncdc-advanced-secondary-chemistry-2025-a6f0531fb4",
+          "ncdc-advanced-secondary-chemistry-2026-9b0961b964"
+        ]
       },
       "extracted": {
-        "status": "BLOCKED",
-        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+        "status": "PASS",
+        "detail": "Private derived subject output is present."
       },
       "structurallyValidated": {
-        "status": "BLOCKED",
-        "detail": "Structural validation requires source extraction."
+        "status": "PASS",
+        "detail": "A generated deterministic validation report is present."
       },
       "provenancePresent": {
-        "status": "BLOCKED",
-        "detail": "Provenance cannot be established without the authoritative source/extraction."
+        "status": "FAIL",
+        "detail": "Provenance must be proven by the generated validation report before readiness."
       },
       "rightsStateKnown": {
-        "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "status": "PASS",
+        "detail": "All required sources have checksum-matched, explicit operator authorization for this controlled pilot; this does not establish wider rights."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -247,7 +251,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -300,7 +304,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -353,7 +357,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -406,7 +410,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -459,7 +463,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -512,7 +516,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -565,7 +569,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -618,7 +622,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -671,7 +675,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -724,7 +728,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -777,7 +781,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -813,24 +817,28 @@
       "subject": "Principal Mathematics",
       "educationLevel": "advanced-secondary",
       "sourceIdentified": {
-        "status": "BLOCKED",
-        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/a-level/PRINCIPAL MATHS.pdf."
+        "status": "PASS",
+        "detail": "2 checksum-identified private source record(s) are available.",
+        "evidence": [
+          "ncdc-advanced-secondary-principal-mathematics-2025-9f06a325b7",
+          "ncdc-advanced-secondary-principal-mathematics-2026-9874365d71"
+        ]
       },
       "extracted": {
-        "status": "BLOCKED",
-        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+        "status": "PASS",
+        "detail": "Private derived subject output is present."
       },
       "structurallyValidated": {
-        "status": "BLOCKED",
-        "detail": "Structural validation requires source extraction."
+        "status": "PASS",
+        "detail": "A generated deterministic validation report is present."
       },
       "provenancePresent": {
-        "status": "BLOCKED",
-        "detail": "Provenance cannot be established without the authoritative source/extraction."
+        "status": "FAIL",
+        "detail": "Provenance must be proven by the generated validation report before readiness."
       },
       "rightsStateKnown": {
-        "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "status": "PASS",
+        "detail": "All required sources have checksum-matched, explicit operator authorization for this controlled pilot; this does not establish wider rights."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -883,7 +891,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -936,7 +944,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -989,7 +997,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -1042,7 +1050,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -1138,24 +1146,27 @@
       "subject": "Chemistry",
       "educationLevel": "lower-secondary",
       "sourceIdentified": {
-        "status": "BLOCKED",
-        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/o-level/chemistry syllbus.pdf."
+        "status": "PASS",
+        "detail": "1 checksum-identified private source record(s) are available.",
+        "evidence": [
+          "ncdc-lower-secondary-chemistry-2019-176ad60b42"
+        ]
       },
       "extracted": {
-        "status": "BLOCKED",
-        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+        "status": "PASS",
+        "detail": "Private derived subject output is present."
       },
       "structurallyValidated": {
-        "status": "BLOCKED",
-        "detail": "Structural validation requires source extraction."
+        "status": "PASS",
+        "detail": "A generated deterministic validation report is present."
       },
       "provenancePresent": {
-        "status": "BLOCKED",
-        "detail": "Provenance cannot be established without the authoritative source/extraction."
+        "status": "FAIL",
+        "detail": "Provenance must be proven by the generated validation report before readiness."
       },
       "rightsStateKnown": {
-        "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "status": "PASS",
+        "detail": "All required sources have checksum-matched, explicit operator authorization for this controlled pilot; this does not establish wider rights."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -1208,7 +1219,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -1261,7 +1272,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -1314,7 +1325,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -1367,7 +1378,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -1420,7 +1431,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -1473,7 +1484,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -1509,24 +1520,27 @@
       "subject": "Mathematics",
       "educationLevel": "lower-secondary",
       "sourceIdentified": {
-        "status": "BLOCKED",
-        "detail": "The expected private source file(s) are not available in this checkout: knowledge-sources/raw/o-level/Mathematics_Syllabus_compressed.pdf."
+        "status": "PASS",
+        "detail": "1 checksum-identified private source record(s) are available.",
+        "evidence": [
+          "ncdc-lower-secondary-mathematics-2019-83e3739a34"
+        ]
       },
       "extracted": {
-        "status": "BLOCKED",
-        "detail": "Extraction cannot run until the authoritative private source is supplied and checksum-registered."
+        "status": "PASS",
+        "detail": "Private derived subject output is present."
       },
       "structurallyValidated": {
-        "status": "BLOCKED",
-        "detail": "Structural validation requires source extraction."
+        "status": "PASS",
+        "detail": "A generated deterministic validation report is present."
       },
       "provenancePresent": {
-        "status": "BLOCKED",
-        "detail": "Provenance cannot be established without the authoritative source/extraction."
+        "status": "FAIL",
+        "detail": "Provenance must be proven by the generated validation report before readiness."
       },
       "rightsStateKnown": {
-        "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "status": "PASS",
+        "detail": "All required sources have checksum-matched, explicit operator authorization for this controlled pilot; this does not establish wider rights."
       },
       "releasePublished": {
         "status": "BLOCKED",
@@ -1579,7 +1593,7 @@
       },
       "rightsStateKnown": {
         "status": "BLOCKED",
-        "detail": "A current, checksum-bound rights decision is absent or UNKNOWN."
+        "detail": "No matching eligible rights or controlled-pilot operator authorization is recorded for every required source."
       },
       "releasePublished": {
         "status": "BLOCKED",

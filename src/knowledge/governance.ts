@@ -25,6 +25,11 @@ export async function recordKnowledgeRightsDecision(client: KnowledgeSqlClient, 
   return result.rows[0].decision_id;
 }
 
+export async function recordKnowledgePilotOperatorAuthorization(client: KnowledgeSqlClient, input: { sourceId: string; expectedChecksumSha256: string; decisionSource: string; actorUserId: string; evidenceReference: string }): Promise<string> {
+  const result = await client.query<{ decision_id: string }>("SELECT public.record_knowledge_pilot_operator_authorization($1,$2,$3,$4,$5) AS decision_id", [input.sourceId, input.expectedChecksumSha256, input.decisionSource, input.actorUserId, input.evidenceReference]);
+  return result.rows[0].decision_id;
+}
+
 export async function resolveKnowledgeConflict(client: KnowledgeSqlClient, input: { conflictId: string; status: "RESOLVED" | "ACCEPTED_OVERRIDE"; actorUserId: string; reason: string; resolutionText: string }): Promise<void> {
   await client.query("SELECT public.resolve_knowledge_conflict($1,$2,$3,$4,$5)", [input.conflictId, input.status, input.actorUserId, input.reason, input.resolutionText]);
 }
@@ -41,16 +46,24 @@ export async function retireKnowledgeRelease(client: KnowledgeSqlClient, release
   await command(client, "RETIRE_RELEASE", async () => { await client.query("UPDATE knowledge_curriculum_releases SET status='RETIRED' WHERE id=$1 AND status IN ('DRAFT','REVIEW','SUPERSEDED')", [releaseId]); });
 }
 
-type ReleaseRow = { id: string; education_level: string; status: KnowledgeReleaseStatus; effective_from: string; effective_to: string | null };
+type ReleaseRow = { id: string; education_level: string; status: KnowledgeReleaseStatus; effective_from: string | null; effective_to: string | null; manifest_checksum_sha256: string };
+type PilotDecision = { decision_id: string; source_checksums: Record<string, string> };
 type SourceRow = { source_id: string; source_role: string; subject_profile_id: string | null; is_required: boolean; status: string; authority: string | null; checksum_sha256: string | null; education_level: string | null; effective_from: string | null; effective_to: string | null; rights_status: string | null; production_use_status: string | null; verification_status: string | null; rights_decision_id: string | null; rights_decision_expiry: string | null; rights_decision_expired: boolean | null; rights_decision_matches: boolean | null; source_verification_evidence: boolean };
+
+function sourceAuthorizedForRelease(source: SourceRow, mode: "PRODUCTION" | "CONTROLLED_PILOT"): boolean {
+  const stateAllowed = mode === "PRODUCTION"
+    ? source.rights_status === "CLEARED"
+    : source.rights_status === "CLEARED" || source.rights_status === "OPERATOR_AUTHORIZED_FOR_PILOT";
+  return stateAllowed && source.production_use_status === "PERMITTED" && Boolean(source.rights_decision_id && source.rights_decision_matches) && source.rights_decision_expired !== true;
+}
 
 function sourceEffectiveWindowMismatch(source: SourceRow, release: ReleaseRow, mode: "PRODUCTION" | "CONTROLLED_PILOT"): boolean {
   const explicitOverlapConflict = (source.effective_from !== null && release.effective_to !== null && source.effective_from > release.effective_to)
-    || (source.effective_to !== null && source.effective_to < release.effective_from);
+    || (source.effective_to !== null && release.effective_from !== null && source.effective_to < release.effective_from);
   if (explicitOverlapConflict) return true;
   if (mode === "CONTROLLED_PILOT") return false;
-  return source.effective_from === null || (release.effective_to !== null && source.effective_to === null)
-    || (source.effective_from !== null && source.effective_from > release.effective_from)
+  return release.effective_from === null || source.effective_from === null || (release.effective_to !== null && source.effective_to === null)
+    || (source.effective_from !== null && release.effective_from !== null && source.effective_from > release.effective_from)
     || (release.effective_to !== null && source.effective_to !== null && source.effective_to < release.effective_to);
 }
 
@@ -67,12 +80,16 @@ export async function activateKnowledgeRelease(client: KnowledgeSqlClient, relea
   return withKnowledgeTransaction(client, async () => {
     const checkedAt = new Date().toISOString();
     const issues: ActivationIssue[] = [];
-    const releaseResult = await client.query<ReleaseRow>("SELECT id, education_level, status, effective_from, effective_to FROM knowledge_curriculum_releases WHERE id=$1 FOR UPDATE", [releaseId]);
+    const releaseResult = await client.query<ReleaseRow>("SELECT id, education_level, status, effective_from, effective_to, manifest_checksum_sha256 FROM knowledge_curriculum_releases WHERE id=$1 FOR UPDATE", [releaseId]);
     const release = releaseResult.rows[0];
     if (!release) return { releaseId, status: "BLOCKED", activated: false, checkedAt, issues: [{ code: "NOT_FOUND", entityType: "RELEASE", entityId: releaseId, message: "Curriculum release does not exist." }] };
+    const pilotDecisionRows = mode === "CONTROLLED_PILOT"
+      ? await client.query<PilotDecision>("SELECT decision_id, source_checksums FROM knowledge_pilot_curriculum_decisions WHERE release_id=$1 AND manifest_checksum_sha256=$2", [releaseId, release.manifest_checksum_sha256])
+      : { rows: [] };
+    const pilotDecision = pilotDecisionRows.rows[0];
     if (release.status === "ACTIVE") addIssue(issues, "ALREADY_ACTIVE", "RELEASE", releaseId, "An ACTIVE release cannot be activated again or amended in place.");
     else if (release.status !== "REVIEW") addIssue(issues, "RELEASE_NOT_IN_REVIEW", "RELEASE", releaseId, "Only a REVIEW release may become ACTIVE; DRAFT must first pass through REVIEW.");
-    const overlapping = await client.query<{ id: string }>("SELECT id FROM knowledge_curriculum_releases WHERE id<>$1 AND status='ACTIVE' AND education_level=$2 AND effective_from <= coalesce($4::date, '9999-12-31') AND coalesce(effective_to, '9999-12-31') >= $3::date", [releaseId, release.education_level, release.effective_from, release.effective_to]);
+    const overlapping = await client.query<{ id: string }>("SELECT id FROM knowledge_curriculum_releases WHERE id<>$1 AND status='ACTIVE' AND education_level=$2 AND coalesce(effective_from, '-infinity'::date) <= coalesce($4::date, 'infinity'::date) AND coalesce(effective_to, 'infinity'::date) >= coalesce($3::date, '-infinity'::date)", [releaseId, release.education_level, release.effective_from, release.effective_to]);
     if (overlapping.rows.length) addIssue(issues, "EFFECTIVE_DATE_OVERLAP", "RELEASE", releaseId, "An active release overlaps the effective period for this education regime.");
 
     const profiles = await client.query<{ id: string; governed_subject_id: string; education_level: string; status: string; requires_assessment_profile: boolean }>("SELECT id, governed_subject_id, education_level, status, requires_assessment_profile FROM knowledge_subject_profiles WHERE release_id=$1 ORDER BY display_order, id", [releaseId]);
@@ -89,26 +106,45 @@ export async function activateKnowledgeRelease(client: KnowledgeSqlClient, relea
         if (source.subject_profile_id !== null && source.education_level !== profile.education_level && source.education_level !== "cross-level") addIssue(issues, "PROFILE_SOURCE_MISMATCH", "SOURCE", source.source_id, "Profile-specific source education level does not match its subject profile.");
         if (source.subject_profile_id === null && source.source_role !== "SUPPORTING_REFERENCE" && source.education_level !== release.education_level && source.education_level !== "cross-level") addIssue(issues, "PROFILE_SOURCE_MISMATCH", "SOURCE", source.source_id, "Release-wide framework source is incompatible with the release education regime.");
         if (source.is_required && (source.status !== "APPROVED" || !source.checksum_sha256)) addIssue(issues, "SOURCE_INACTIVE", "SOURCE", source.source_id, "Required source is not approved or has no checksum identity.");
-        if (mode === "PRODUCTION" && source.is_required && (source.rights_status !== "CLEARED" || source.production_use_status !== "PERMITTED" || !source.rights_decision_id || !source.rights_decision_matches || source.rights_decision_expired === true)) addIssue(issues, "RIGHTS_DENIED", "SOURCE", source.source_id, "Required source has no current matching unexpired rights decision today.");
-        if (source.is_required && (source.verification_status !== "VERIFIED" || !source.source_verification_evidence)) addIssue(issues, "NOT_VERIFIED", "SOURCE", source.source_id, "Required source is not verified with current append-only decision evidence.");
+        if (source.is_required && !sourceAuthorizedForRelease(source, mode)) addIssue(issues, "RIGHTS_DENIED", "SOURCE", source.source_id, "Required source has no current matching authorization decision for this release mode.");
+        const pilotSource = pilotDecision?.source_checksums?.[source.source_id] === source.checksum_sha256 && source.source_role === "SUBJECT_SYLLABUS";
+        if (source.is_required && !pilotSource && (source.verification_status !== "VERIFIED" || !source.source_verification_evidence)) addIssue(issues, "NOT_VERIFIED", "SOURCE", source.source_id, "Required source has neither individual evidence nor matching pilot operator evidence.");
         if (source.is_required && sourceEffectiveWindowMismatch(source, release, mode)) addIssue(issues, "EFFECTIVE_DATE_MISMATCH", "SOURCE", source.source_id, mode === "CONTROLLED_PILOT" ? "Source has explicit applicability dates conflicting with the bounded historical pilot release." : "Required source does not cover the complete release effective window.");
       }
       const records = await client.query<{ canonical_id: string; membership_role: string; status: string; record_verification_status: string; span_verification_status: string; record_verification_evidence: boolean; span_verification_evidence: boolean; source_id: string; span_source_id: string; authority_eligible: boolean; education_level: string; source_membership_status: string | null; effective_from: string | null; effective_to: string | null }>("SELECT pr.canonical_id, pr.membership_role, pr.status, pr.effective_from, pr.effective_to, r.verification_status AS record_verification_status, sp.verification_status AS span_verification_status, EXISTS (SELECT 1 FROM knowledge_verification_decisions d WHERE d.entity_type='RECORD' AND d.entity_id=r.canonical_id AND d.resulting_status='VERIFIED' AND NOT EXISTS (SELECT 1 FROM knowledge_verification_decisions newer WHERE newer.entity_type=d.entity_type AND newer.entity_id=d.entity_id AND (newer.decided_at, newer.decision_id) > (d.decided_at, d.decision_id))) AS record_verification_evidence, EXISTS (SELECT 1 FROM knowledge_verification_decisions d WHERE d.entity_type='SPAN' AND d.entity_id=sp.span_id AND d.resulting_status='VERIFIED' AND NOT EXISTS (SELECT 1 FROM knowledge_verification_decisions newer WHERE newer.entity_type=d.entity_type AND newer.entity_id=d.entity_id AND (newer.decided_at, newer.decision_id) > (d.decided_at, d.decision_id))) AS span_verification_evidence, r.source_id, sp.source_id AS span_source_id, coalesce(rt.authority_eligible,false) AS authority_eligible, r.education_level, source_membership.status AS source_membership_status FROM knowledge_profile_records pr JOIN knowledge_records r ON r.canonical_id=pr.canonical_id JOIN knowledge_source_spans sp ON sp.span_id=r.span_id LEFT JOIN knowledge_record_taxonomy rt ON rt.record_type=r.record_type LEFT JOIN LATERAL (SELECT rs.status FROM knowledge_release_sources rs WHERE rs.release_id=pr.release_id AND rs.source_id=r.source_id AND (rs.subject_profile_id IS NULL OR rs.subject_profile_id=pr.subject_profile_id) ORDER BY rs.subject_profile_id NULLS LAST LIMIT 1) source_membership ON true WHERE pr.release_id=$1 AND pr.subject_profile_id=$2", [releaseId, profile.id]);
       if (!records.rows.length) addIssue(issues, "PROFILE_RECORDS_MISSING", "SUBJECT_PROFILE", profile.id, "Subject profile has no governed record membership.");
       for (const record of records.rows) {
+        const pilotMember = pilotDecision ? await client.query<{ canonical_id: string }>("SELECT m.canonical_id FROM knowledge_pilot_curriculum_record_memberships m JOIN knowledge_record_identity_mappings identity_map ON identity_map.canonical_id=m.canonical_id AND identity_map.source_id=m.source_id AND identity_map.source_checksum_sha256=m.source_checksum_sha256 AND identity_map.candidate_id=m.candidate_id AND identity_map.candidate_content_sha256=m.candidate_content_sha256 JOIN knowledge_sources source ON source.source_id=m.source_id AND source.checksum_sha256=m.source_checksum_sha256 WHERE m.decision_id=$1 AND m.release_id=$2 AND m.subject_profile_id=$3 AND m.canonical_id=$4 AND m.source_id=$5", [pilotDecision.decision_id, releaseId, profile.id, record.canonical_id, record.source_id]) : { rows: [] };
+        const pilotVerified = pilotMember.rows.length > 0;
         if (record.status !== "APPROVED" || !record.source_membership_status || record.source_membership_status !== "APPROVED") addIssue(issues, "PROFILE_SOURCE_MISMATCH", "RECORD", record.canonical_id, "Every approved profile record must come from an approved applicable source membership.");
         const authorityBearingMembership = record.membership_role === "CURRICULUM" || record.membership_role === "ASSESSMENT";
-        if (record.record_verification_status !== "VERIFIED" || record.span_verification_status !== "VERIFIED" || !record.record_verification_evidence || !record.span_verification_evidence || (authorityBearingMembership && !record.authority_eligible)) addIssue(issues, "NOT_VERIFIED", "RECORD", record.canonical_id, authorityBearingMembership ? "Authority-bearing profile records require current verified record/span evidence and an authority-eligible taxonomy." : "Supporting profile records require current verified record/span evidence; they remain non-authoritative context.");
+        if ((!pilotVerified && (record.record_verification_status !== "VERIFIED" || record.span_verification_status !== "VERIFIED" || !record.record_verification_evidence || !record.span_verification_evidence)) || (authorityBearingMembership && !record.authority_eligible)) addIssue(issues, "NOT_VERIFIED", "RECORD", record.canonical_id, "Profile record lacks individual or checksum-bound pilot verification, or uses an ineligible taxonomy.");
         if (record.source_id !== record.span_source_id) addIssue(issues, "PROVENANCE_BROKEN", "RECORD", record.canonical_id, "Record source and span source do not match.");
-        if ((record.effective_from !== null && record.effective_from < release.effective_from) || (record.effective_to !== null && release.effective_to !== null && record.effective_to > release.effective_to)) addIssue(issues, "EFFECTIVE_DATE_MISMATCH", "RECORD", record.canonical_id, "Profile record effective dates exceed the release window.");
+        if ((record.effective_from !== null && release.effective_from !== null && record.effective_from < release.effective_from) || (record.effective_to !== null && release.effective_to !== null && record.effective_to > release.effective_to)) addIssue(issues, "EFFECTIVE_DATE_MISMATCH", "RECORD", record.canonical_id, "Profile record effective dates exceed the release window.");
         const recordSource = sources.rows.find((source) => source.source_id === record.source_id && source.status === "APPROVED");
         if (!recordSource) addIssue(issues, "PROFILE_SOURCE_MISMATCH", "SOURCE", record.source_id, "Every profile record must resolve to an approved applicable source membership.");
         else {
-          if (mode === "PRODUCTION" && (recordSource.rights_status !== "CLEARED" || recordSource.production_use_status !== "PERMITTED" || !recordSource.rights_decision_id || !recordSource.rights_decision_matches || recordSource.rights_decision_expired === true)) addIssue(issues, "RIGHTS_DENIED", "SOURCE", record.source_id, "Every source used by an authoritative profile record requires a current matching unexpired rights decision today.");
-          if (recordSource.verification_status !== "VERIFIED" || !recordSource.source_verification_evidence) addIssue(issues, "NOT_VERIFIED", "SOURCE", record.source_id, "Every source used by an authoritative profile record requires current append-only verification evidence.");
+          if (!sourceAuthorizedForRelease(recordSource, mode)) addIssue(issues, "RIGHTS_DENIED", "SOURCE", record.source_id, "Every profile record source requires a current matching authorization decision for this release mode.");
+          if (!pilotVerified && (recordSource.verification_status !== "VERIFIED" || !recordSource.source_verification_evidence)) addIssue(issues, "NOT_VERIFIED", "SOURCE", record.source_id, "Every source used by an authoritative profile record requires current verification evidence.");
           if (sourceEffectiveWindowMismatch(recordSource, release, mode)) addIssue(issues, "EFFECTIVE_DATE_MISMATCH", "SOURCE", record.source_id, mode === "CONTROLLED_PILOT" ? "A source used by the historical pilot has explicit applicability dates conflicting with the release." : "A source used by the profile does not cover the release effective window.");
         }
-        const relationshipGaps = await client.query<{ count: string }>("SELECT count(*)::text AS count FROM knowledge_relationships rel LEFT JOIN knowledge_records rf ON rf.canonical_id=rel.from_canonical_id LEFT JOIN knowledge_records rt2 ON rt2.canonical_id=rel.to_canonical_id LEFT JOIN knowledge_source_spans rsp ON rsp.span_id=rel.span_id WHERE (rel.verification_status <> 'VERIFIED' OR NOT EXISTS (SELECT 1 FROM knowledge_verification_decisions d WHERE d.entity_type='RELATIONSHIP' AND d.entity_id=rel.relationship_id AND d.resulting_status='VERIFIED' AND NOT EXISTS (SELECT 1 FROM knowledge_verification_decisions newer WHERE newer.entity_type=d.entity_type AND newer.entity_id=d.entity_id AND (newer.decided_at, newer.decision_id) > (d.decided_at, d.decision_id))) OR rf.canonical_id IS NULL OR rt2.canonical_id IS NULL OR rsp.source_id <> rel.source_id) AND (rel.from_canonical_id=$1 OR rel.to_canonical_id=$1)", [record.canonical_id]);
+        const relationshipGaps = await client.query<{ count: string }>(`SELECT count(*)::text AS count FROM knowledge_relationships rel
+          LEFT JOIN knowledge_records rf ON rf.canonical_id=rel.from_canonical_id
+          LEFT JOIN knowledge_records rt2 ON rt2.canonical_id=rel.to_canonical_id
+          LEFT JOIN knowledge_source_spans rsp ON rsp.span_id=rel.span_id
+          LEFT JOIN knowledge_sources source ON source.source_id=rel.source_id
+          LEFT JOIN knowledge_pilot_curriculum_relationship_memberships pilot_rel ON pilot_rel.relationship_id=rel.relationship_id
+            AND pilot_rel.decision_id=$4::uuid AND pilot_rel.release_id=$2::uuid AND pilot_rel.subject_profile_id=$3::uuid
+            AND pilot_rel.source_id=rel.source_id AND pilot_rel.source_checksum_sha256=source.checksum_sha256
+          WHERE ((rel.verification_status <> 'VERIFIED' OR NOT EXISTS (
+              SELECT 1 FROM knowledge_verification_decisions d WHERE d.entity_type='RELATIONSHIP'
+                AND d.entity_id=rel.relationship_id AND d.resulting_status='VERIFIED'
+                AND NOT EXISTS (SELECT 1 FROM knowledge_verification_decisions newer WHERE newer.entity_type=d.entity_type
+                  AND newer.entity_id=d.entity_id AND (newer.decided_at, newer.decision_id) > (d.decided_at, d.decision_id))
+            )) AND pilot_rel.relationship_id IS NULL
+            OR (rel.relationship_type <> 'SOURCE_DEFINES_ENTITY' AND rf.canonical_id IS NULL)
+            OR rt2.canonical_id IS NULL OR rsp.source_id <> rel.source_id)
+            AND (rel.from_canonical_id=$1 OR rel.to_canonical_id=$1)`, [record.canonical_id, releaseId, profile.id, pilotDecision?.decision_id ?? null]);
         if (Number(relationshipGaps.rows[0]?.count ?? 0) > 0) addIssue(issues, "PROVENANCE_BROKEN", "RELATIONSHIP", record.canonical_id, "A relationship required by the profile is unverified or has broken endpoints/provenance.");
       }
       const conflicts = await client.query<{ id: string }>("SELECT c.id FROM knowledge_conflicts c WHERE c.release_id=$1 AND c.status='OPEN' AND (c.subject_profile_id IS NULL OR c.subject_profile_id=$2)", [releaseId, profile.id]);

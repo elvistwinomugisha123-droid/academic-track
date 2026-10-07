@@ -20,6 +20,10 @@ try:
 except ImportError as error:
     raise SystemExit("PyMuPDF is required. Install it with: .venv\\Scripts\\python -m pip install PyMuPDF") from error
 
+from pilot_structured import extract_pilot_assessment, extract_pilot_syllabus
+from pilot_assessment_pages import back_cover_decisions, example_page_decisions, framework_other_subject_decisions
+from pilot_verification import apply_verified_decisions
+
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY_PATH = ROOT / "knowledge-sources" / "derived" / "manifests" / "source-registry.json"
@@ -58,7 +62,7 @@ def source_metadata(record: dict[str, Any]) -> dict[str, Any]:
         "documentType": record["document_type"], "educationLevel": record["education_level"],
         "subject": record.get("subject"), "publicationYear": record.get("publication_year"),
         "effectiveYear": record.get("effective_year"), "version": record.get("version"),
-        "rightsStatus": "REVIEW_REQUIRED", "checksumSha256": record["checksum_sha256"],
+        "rightsStatus": record.get("rights_status", "UNKNOWN"), "checksumSha256": record["checksum_sha256"],
         "sourcePath": record["local_path"],
     }
 
@@ -120,7 +124,8 @@ def extract_source(record: dict[str, Any]) -> tuple[dict[str, Any], list[dict[st
             if not kind:
                 continue
             item_id = f"{record['source_id']}:{kind}:p{index}:l{line_number}"
-            fingerprint = (kind, line.lower())
+            # Repeated official wording on different pages still needs its own locator.
+            fingerprint = (index, kind, line.lower())
             if fingerprint in seen:
                 continue
             seen.add(fingerprint)
@@ -172,6 +177,7 @@ def main() -> None:
         seen_checksums.add(record["checksum_sha256"])
         records.append(record)
     summaries, all_spans, all_curriculum, all_assessment, all_relationships, review_items = [], [], [], [], [], []
+    assessment_page_decisions: list[dict[str, Any]] = []
     grouped: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
 
     for record in registry_duplicates:
@@ -186,8 +192,30 @@ def main() -> None:
             review_items.append({"id": f"checksum-mismatch:{record['source_id']}", "severity": "CRITICAL", "status": "open", "sourceId": record["source_id"], "reason": "The local PDF checksum does not match the source registry."})
             continue
         summary, spans, curriculum, assessment, relationships = extract_source(record)
+        if registry.get("scope") == "pilot-math-chem":
+            if record["document_type"] == "syllabus":
+                curriculum, extra_relationships, source_review = extract_pilot_syllabus(record)
+                assessment = []
+            else:
+                assessment, extra_relationships, source_review = extract_pilot_assessment(record)
+                curriculum = []
+                with fitz.open(record["local_path"]) as source_document:
+                    assessment_page_decisions.extend(example_page_decisions(record, source_document) + back_cover_decisions(record, source_document) + framework_other_subject_decisions(record, source_document))
+            relationships = [
+                {"id": f"{record['source_id']}:defines:{item['id']}", "relationshipType": "SOURCE_DEFINES_ENTITY",
+                 "fromId": record["source_id"], "toId": item["id"], "verificationStatus": "UNVERIFIED", "provenance": item["provenance"]}
+                for item in curriculum + assessment
+            ] + extra_relationships
+            summary["curriculumCandidateCount"] = len(curriculum)
+            summary["assessmentCandidateCount"] = len(assessment)
+            review_items.extend({"id": f"academic-layout:{record['source_id']}:{index}", "severity": "HIGH", "status": "open",
+                                 **issue} for index, issue in enumerate(source_review, start=1))
         summaries.append(summary); all_spans.extend(spans); all_curriculum.extend(curriculum); all_assessment.extend(assessment); all_relationships.extend(relationships)
         grouped[(record["education_level"], slug(record.get("subject") or "cross-level"))].append(summary)
+        if registry.get("scope") == "pilot-math-chem":
+            source_id = record["source_id"]
+            if record.get("rights_status") != "OPERATOR_AUTHORIZED_FOR_PILOT":
+                review_items.append({"id": f"authorization-decision:{source_id}", "severity": "CRITICAL", "status": "open", "sourceId": source_id, "reason": "No checksum-bound operator authorization is recorded for this controlled-pilot source."})
         if not curriculum and record["document_type"] == "syllabus":
             review_items.append({"id": f"no-curriculum-candidates:{record['source_id']}", "severity": "HIGH", "status": "open", "sourceId": record["source_id"], "reason": "No curriculum candidates were detected; visual/table extraction review is required."})
         if not assessment and record["document_type"] in {"assessment-framework", "assessment-guidelines"}:
@@ -195,6 +223,8 @@ def main() -> None:
         if record.get("classification_confidence") != "HIGH":
             review_items.append({"id": f"metadata-review:{record['source_id']}", "severity": "MEDIUM", "status": "open", "sourceId": record["source_id"], "reason": "Source classification was not high confidence in the registry."})
 
+    verified_decisions = apply_verified_decisions(all_curriculum + all_assessment, records) if registry.get("scope") == "pilot-math-chem" else []
+    jsonl_dump(REVIEW_ROOT / "human-review" / "verified-record-decisions.jsonl", verified_decisions)
     jsonl_dump(SPANS_ROOT / "source-spans.jsonl", all_spans)
     jsonl_dump(OUTPUT_ROOT / "curriculum-items.jsonl", all_curriculum)
     jsonl_dump(OUTPUT_ROOT / "assessment-items.jsonl", all_assessment)
@@ -210,6 +240,7 @@ def main() -> None:
 
     review_items.sort(key=lambda item: ({"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}[item["severity"]], item["id"]))
     json_dump(REVIEW_ROOT / "human-review" / "review-queue.json", {"schemaVersion": "ate-knowledge-review-v1", "generatedAt": datetime.now(timezone.utc).isoformat(), "items": review_items})
+    jsonl_dump(REVIEW_ROOT / "human-review" / "assessment-page-decisions.jsonl", assessment_page_decisions)
     manifest = {"schemaVersion": "ate-knowledge-v1", "generatedAt": datetime.now(timezone.utc).isoformat(), "sourceCount": len(summaries), "sourceSpanCount": len(all_spans), "curriculumCandidateCount": len(all_curriculum), "assessmentCandidateCount": len(all_assessment), "relationshipCount": len(all_relationships), "reviewQueueCount": len(review_items), "datasetChecksumSha256": sha256_tree(OUTPUT_ROOT)}
     json_dump(ROOT / "knowledge-sources" / "derived" / "manifests" / "knowledge-dataset-manifest.json", manifest)
     print(json.dumps(manifest, indent=2))

@@ -4,7 +4,7 @@ import { formalArtifactRightsState, safeCurrentPositionTitle } from "@/teacher/d
 export type LessonPlanContext = {
   recommendedFocus: string;
   lesson: { startsAt: string; endsAt: string; unfinishedWork: string | null };
-  curriculum: { subjectProfileId: string; current: { canonicalId: string; title: string; positionKind: "TOPIC" | "LEARNING_OUTCOME"; rightsStatus?: "CLEARED" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN"; productionUseStatus?: "PERMITTED" | "PERMISSION_PENDING" | "BLOCKED"; formalArtifactAllowed?: boolean } | null };
+  curriculum: { subjectProfileId: string; current: { canonicalId: string; title: string; positionKind: "TOPIC" | "LEARNING_OUTCOME"; rightsStatus?: "CLEARED" | "OPERATOR_AUTHORIZED_FOR_PILOT" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN"; productionUseStatus?: "PERMITTED" | "PERMISSION_PENDING" | "BLOCKED"; formalArtifactAllowed?: boolean } | null };
   previousLesson: { outcome: string | null } | null;
 };
 

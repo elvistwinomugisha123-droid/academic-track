@@ -13,7 +13,7 @@ export function canExportLessonArtifact(input: { artifactRightsState: string; go
   if (!input.governedAnchor) return { allowed: true };
   if (!input.sourceDecision) return { allowed: false, reason: "The governed source decision could not be verified for export." };
   const protectedWording = containsProtectedWording(input.content, input.sourceDecision.sourceWording);
-  if (protectedWording && (input.sourceDecision.rightsStatus === "RESTRICTED" || input.sourceDecision.productionUseStatus !== "PERMITTED" || !input.sourceDecision.formalArtifactAllowed || !input.sourceDecision.exportAllowed)) {
+  if (protectedWording && (!["CLEARED", "OPERATOR_AUTHORIZED_FOR_PILOT"].includes(input.sourceDecision.rightsStatus) || input.sourceDecision.productionUseStatus !== "PERMITTED" || !input.sourceDecision.formalArtifactAllowed || !input.sourceDecision.exportAllowed)) {
     return { allowed: false, reason: "This artifact contains source wording that is not cleared for export." };
   }
   if (input.sourceDecision.rightsStatus === "RESTRICTED" && protectedWording) return { allowed: false, reason: "This artifact contains restricted source wording." };
