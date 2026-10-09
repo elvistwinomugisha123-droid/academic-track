@@ -64,6 +64,9 @@ export type GovernedCurriculumContext = {
   releaseKey: string;
   current: CurrentPosition | null;
   options: PositionOption[];
+  // Only from verified, ACTIVE curriculum profile records whose source explicitly
+  // permits pilot formal artifacts and external AI. Never use these as classroom facts.
+  supportingRecords: Array<{ recordType: string; title: string }>;
 };
 
 export type TeacherHomeData = {
@@ -172,7 +175,10 @@ function optionFromKnowledgeRow(row: Row, allowSourceWording = true): PositionOp
 
 function currentFromKnowledgeRow(row: Row | null): CurrentPosition | null {
   if (!row) return null;
-  const option = optionFromKnowledgeRow(row, false);
+  // The previous false argument permanently replaced the genuine topic with
+  // "Current confirmed curriculum position" even when rights permitted use.
+  // safeCurrentPositionTitle below remains the rights gate.
+  const option = optionFromKnowledgeRow(row);
   if (!option) return null;
   const current = {
     ...option,
@@ -216,10 +222,57 @@ async function loadGovernedContext(client: ReturnType<typeof createPostgresKnowl
   const allTopics = allOptions.filter((option) => option.positionKind === "TOPIC");
   const levelTopics = allTopics.filter((option) => option.level?.trim().toLowerCase() === classLevelName.trim().toLowerCase());
   const availableTopics = levelTopics.length ? levelTopics : allTopics;
-  const topicSourceIds = new Set(availableTopics.map((option) => option.sourceEntityId).filter((id): id is string => Boolean(id)));
-  const options = allOptions.filter((option) => option.positionKind === "TOPIC"
-    ? availableTopics.some((topic) => topic.canonicalId === option.canonicalId)
-    : topicSourceIds.has(option.parentTopicSourceId || option.sourceEntityId?.replace(/-lo-\\d+$/, "") || ""));
+  // Source IDs were absent from some imported topic records, so the earlier
+  // parentId-based filter silently omitted their learning outcomes. Resolve
+  // the approved topic -> outcome relationships using canonical IDs instead.
+  const topicIds = availableTopics.map((topic) => topic.canonicalId);
+  const linkedOutcomes = topicIds.length ? await client.query<Row>(`select pr.canonical_id, pr.ordering_key, r.record_type, r.source_wording, r.normalized,
+      rel.from_canonical_id as parent_topic_canonical_id
+    from knowledge_relationships rel
+    join knowledge_profile_records pr on pr.canonical_id=rel.to_canonical_id
+      and pr.subject_profile_id=$1 and pr.status='APPROVED' and pr.runtime_status='PILOT_ACTIVE'
+    join knowledge_records r on r.canonical_id=pr.canonical_id and r.record_type='learning_outcome'
+    where rel.relationship_type='belongs_to_topic' and rel.from_canonical_id=any($2::uuid[])
+    order by pr.ordering_key, pr.canonical_id limit 450`,
+    [stringValue(profile, "subject_profile_id"), topicIds]) : { rows: [] as Row[] };
+  const topicsWithIdentity = availableTopics.map((topic) => ({ ...topic, sourceEntityId: topic.sourceEntityId || topic.canonicalId }));
+  const topicIdentity = new Map(topicsWithIdentity.map((topic) => [topic.canonicalId, topic.sourceEntityId]));
+  const linkedOptions = linkedOutcomes.rows.map((row) => {
+    const option = optionFromKnowledgeRow(row);
+    const parent = topicIdentity.get(stringValue(row, "parent_topic_canonical_id"));
+    return option && parent ? { ...option, parentTopicSourceId: parent } : null;
+  }).filter((option): option is PositionOption => Boolean(option));
+  const options = [...topicsWithIdentity, ...linkedOptions];
+
+  const selected = currentFromKnowledgeRow(current as Row | null);
+  let supportingRecords: GovernedCurriculumContext["supportingRecords"] = [];
+  if (selected && selected.externalAiAllowed && selected.formalArtifactAllowed
+    && selected.productionUseStatus === "PERMITTED"
+    && (selected.rightsStatus === "CLEARED" || selected.rightsStatus === "OPERATOR_AUTHORIZED_FOR_PILOT")) {
+    const topicId = selected.positionKind === "TOPIC" ? selected.canonicalId
+      : (await client.query<Row>(`select from_canonical_id from knowledge_relationships
+        where to_canonical_id=$1 and relationship_type='belongs_to_topic' limit 1`,
+        [selected.canonicalId])).rows[0]?.from_canonical_id;
+    if (topicId) {
+      const related = await client.query<Row>(`select r.record_type, r.normalized
+        from knowledge_relationships rel
+        join knowledge_profile_records pr on pr.canonical_id=rel.to_canonical_id
+          and pr.subject_profile_id=$1 and pr.status='APPROVED' and pr.runtime_status='PILOT_ACTIVE'
+        join knowledge_records r on r.canonical_id=pr.canonical_id
+        join knowledge_sources s on s.source_id=r.source_id
+        where rel.from_canonical_id=$2 and rel.relationship_type='belongs_to_topic'
+          and r.record_type in ('competency','learning_outcome','activity','assessment_strategy')
+          and s.production_use_status='PERMITTED' and s.external_ai_allowed=true and s.formal_artifact_allowed=true
+          and s.rights_status in ('CLEARED','OPERATOR_AUTHORIZED_FOR_PILOT')
+        order by case r.record_type when 'competency' then 0 when 'learning_outcome' then 1
+          when 'activity' then 2 else 3 end, pr.ordering_key, r.canonical_id
+        limit 36`, [stringValue(profile, "subject_profile_id"), topicId]);
+      supportingRecords = related.rows.map((row) => ({
+        recordType: stringValue(row, "record_type"),
+        title: String(objectValue(row.normalized).title || "").trim(),
+      })).filter((row) => row.title);
+    }
+  }
   return {
     subjectProfileId: stringValue(profile, "subject_profile_id"),
     profileTitle: stringValue(profile, "profile_title"),
@@ -227,8 +280,9 @@ async function loadGovernedContext(client: ReturnType<typeof createPostgresKnowl
     releaseId: stringValue(profile, "release_id"),
     releaseTitle: stringValue(profile, "release_title"),
     releaseKey: stringValue(profile, "release_key"),
-    current: currentFromKnowledgeRow(current as Row | null),
+    current: selected,
     options,
+    supportingRecords,
   };
 }
 
