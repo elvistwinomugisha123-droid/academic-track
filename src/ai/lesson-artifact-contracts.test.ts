@@ -25,6 +25,16 @@ describe("lesson artifact AI trust boundary", () => {
     expect(JSON.stringify(safeModelContext(blocked))).not.toContain(blocked.protectedSourceWording!);
   });
 
+  it("rejects a generic lesson template even when its fields are valid", () => {
+    const generic = { ...plan, title: "Current confirmed curriculum position", lessonFocus: "Verify the exact topic" };
+    expect(() => validateGeneratedArtifact("FORMAL_LESSON_PLAN", generic, context)).toThrow(/ATE_QUALITY_GATE_GENERIC/);
+  });
+
+  it("includes approved supporting curriculum in the trusted model context", () => {
+    const enriched = { ...context, supportingRecords: [{ recordType: "learning_outcome", title: "Explain mole–mass relationships" }] };
+    expect(JSON.stringify(safeModelContext(enriched))).toContain("mole–mass relationships");
+  });
+
   it("preserves the trusted anchor and scheduled duration", () => {
     expect(validateGeneratedArtifact("FORMAL_LESSON_PLAN", plan, context)).toMatchObject({ durationMinutes: 40, curriculumAnchor: { canonicalId: "canon-1", profileId: "profile-1" } });
     expect(() => validateGeneratedArtifact("FORMAL_LESSON_PLAN", { ...plan, durationMinutes: 20 }, context)).toThrow(/duration/);
