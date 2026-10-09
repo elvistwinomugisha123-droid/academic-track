@@ -34,7 +34,30 @@ export function LessonPlanEditor({ data, initialEdit = false }: { data: LessonRe
     setMessage(result.ok ? (result.version === 1 ? "Formal Lesson Plan created as version 1." : `Formal Lesson Plan saved as version ${result.version}.`) : result.error);
     if (result.ok) { setVersion(result.version); setSavedSnapshot(JSON.stringify(plan)); router.push(`/workspace/teacher/lessons/${data.lesson.id}/artifacts/${result.id}`); router.refresh(); }
   });
-  const generate = () => { setGenerating(true); startTransition(async () => { setAiError(null); try { const result = await generateFormalLessonPlanDraft(data.lesson.id); setAiProposal(result); if (!result.ok) setAiError(result.error); } finally { setGenerating(false); } }); };
+  const generate = () => {
+    if (generating || pending) return;
+    setGenerating(true);
+    startTransition(async () => {
+      setAiError(null);
+      try {
+        const result = await generateFormalLessonPlanDraft(data.lesson.id);
+        if (result.ok) {
+          setAiProposal(result);
+        } else {
+          setAiProposal(null);
+          setAiError(result.error);
+        }
+      } catch (error) {
+        // A server-action transport/timeout failure must not crash the teacher workspace.
+        // The server might have completed AI generation even when its response was lost.
+        console.error("ATE lesson draft response failed", { name: error instanceof Error ? error.name : "UnknownError" });
+        setAiProposal(null);
+        setAiError("ATE could not return the generated draft to this page. Your saved lesson has not changed. Please contact the pilot administrator before generating again.");
+      } finally {
+        setGenerating(false);
+      }
+    });
+  };
   const ask = () => startTransition(async () => { if (!artifact?.id || !askInstruction.trim()) return; setAiError(null); const result = await askATEForArtifact({ scheduledLessonId: data.lesson.id, artifactId: artifact.id, artifactType: "FORMAL_LESSON_PLAN", instruction: askInstruction }); setAiProposal(result); if (!result.ok) setAiError(result.error); });
   const accept = () => { if (!aiProposal?.ok) return; startTransition(async () => { const result = await acceptAIProposal({ runId: aiProposal.runId, scheduledLessonId: data.lesson.id, artifactId: aiProposal.artifactId, artifactType: aiProposal.artifactType, expectedVersion: aiProposal.expectedVersion, parentArtifactId: aiProposal.parentArtifactId, parentVersionId: aiProposal.parentVersionId, content: aiProposal.content, contextFingerprint: aiProposal.contextFingerprint, outputFingerprint: aiProposal.outputFingerprint, instruction: aiProposal.instruction, selectedField: aiProposal.selectedField, changeSummary: "Teacher accepted ATE Formal Lesson Plan proposal" }); setMessage(result.ok ? `ATE proposal saved as version ${result.version}.` : result.error); if (result.ok) { setAiProposal(null); router.push(`/workspace/teacher/lessons/${data.lesson.id}/artifacts/${result.id}`); router.refresh(); } }); };
   const reject = () => { if (!aiProposal?.ok) return; startTransition(async () => { const result = await rejectAIProposal(aiProposal.runId); setAiProposal(null); setMessage(result.ok ? "ATE proposal rejected; no artifact version was created." : result.error || "Proposal could not be rejected."); }); };
