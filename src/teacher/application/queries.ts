@@ -237,11 +237,11 @@ async function loadGovernedContext(client: ReturnType<typeof createPostgresKnowl
     [stringValue(profile, "subject_profile_id"), topicIds]) : { rows: [] as Row[] };
   const topicsWithIdentity = availableTopics.map((topic) => ({ ...topic, sourceEntityId: topic.sourceEntityId || topic.canonicalId }));
   const topicIdentity = new Map(topicsWithIdentity.map((topic) => [topic.canonicalId, topic.sourceEntityId]));
-  const linkedOptions = linkedOutcomes.rows.map((row) => {
+  const linkedOptions: PositionOption[] = linkedOutcomes.rows.flatMap((row): PositionOption[] => {
     const option = optionFromKnowledgeRow(row);
     const parent = topicIdentity.get(stringValue(row, "parent_topic_canonical_id"));
-    return option && parent ? { ...option, parentTopicSourceId: parent } : null;
-  }).filter((option): option is PositionOption => Boolean(option));
+    return option && parent ? [{ ...option, parentTopicSourceId: parent }] : [];
+  });
   const options = [...topicsWithIdentity, ...linkedOptions];
 
   const selected = currentFromKnowledgeRow(current as Row | null);
