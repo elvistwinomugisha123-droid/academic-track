@@ -42,6 +42,7 @@ export type TrustedLessonAIContext = {
     exportAllowed: boolean;
   } | null;
   protectedSourceWording: string | null;
+  supportingRecords: Array<{ recordType: string; title: string }>;
 };
 
 export function buildTrustedLessonAIContext(data: LessonReadinessData): TrustedLessonAIContext {
@@ -78,6 +79,7 @@ export function buildTrustedLessonAIContext(data: LessonReadinessData): TrustedL
     previousOutcome: data.previousLesson?.outcome || null,
     anchor,
     protectedSourceWording: current?.sourceWording || null,
+    supportingRecords: data.curriculum.supportingRecords,
   };
 }
 
@@ -112,6 +114,10 @@ export function safeModelContext(context: TrustedLessonAIContext, currentArtifac
       externalAiAllowed: context.anchor.externalAiAllowed,
       formalArtifactAllowed: context.anchor.formalArtifactAllowed,
       exportAllowed: context.anchor.exportAllowed,
+      // Each entry is from an APPROVED, PILOT_ACTIVE profile member linked to
+      // this topic and independently authorized for external-AI pilot use.
+      // This gives the model real outcomes, activities and assessment guidance.
+      supportingRecords: context.supportingRecords,
     } : null,
     currentArtifact,
     teacherInstruction: instruction,
@@ -130,6 +136,14 @@ export function containsProtectedWording(value: unknown, protectedWording: strin
 export function validateGeneratedArtifact<T extends LessonArtifactType>(type: T, value: unknown, context: TrustedLessonAIContext, expectedCanonicalId?: string | null): LessonArtifactPayloadMap[T] {
   const parsed = parseLessonPayload(type, value);
   if (containsProtectedWording(parsed, context.protectedSourceWording) && !context.anchor?.formalArtifactAllowed) throw new Error("The proposed artifact contains curriculum wording that is not permitted for formal artifact use.");
+  // Successful schema validation is insufficient: boilerplate plans should
+  // fail before teachers can accept and export them as authoritative materials.
+  if (context.anchor?.formalArtifactAllowed && context.anchor.externalAiAllowed) {
+    const serialized = JSON.stringify(parsed);
+    if (/current confirmed curriculum position|verify the exact topic|topic (?:is |was )?not (?:yet )?specified|clarify intended coverage before|appropriate to the confirmed topic|check the syllabus for the (?:exact|current) topic/i.test(serialized)) {
+      throw new Error("ATE_QUALITY_GATE_GENERIC: draft failed the subject-specific curriculum quality gate.");
+    }
+  }
   if (type === "FORMAL_LESSON_PLAN") {
     const plan = parsed as FormalLessonPlanPayload;
     if (plan.durationMinutes !== context.durationMinutes) throw new Error("The proposed lesson plan changed the scheduled lesson duration.");
