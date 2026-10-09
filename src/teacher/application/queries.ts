@@ -232,7 +232,7 @@ async function loadGovernedContext(client: ReturnType<typeof createPostgresKnowl
     join knowledge_profile_records pr on pr.canonical_id=rel.to_canonical_id
       and pr.subject_profile_id=$1 and pr.status='APPROVED' and pr.runtime_status='PILOT_ACTIVE'
     join knowledge_records r on r.canonical_id=pr.canonical_id and r.record_type='learning_outcome'
-    where rel.relationship_type='belongs_to_topic' and rel.from_canonical_id=any($2::uuid[])
+    where rel.relationship_type='belongs_to_topic' and rel.from_canonical_id=any($2::text[])
     order by pr.ordering_key, pr.canonical_id limit 450`,
     [stringValue(profile, "subject_profile_id"), topicIds]) : { rows: [] as Row[] };
   const topicsWithIdentity = availableTopics.map((topic) => ({ ...topic, sourceEntityId: topic.sourceEntityId || topic.canonicalId }));
