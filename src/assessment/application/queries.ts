@@ -14,6 +14,7 @@ export type AssessmentStudioListData = {
   subjects: Array<Record<string, unknown>>;
   periods: Array<Record<string, unknown>>;
   profiles: Array<Record<string, unknown>>;
+  profileLoadError: string | null;
   subjectBindings: Array<Record<string, unknown>>;
   workspaces: Array<Record<string, unknown>>;
   purposes: typeof assessmentPurposes;
@@ -27,7 +28,7 @@ async function loadAssessmentStudioListOnce(nextPath = "/workspace/teacher/asses
     client.from("teaching_sections").select("id, academic_period_id, school_subject_id, class_level_id, stream_id, assignment_state, operational_status").eq("school_id", access.schoolId).eq("teacher_membership_id", access.membershipId).eq("assignment_state", "CONFIRMED").eq("operational_status", "ACTIVE"),
     client.from("school_subjects").select("id, name, code").eq("school_id", access.schoolId).order("name"),
     client.from("academic_periods").select("id, name, academic_year, starts_on, ends_on").eq("school_id", access.schoolId).order("starts_on", { ascending: false }),
-    client.from("assessment_workspaces").select("id, title, purpose, status, duration_minutes, total_marks, current_version_id, updated_at").eq("school_id", access.schoolId).order("updated_at", { ascending: false }),
+    client.from("assessment_workspaces").select("id, title, purpose, status, duration_minutes, total_marks, current_version_id, updated_at").eq("school_id", access.schoolId).eq("created_by_membership_id", access.membershipId).order("updated_at", { ascending: false }),
     client.from("class_levels").select("id, name").eq("school_id", access.schoolId),
     client.from("streams").select("id, name").eq("school_id", access.schoolId),
     client.from("school_subject_curriculum_bindings").select("school_subject_id, subject_profile_id, status, effective_from, effective_to").eq("school_id", access.schoolId),
@@ -37,12 +38,15 @@ async function loadAssessmentStudioListOnce(nextPath = "/workspace/teacher/asses
   const streamNames = new Map((streams.data ?? []).map((row) => [row.id, row.name]));
   const namedSections = (sections.data ?? []).map((section) => ({ ...section, display_name: `${levelNames.get(section.class_level_id) || "Class"} · ${streamNames.get(section.stream_id) || "Stream"}` }));
   const allowSyntheticProfiles = allowTestSyntheticAssessmentProfiles({ flag: process.env.ATE_ALLOW_TEST_SYNTHETIC_ASSESSMENTS, supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL });
-  const knowledge = createPostgresKnowledgeClient();
+  let knowledge: ReturnType<typeof createPostgresKnowledgeClient> | null = null;
   try {
+    knowledge = createPostgresKnowledgeClient();
     const profiles = await knowledge.query<Record<string, unknown>>("select id, release_id, subject_profile_id, assessment_key, display_title, purpose, regime, status from knowledge_assessment_profiles where status = 'ACTIVE' and ($2::boolean or regime <> 'TEST_SYNTHETIC') and purpose = any($1::text[]) order by display_title", [assessmentPurposes, allowSyntheticProfiles]);
-    return { access, sections: namedSections, subjects: subjects.data ?? [], periods: periods.data ?? [], subjectBindings: subjectBindings.data ?? [], profiles: profiles.rows, workspaces: workspaces.data ?? [], purposes: assessmentPurposes };
+    return { access, sections: namedSections, subjects: subjects.data ?? [], periods: periods.data ?? [], subjectBindings: subjectBindings.data ?? [], profiles: profiles.rows, profileLoadError: null, workspaces: workspaces.data ?? [], purposes: assessmentPurposes };
+  } catch {
+    return { access, sections: namedSections, subjects: subjects.data ?? [], periods: periods.data ?? [], subjectBindings: subjectBindings.data ?? [], profiles: [], profileLoadError: "Assessment guidance could not be checked right now. Your saved school and lesson work remains available; refresh this page to try again.", workspaces: workspaces.data ?? [], purposes: assessmentPurposes };
   } finally {
-    await knowledge.close();
+    if (knowledge) await knowledge.close();
   }
 }
 
