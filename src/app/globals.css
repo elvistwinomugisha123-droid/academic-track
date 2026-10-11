@@ -1002,3 +1002,8 @@
 :root[data-theme=dark] .assessment-outcome-picker legend,:root[data-theme=system] .assessment-outcome-picker legend { color:var(--ate-text); }
 .assessment-unavailable .button { margin-top:18px; }
 @media (max-width:767px) { .auth-rail { padding:18px 20px 20px; } .auth-rail-copy { margin:18px 0 0; } .auth-rail-title { font-size:29px; line-height:1.15; } .auth-rail-rule { margin:13px 0 8px; } .auth-rail-note { font-size:12px; line-height:1.4; } .auth-rail-footer { display:none; } .auth-stage { min-height:0; padding:28px 20px 40px; } .auth-panel h1 { font-size:32px; } .auth-lede { margin-top:8px; font-size:14px; } .auth-form { margin-top:19px; } .assessment-unavailable { flex-direction:column; padding:19px; } .question-editor-tools .icon-button { width:44px; height:44px; } }
+:root[data-theme=dark] .next-lesson,:root[data-theme=dark] .readiness-panel,:root[data-theme=dark] .identity-mark,:root[data-theme=dark] .skip-link { background:#0b2b46; }
+:root[data-theme=dark] .next-lesson-action { background:#123550; }
+:root[data-theme=dark] .next-lesson-action .button-primary { color:#0b2b46; background:#bde9ff; border-color:#bde9ff; }
+:root[data-theme=dark] .mobile-avatar { color:#0b2438; background:#d9eaf5; }
+@media (prefers-color-scheme:dark) { :root[data-theme=system] .next-lesson,:root[data-theme=system] .readiness-panel,:root[data-theme=system] .identity-mark,:root[data-theme=system] .skip-link { background:#0b2b46; } :root[data-theme=system] .next-lesson-action { background:#123550; } :root[data-theme=system] .next-lesson-action .button-primary { color:#0b2b46; background:#bde9ff; border-color:#bde9ff; } :root[data-theme=system] .mobile-avatar { color:#0b2438; background:#d9eaf5; } }
