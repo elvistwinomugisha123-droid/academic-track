@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Activity, Bell, BookOpen, CalendarDays, CircleHelp, ClipboardCheck, Home, MoreHorizontal, MessageCircle, ShieldCheck, Users } from "lucide-react";
 import { SignOutButton } from "@/components/auth/SignOutButton";
+import { AppearanceControl } from "./AppearanceControl";
 
 const navigation = [
   { href: "/workspace", label: "Home", icon: Home },
@@ -26,7 +27,7 @@ export function AppShell({ children, activePath, access, contextLessonId }: { ch
     <a className="skip-link" href="#main-content">Skip to content</a>
     <header className="mobile-header"><Link className="brand" href="/workspace" aria-label="ATE workspace home"><span className="brand-mark">A</span><span><strong>ATE</strong><small>Academic Track Engine</small></span></Link><span className="mobile-avatar" aria-label={access?.displayName || "Account"}>{access?.displayName?.charAt(0).toUpperCase() || "A"}</span></header>
     <aside className="sidebar" aria-label="Primary navigation"><Link className="brand" href="/workspace" aria-label="ATE workspace home"><span className="brand-mark">A</span><span><strong>ATE</strong><small>Academic Track Engine</small></span></Link><div className="sidebar-kicker">Academic workspace</div><nav className="nav-list">{visibleNavigation.map((item) => link(item, "nav-link"))}</nav><div className="sidebar-footer"><CircleHelp size={16} /><span>{access?.roles.join(" · ") || "Welcome"}</span>{access ? <SignOutButton /> : null}</div></aside>
-    <div className="shell-main"><header className="topbar"><div><span className="topbar-label">Academic workspace</span><strong>{access?.displayName || "Welcome to ATE"}</strong></div><span className="environment-badge">{access ? "Connected" : "Welcome"}</span></header><main id="main-content" className="content">{children}</main></div>
+    <div className="shell-main"><header className="topbar"><div><span className="topbar-label">Academic workspace</span><strong>{access?.displayName || "Welcome to ATE"}</strong></div><div className="topbar-actions"><AppearanceControl /><span className="environment-badge">{access ? "Connected" : "Welcome"}</span></div></header><main id="main-content" className="content">{children}</main></div>
     <nav className="mobile-bottom-nav" aria-label="Main navigation" style={{ gridTemplateColumns: `repeat(${bottomItems.length + 1},minmax(0,1fr))` }}>{bottomItems.map((item) => link(item, `bottom-nav-link${item.href === "/workspace/teacher/ask" ? " bottom-nav-ask" : ""}`))}<details className="bottom-more"><summary className={`bottom-nav-link${moreItems.some((item) => item.href === activePath) ? " active" : ""}`} aria-label="More navigation"><MoreHorizontal size={21} /><span>More</span></summary><div className="bottom-more-panel"><strong>{access?.displayName || "Your account"}</strong>{moreItems.map((item) => link(item, "nav-link"))}{access && <div className="more-signout"><SignOutButton /></div>}</div></details></nav>
   </div>;
 }

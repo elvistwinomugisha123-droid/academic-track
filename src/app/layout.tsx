@@ -6,4 +6,4 @@ import "./globals.css";
 
 export const metadata: Metadata = { title: "ATE · Academic Track Engine", description: "A teacher-first academic operating system foundation.", applicationName: "Academic Track Engine", manifest: "/manifest.webmanifest", appleWebApp: { capable: true, title: "ATE", statusBarStyle: "default" }, icons: { icon: [{ url: "/icons/ate.svg", sizes: "any", type: "image/svg+xml" }] } };
 export const viewport: Viewport = { themeColor: "#0b1f3a" };
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="en"><body><PwaRuntime />{children}<Analytics /><SpeedInsights /></body></html>; }
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="en" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: "try{var t=localStorage.getItem('ate-appearance');document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'system'}catch(e){document.documentElement.dataset.theme='system'}" }} /></head><body><PwaRuntime />{children}<Analytics /><SpeedInsights /></body></html>; }

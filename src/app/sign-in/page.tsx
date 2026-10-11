@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { SignInForm } from "@/components/auth/SignInForm";
+import { AppearanceControl } from "@/components/foundation/AppearanceControl";
 
 export default function SignInPage() {
   return <main className="auth-page">
@@ -13,6 +14,7 @@ export default function SignInPage() {
         <h1 id="sign-in-title">Sign in to your academic workspace.</h1>
         <p className="auth-lede">Use the account provided by your school.</p>
         <Suspense fallback={<p className="auth-loading" role="status">Loading sign-in…</p>}><SignInForm /></Suspense>
+        <div className="auth-appearance"><AppearanceControl /></div>
       </div>
     </section>
   </main>;
