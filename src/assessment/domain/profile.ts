@@ -54,13 +54,13 @@ export type AssessmentProfileCandidate = AssessmentProfile & {
 };
 
 function isDateApplicable(assessmentDate: string, effectiveFrom: string, effectiveTo: string | null) {
-  return effectiveFrom <= assessmentDate && (effectiveTo === null || effectiveTo >= assessmentDate);
+  return /^\d{4}-\d{2}-\d{2}$/.test(assessmentDate) && /^\d{4}-\d{2}-\d{2}$/.test(effectiveFrom) && effectiveFrom <= assessmentDate && (effectiveTo === null || /^\d{4}-\d{2}-\d{2}$/.test(effectiveTo) && effectiveTo >= assessmentDate);
 }
 
 export function resolveRuntimeAssessmentProfile(input: RuntimeAssessmentProfileInput): ProfileResolution {
   const releaseApplicable = input.release.status === "ACTIVE" && isDateApplicable(input.assessmentDate, input.release.effectiveFrom, input.release.effectiveTo);
   const profileApplicable = input.profile.status === "ACTIVE" && input.profile.releaseId === input.release.id;
-  const subjectProfileApplicable = input.subjectProfile.id === input.subjectProfileId && input.subjectProfile.releaseId === input.profile.releaseId && input.subjectProfile.status === "ACTIVE" && input.subjectProfile.runtimeStatus === "PILOT_ACTIVE";
+  const subjectProfileApplicable = input.subjectProfile.id === input.subjectProfileId && input.profile.subjectProfileId === input.subjectProfileId && input.subjectProfile.status === "ACTIVE" && input.subjectProfile.runtimeStatus === "PILOT_ACTIVE";
   const subjectBindingApplicable = input.subjectBinding?.status === "ACTIVE" && isDateApplicable(input.assessmentDate, input.subjectBinding.effectiveFrom, input.subjectBinding.effectiveTo);
   const sectionBindingsApplicable = input.sectionIds.length > 0 && input.sectionIds.every((sectionId) => input.sectionBindings.some((binding) => binding.sectionId === sectionId && binding.status === "ACTIVE" && isDateApplicable(input.assessmentDate, binding.effectiveFrom, binding.effectiveTo)));
   const allRightsCleared = input.sources.length > 0 && input.sources.every((source) => source.rightsStatus === "CLEARED" && source.productionUseStatus === "PERMITTED");
@@ -83,6 +83,7 @@ export function resolveRuntimeAssessmentProfile(input: RuntimeAssessmentProfileI
     sourceId: input.sources[0]?.sourceId ?? null,
     sourceVersion: input.sources[0]?.sourceVersion ?? null,
     releaseId: input.release.id,
+    curriculumReleaseId: input.subjectProfile.releaseId,
     releaseVersion: input.release.versionLabel,
     verificationStatus: applicable ? "VERIFIED" : "UNVERIFIED",
     rightsState,
@@ -104,7 +105,13 @@ export function resolveRuntimeAssessmentProfile(input: RuntimeAssessmentProfileI
     subjectId: input.subjectId,
     educationLevel: input.subjectProfile.educationLevel,
   };
-  if (!applicable) return { state: "UNAVAILABLE", profile: null, explanation: "The assessment profile, curriculum setup, or school bindings are not active for this date." };
+  if (!releaseApplicable) return { state: "UNAVAILABLE", profile: null, explanation: input.release.status !== "ACTIVE" ? "The assessment release has not been activated by an academic reviewer." : !input.release.effectiveFrom ? "The assessment release has no approved effective date. An academic reviewer must set one before use." : "The assessment release is outside its approved effective dates. Choose an applicable date or ask an academic reviewer to check the release." };
+  if (!profileApplicable) return { state: "UNAVAILABLE", profile: null, explanation: "This assessment profile is not active in the approved release. An academic reviewer must verify and activate it." };
+  if (!subjectProfileApplicable) return { state: "UNAVAILABLE", profile: null, explanation: "The subject curriculum profile is not active for this pilot or does not match this assessment release. Ask an administrator to check the governed subject and level." };
+  if (!subjectBindingApplicable) return { state: "UNAVAILABLE", profile: null, explanation: "This subject is not bound to the curriculum profile for the assessment date. Ask the school administrator to verify the subject binding." };
+  if (!sectionBindingsApplicable) return { state: "UNAVAILABLE", profile: null, explanation: "One or more selected Teaching Sections lack an active curriculum binding for the assessment date. Ask the school administrator to verify each section." };
+  if (!allPilotAuthorised) return { state: "UNAVAILABLE", profile: null, explanation: input.sources.length === 0 ? "No approved assessment source is attached to this profile. Academic review and source rights are required." : "Assessment source rights or production use have not been approved for this pilot. A reviewer must resolve the source decision." };
+  if (!profile.formalArtifactAllowed) return { state: "UNAVAILABLE", profile: null, explanation: "The source decision does not permit a formal assessment artifact. A reviewer must confirm that purpose before activation." };
   return { state: "RESOLVED", profile, explanation: `Using ${profile.displayTitle} (${profile.releaseVersion}); this is verified assessment guidance, not an inferred national rule.` };
 }
 

@@ -71,7 +71,7 @@ function stringValue(value: unknown) {
   return "";
 }
 
-async function loadRuntimeProfile(client: Awaited<ReturnType<typeof createSupabaseServerClient>>, workspace: Record<string, unknown>, sectionIds: string[]): Promise<ProfileResolution> {
+export async function loadRuntimeProfile(client: Awaited<ReturnType<typeof createSupabaseServerClient>>, workspace: Record<string, unknown>, sectionIds: string[]): Promise<ProfileResolution> {
   const profileId = stringValue(workspace.assessment_profile_id);
   const subjectProfileId = stringValue(workspace.curriculum_subject_profile_id);
   const schoolSubjectId = stringValue(workspace.school_subject_id);
@@ -173,7 +173,7 @@ async function loadAssessmentWorkspaceOnce(workspaceId: string, nextPath = `/wor
   let scopeLabels: Record<string, string> = {};
   if (labels) {
     try {
-      const result = await labels.query<{ canonical_id: string; normalized: Record<string, unknown> }>("select r.canonical_id, r.normalized from knowledge_records r join knowledge_profile_records pr on pr.canonical_id=r.canonical_id where pr.subject_profile_id=$1 and pr.release_id=$2 and pr.status='APPROVED' and r.canonical_id = any($3::text[])", [String(workspaceResult.data.curriculum_subject_profile_id), String(profileResult.rows[0]?.release_id ?? ""), scopeIds]);
+      const result = await labels.query<{ canonical_id: string; normalized: Record<string, unknown> }>("select r.canonical_id, r.normalized from knowledge_records r join knowledge_profile_records pr on pr.canonical_id=r.canonical_id where pr.subject_profile_id=$1 and pr.release_id=(select release_id from knowledge_subject_profiles where id=$1) and pr.status='APPROVED' and r.canonical_id = any($2::text[])", [String(workspaceResult.data.curriculum_subject_profile_id), scopeIds]);
       scopeLabels = Object.fromEntries(result.rows.map((row) => [row.canonical_id, typeof row.normalized?.title === "string" ? row.normalized.title : row.canonical_id]));
     } finally { await labels.close(); }
   }

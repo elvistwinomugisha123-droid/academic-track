@@ -24,16 +24,15 @@ describe("runtime assessment profile resolver", () => {
 
   it("denies export for a restricted source", () => {
     const resolved = resolveRuntimeAssessmentProfile({ ...base, sources: [{ ...base.sources[0], rightsStatus: "RESTRICTED", productionUseStatus: "BLOCKED", exportAllowed: false, formalArtifactAllowed: false }] });
-    expect(resolved.state).toBe("RESOLVED");
-    expect(resolved.profile?.rightsState).toBe("RESTRICTED");
-    expect(resolved.profile?.exportAllowed).toBe(false);
+    expect(resolved.state).toBe("UNAVAILABLE");
+    expect(resolved.explanation).toMatch(/rights|production use/);
   });
 
   it("permits explicit operator pilot authorization while unknown stays closed for AI and export", () => {
     const pilot = resolveRuntimeAssessmentProfile({ ...base, sources: [{ ...base.sources[0], rightsStatus: "OPERATOR_AUTHORIZED_FOR_PILOT" as const }] });
     expect(pilot.profile).toMatchObject({ rightsState: "OPERATOR_AUTHORIZED_FOR_PILOT", productionUseStatus: "PERMITTED", externalAiAllowed: true, exportAllowed: true });
     const unknown = resolveRuntimeAssessmentProfile({ ...base, sources: [{ ...base.sources[0], rightsStatus: "UNKNOWN" as const, productionUseStatus: "PERMISSION_PENDING" as const }] });
-    expect(unknown.profile).toMatchObject({ rightsState: "REVIEW_REQUIRED", externalAiAllowed: false, exportAllowed: false });
+    expect(unknown.state).toBe("UNAVAILABLE");
   });
 
   it("does not resolve an expired governed release", () => {
@@ -41,13 +40,25 @@ describe("runtime assessment profile resolver", () => {
     expect(resolved.state).toBe("UNAVAILABLE");
   });
 
+  it("does not infer an unknown assessment effective date", () => {
+    const resolved = resolveRuntimeAssessmentProfile({ ...base, release: { ...base.release, effectiveFrom: "" } });
+    expect(resolved.state).toBe("UNAVAILABLE");
+    expect(resolved.explanation).toMatch(/effective date/);
+  });
+
   it("uses the assessment date for binding applicability", () => {
     const resolved = resolveRuntimeAssessmentProfile({ ...base, assessmentDate: "2026-07-01", subjectBinding: { ...base.subjectBinding, effectiveTo: "2026-06-30" } });
     expect(resolved.state).toBe("UNAVAILABLE");
   });
 
-  it("does not combine an assessment profile with a subject profile from another release", () => {
+  it("keeps assessment guidance and syllabus releases separate", () => {
     const resolved = resolveRuntimeAssessmentProfile({ ...base, subjectProfile: { ...base.subjectProfile, releaseId: "another-release" } });
-    expect(resolved.state).toBe("UNAVAILABLE");
+    expect(resolved.state).toBe("RESOLVED");
+    expect(resolved.profile?.curriculumReleaseId).toBe("another-release");
+  });
+
+  it("names missing section binding and formal artifact rights", () => {
+    expect(resolveRuntimeAssessmentProfile({ ...base, sectionBindings: [] }).explanation).toMatch(/Teaching Sections/);
+    expect(resolveRuntimeAssessmentProfile({ ...base, sources: [{ ...base.sources[0], formalArtifactAllowed: false }] }).explanation).toMatch(/formal assessment artifact/);
   });
 });

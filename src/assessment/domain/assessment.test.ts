@@ -60,4 +60,13 @@ describe("Assessment Studio domain", () => {
     const result = validateAssessment({ payload: invalid, blueprint: payload.blueprint, eligibleCanonicalIds: ["A", "B"], knownCanonicalIds: ["A", "B"], participatingSectionIds: payload.blueprint.participatingSectionIds, profile, exportAllowed: true });
     expect(result.issues.map((issue) => issue.code)).toEqual(expect.arrayContaining(["DUPLICATE_QUESTION_ID", "RUBRIC_MARKS_MISMATCH"]));
   });
+
+  it("rejects filler and explicitly scored guides that do not add to question marks", () => {
+    const weak: AssessmentPayload = { ...payload, questions: [
+      { ...payload.questions[0], text: "Discuss the topic.", markingGuide: ["2 marks: correct method", "1 mark: result"] },
+      { ...payload.questions[1], text: "A laboratory sample has mass 10 g and volume 5 cm³. Calculate its density in g/cm³.", markingGuide: ["2 marks: density = mass divided by volume", "3 marks: 2 g/cm³"], expectedResponse: "2 g/cm³" },
+    ] };
+    const result = validateAssessment({ payload: weak, blueprint: payload.blueprint, eligibleCanonicalIds: ["A", "B"], knownCanonicalIds: ["A", "B"], participatingSectionIds: payload.blueprint.participatingSectionIds, profile, exportAllowed: true });
+    expect(result.issues.map((issue) => issue.code)).toEqual(expect.arrayContaining(["GENERIC_QUESTION", "MARKING_GUIDE_MARKS_MISMATCH"]));
+  });
 });

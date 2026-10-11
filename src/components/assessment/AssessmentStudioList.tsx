@@ -2,6 +2,7 @@
 
 import { ArrowRight, ClipboardCheck, Plus, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { createAssessmentWorkspace } from "@/assessment/application/actions";
@@ -14,9 +15,9 @@ const purposeLabels: Record<string, string> = { FORMATIVE_CHECK: "Formative chec
 export function AssessmentStudioList({ data }: { data: AssessmentStudioListData }) {
   const router = useRouter();
   const [purpose, setPurpose] = useState("CLASS_TEST");
-  const [subjectId, setSubjectId] = useState(text(data.subjects[0]?.id));
-  const [periodId, setPeriodId] = useState(text(data.periods[0]?.id));
-  const [assessmentDate, setAssessmentDate] = useState(() => todayInPeriod(data.periods[0]));
+  const [subjectId, setSubjectId] = useState(text(data.sections[0]?.school_subject_id) || text(data.subjects[0]?.id));
+  const [periodId, setPeriodId] = useState(text(data.sections[0]?.academic_period_id) || text(data.periods[0]?.id));
+  const [assessmentDate, setAssessmentDate] = useState(() => todayInPeriod(data.periods.find((period) => text(period.id) === text(data.sections[0]?.academic_period_id)) || data.periods[0]));
   const [profileId, setProfileId] = useState("");
   const [sectionIds, setSectionIds] = useState<string[]>([]);
   const [title, setTitle] = useState("");
@@ -41,12 +42,12 @@ export function AssessmentStudioList({ data }: { data: AssessmentStudioListData 
   return <main className="assessment-page">
     <header className="assessment-heading"><div><p className="eyebrow">Teacher workspace · authoring</p><h1>Assessment Studio</h1><p className="lede">Draft a class check or test based on what your learners have been taught.</p></div><div className="assessment-heading-note"><ShieldCheck size={16} /><span>Deterministic scope<br /><small>No mastery inference</small></span></div></header>
     <section className="assessment-list"><div className="section-title"><div><span className="section-kicker">Your work</span><h2>Your assessments</h2><p>Open a draft to continue working on it.</p></div></div>{data.workspaces.length === 0 ? <div className="assessment-empty"><ClipboardCheck size={17} /><div><strong>No assessments yet.</strong><p>Start with a purpose above; ATE will resolve the confirmed scope before authoring.</p></div></div> : <div className="assessment-work-list">{data.workspaces.map((workspace) => <a className="assessment-work-row" href={`/workspace/teacher/assessments/${text(workspace.id)}`} key={text(workspace.id)}><span><strong>{text(workspace.title)}</strong><small>{purposeLabels[text(workspace.purpose)] || text(workspace.purpose)} · {text(workspace.total_marks)} marks · {text(workspace.duration_minutes)} minutes</small></span><span className={`assessment-status ${text(workspace.status).toLowerCase()}`}>{text(workspace.status)}<ArrowRight size={15} /></span></a>)}</div>}</section>
-    {data.profiles.length === 0 && <section className="assessment-unavailable" role="status"><ShieldCheck size={24} /><div><span className="section-kicker">Assessment Studio status</span><h2>School assessments are not available yet.</h2><p>The verified assessment profiles for your school have not been activated. Existing test profiles cannot be used for Biology papers. Your saved work remains available above; an administrator must review and activate an applicable curriculum and assessment profile before new assessments can be authored.</p></div></section>}
+    {data.profiles.length === 0 && <section className="assessment-unavailable" role="status"><ShieldCheck size={24} /><div><span className="section-kicker">Formal assessment · governed access</span><h2>No formal assessment profile is active.</h2><p>Your classes may have an active curriculum profile, but that does not establish assessment rules. An academic reviewer must verify the subject and level guidance, source rights, purpose, effective dates and school bindings before a formal paper can be created. Test profiles and unreviewed guidance do not qualify.</p><p>For today’s teaching, open the relevant class and lesson to create lesson-linked homework or practice questions. These materials are not a formal assessment or Activity of Integration.</p><Link className="button button-primary" href="/workspace/teacher/sections">Open your classes <ArrowRight size={15} /></Link></div></section>}
     {data.profiles.length > 0 && <section className="assessment-create-grid">
       <form className="assessment-form" onSubmit={submit}>
         <div className="section-title"><div><span className="section-kicker">New assessment</span><h2>Create an assessment</h2><p>Choose what you are making and which classes it covers.</p></div></div>
         <div className="assessment-form-grid">
-          <label>Purpose<select value={purpose} onChange={(event) => { setPurpose(event.target.value); setProfileId(""); }} required>{data.purposes.map((item) => <option key={item} value={item}>{purposeLabels[item]}</option>)}</select></label>
+          <label>Purpose<select value={purpose} onChange={(event) => { setPurpose(event.target.value); setProfileId(""); setSectionIds((current) => event.target.value === "COMMON_STREAM_TEST" ? current : current.slice(0, 1)); }} required>{data.purposes.map((item) => <option key={item} value={item}>{purposeLabels[item]}</option>)}</select></label>
           <label>Subject<select value={subjectId} onChange={(event) => { setSubjectId(event.target.value); setProfileId(""); setSectionIds([]); }} required>{data.subjects.map((item) => <option key={text(item.id)} value={text(item.id)}>{text(item.name)}</option>)}</select></label>
           <label>Academic period<select value={periodId} onChange={(event) => { const nextPeriodId = event.target.value; setPeriodId(nextPeriodId); setAssessmentDate(todayInPeriod(data.periods.find((period) => text(period.id) === nextPeriodId))); }} required>{data.periods.map((item) => <option key={text(item.id)} value={text(item.id)}>{text(item.name)}</option>)}</select></label>
           <label>Assessment date<input type="date" value={assessmentDate} min={text(data.periods.find((period) => text(period.id) === periodId)?.starts_on)} max={text(data.periods.find((period) => text(period.id) === periodId)?.ends_on)} onChange={(event) => setAssessmentDate(event.target.value)} required /></label>
@@ -55,7 +56,7 @@ export function AssessmentStudioList({ data }: { data: AssessmentStudioListData 
           <label>Duration (minutes)<input type="number" min="1" max="600" value={duration} onChange={(event) => setDuration(event.target.value)} required /></label>
           <label>Total marks<input type="number" min="1" max="1000" value={marks} onChange={(event) => setMarks(event.target.value)} required /></label>
         </div>
-        <fieldset className="section-picker"><legend>Your classes</legend><p>Parallel streams stay independently stateful. Common tests use their confirmed-scope intersection.</p>{sections.length === 0 ? <span className="form-note">No assigned active classes match this subject and period.</span> : sections.map((section) => <label className="section-check" key={text(section.id)}><input type="checkbox" checked={sectionIds.includes(text(section.id))} onChange={(event) => setSectionIds((current) => event.target.checked ? [...current, text(section.id)] : current.filter((id) => id !== text(section.id)))} /><span>{text(section.display_name)}<small>Assigned class</small></span></label>)}</fieldset>
+        <fieldset className="section-picker"><legend>Your classes</legend><p>Parallel streams stay independently stateful. Common tests use their confirmed-scope intersection.</p>{sections.length === 0 ? <span className="form-note">No assigned active classes match this subject and period.</span> : sections.map((section) => <label className="section-check" key={text(section.id)}><input type={purpose === "COMMON_STREAM_TEST" ? "checkbox" : "radio"} name="assessment-section" checked={sectionIds.includes(text(section.id))} onChange={(event) => setSectionIds((current) => purpose === "COMMON_STREAM_TEST" ? event.target.checked ? [...current, text(section.id)] : current.filter((id) => id !== text(section.id)) : [text(section.id)])} /><span>{text(section.display_name)}<small>Assigned class</small></span></label>)}</fieldset>
         {message && <p className="form-error" role="alert">{message}</p>}
         <button className="button button-primary" disabled={busy || !selectedProfile || !sectionIds.length || !assessmentDate}><Plus size={15} />{busy ? "Resolving scope…" : "Open assessment workspace"}</button>
       </form>

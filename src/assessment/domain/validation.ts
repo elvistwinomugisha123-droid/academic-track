@@ -31,6 +31,11 @@ export function validateAssessment(input: {
     questionIds.add(question.id);
     if (question.marks <= 0) issues.push({ code: "QUESTION_MARKS_INVALID", message: `Question ${question.id} must have marks greater than zero.`, questionId: question.id });
     if (!question.markingGuide.length) issues.push({ code: "MARKING_GUIDE_MISSING", message: `Question ${question.id} is missing a marking guide.`, questionId: question.id });
+    if (/^(question\s*\d+|write your answer|answer the question|discuss the topic|explain your answer)\.?$/i.test(question.text.trim())) issues.push({ code: "GENERIC_QUESTION", message: `Question ${question.id} needs a specific, answerable learner task.`, questionId: question.id });
+    if (question.markingGuide.some((line) => /^(award (the|full|\d+) marks? for (a )?correct (answer|response)|accept (any )?correct (answer|response)|mark accordingly)\.?$/i.test(line.trim()))) issues.push({ code: "GENERIC_MARKING_GUIDE", message: `Question ${question.id} needs subject-specific marking evidence.`, questionId: question.id });
+    const explicitGuideMarks = question.markingGuide.map((line) => /(?:^|\s|\()([1-9]\d*)\s*(?:mark|marks|point|points)\b/i.exec(line)?.[1]).map((value) => value ? Number(value) : null);
+    if (explicitGuideMarks.length && explicitGuideMarks.every((value) => value !== null) && explicitGuideMarks.reduce<number>((sum, value) => sum + (value ?? 0), 0) !== question.marks) issues.push({ code: "MARKING_GUIDE_MARKS_MISMATCH", message: `Question ${question.id} marking guide marks do not equal its allocated marks.`, questionId: question.id });
+    if (question.canonicalIds.length === 0) issues.push({ code: "CURRICULUM_ANCHOR_MISSING", message: `Question ${question.id} has no eligible curriculum anchor.`, questionId: question.id });
     if (question.rubric && question.rubric.reduce((total, row) => total + row.marks, 0) !== question.marks) issues.push({ code: "RUBRIC_MARKS_MISMATCH", message: `Question ${question.id} rubric marks do not equal its allocated marks.`, questionId: question.id });
     for (const canonicalId of question.canonicalIds) {
       if (!known.has(canonicalId)) issues.push({ code: "UNKNOWN_CURRICULUM_ID", message: `Question ${question.id} references an unknown curriculum ID.`, questionId: question.id });

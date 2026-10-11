@@ -8,7 +8,7 @@ import { createPostgresKnowledgeClient } from "@/knowledge/db/client";
 import { requireWorkspaceAccess } from "@/lib/auth/access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { userFacingError } from "@/lib/user-facing-error";
-import { loadAssessmentWorkspace } from "./queries";
+import { loadAssessmentWorkspace, loadRuntimeProfile } from "./queries";
 import { validateAssessment } from "@/assessment/domain/validation";
 
 const uuid = z.string().uuid();
@@ -40,6 +40,7 @@ export async function createAssessmentWorkspace(input: unknown): Promise<{ ok: t
   try {
     const access = await requireWorkspaceAccess();
     const value = createSchema.parse(input);
+    if (value.purpose !== "COMMON_STREAM_TEST" && value.sectionIds.length !== 1) return { ok: false, error: "Choose one Teaching Section for this purpose. Use Common stream test for a shared paper across streams." };
     const client = await createSupabaseServerClient();
     const sectionResult = await client.from("teaching_sections").select("id, school_subject_id, academic_period_id").eq("school_id", access.schoolId).eq("teacher_membership_id", access.membershipId).eq("assignment_state", "CONFIRMED").eq("operational_status", "ACTIVE").in("id", value.sectionIds);
     if (sectionResult.error || !sectionResult.data || sectionResult.data.length !== value.sectionIds.length) return { ok: false, error: "Every participating Teaching Section must be assigned to you and active." };
@@ -53,6 +54,9 @@ export async function createAssessmentWorkspace(input: unknown): Promise<{ ok: t
     const allowSyntheticProfiles = allowTestSyntheticAssessmentProfiles({ flag: process.env.ATE_ALLOW_TEST_SYNTHETIC_ASSESSMENTS, supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL });
     if (profile?.regime === "TEST_SYNTHETIC" && !allowSyntheticProfiles) return { ok: false, error: "This assessment profile is reserved for testing and cannot be used for a school assessment." };
     if (!profile || (profile.subject_profile_id && profile.subject_profile_id !== value.curriculumSubjectProfileId)) return { ok: false, error: "No active assessment profile applies to this purpose and subject." };
+    const resolvedProfile = await loadRuntimeProfile(client, { assessment_profile_id: value.assessmentProfileId, curriculum_subject_profile_id: value.curriculumSubjectProfileId, school_subject_id: value.schoolSubjectId, school_id: access.schoolId, assessment_date: value.assessmentDate }, value.sectionIds);
+    if (resolvedProfile.state !== "RESOLVED") return { ok: false, error: resolvedProfile.explanation };
+    if (resolvedProfile.profile.purpose !== value.purpose) return { ok: false, error: "The assessment purpose does not match the verified guidance." };
     const [classroomEvents, preparations, scheduledLessons] = await Promise.all([
       client.from("classroom_events").select("id, scheduled_lesson_id, teaching_section_id, outcome, occurred_at, supersedes_event_id").eq("school_id", access.schoolId).in("teaching_section_id", value.sectionIds).order("occurred_at", { ascending: false }),
       client.from("lesson_preparations").select("scheduled_lesson_id, teaching_section_id, curriculum_position_event_id, curriculum_canonical_id, curriculum_profile_id").eq("school_id", access.schoolId).in("teaching_section_id", value.sectionIds),

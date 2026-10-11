@@ -68,6 +68,7 @@ export type AssessmentProfile = {
   sourceId: string | null;
   sourceVersion: string | null;
   releaseId: string;
+  curriculumReleaseId?: string;
   releaseVersion: string;
   verificationStatus: "VERIFIED" | "UNVERIFIED";
   rightsState: "CLEARED" | "OPERATOR_AUTHORIZED_FOR_PILOT" | "REVIEW_REQUIRED" | "RESTRICTED" | "UNKNOWN";
