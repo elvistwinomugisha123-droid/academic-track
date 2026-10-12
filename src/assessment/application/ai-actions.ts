@@ -3,7 +3,7 @@
 import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { AssessmentPayloadSchema, type AssessmentPayload } from "@/assessment/domain/types";
+import { AssessmentPayloadSchema, assessmentDifficulties, assessmentItemTypes, type AssessmentPayload } from "@/assessment/domain/types";
 import { validateAssessment } from "@/assessment/domain/validation";
 import { configuredAIGateway, generateStructured } from "@/ai/gateway";
 import { canonicalJson } from "@/ai/canonical-json";
@@ -17,6 +17,27 @@ import { singleQuestionChangeError } from "@/assessment/domain/single-question";
 
 const promptVersion = "assessment-draft-v2-grounded";
 const uuid = z.string().uuid();
+const generatedQuestionSchema = z.object({
+  text: z.string().trim().min(1),
+  expectedResponse: z.string().trim().min(1),
+  markingGuide: z.array(z.string().trim().min(1)).min(1),
+});
+const generatedQuestionsSchema = z.object({ questions: z.array(generatedQuestionSchema).min(1) });
+const generatedQuestionsOutputSchema = {
+  type: "object",
+  properties: { questions: { type: "array", items: {
+    type: "object",
+    properties: {
+      text: { type: "string" },
+      expectedResponse: { type: "string" },
+      markingGuide: { type: "array", items: { type: "string" } },
+    },
+    required: ["text", "expectedResponse", "markingGuide"],
+    additionalProperties: false,
+  } } },
+  required: ["questions"],
+  additionalProperties: false,
+};
 export type AssessmentProposal = { ok: true; runId: string; content: AssessmentPayload; contextFingerprint: string; outputFingerprint: string; expectedVersion: number; model: string } | { ok: false; error: string; code?: "RIGHTS_BLOCKED" | "UNAVAILABLE" | "VALIDATION_FAILED" };
 
 function fingerprint(value: unknown) { return createHash("sha256").update(canonicalJson(value)).digest("hex"); }
@@ -71,7 +92,22 @@ export async function generateAssessmentDraft(workspaceId: string, regenerateQue
       if (levels.error || !levels.data || levels.data.length !== levelIds.length) return { ok: false, code: "UNAVAILABLE", error: "The participating class levels could not be verified." };
       if (curriculum.some((item) => !item.level || levels.data!.some((level) => !assessmentLevelMatches(level.name, item.level!)))) return { ok: false, code: "UNAVAILABLE", error: "The taught curriculum topic does not match the class level. Correct the curriculum position before drafting this paper." };
     }
-    const safeContext = { purpose: data.workspace.purpose, profile: { id: profile.id, title: profile.displayTitle, regime: profile.regime, educationLevel: profile.educationLevel, releaseId: profile.releaseId, releaseVersion: profile.releaseVersion }, blueprint: data.version.content_json.blueprint, eligibleCurriculum: curriculum, topicGuidance, eligibleCanonicalIds, currentVersion: data.version.version_number, rightsState: profile.rightsState, externalAiAllowed: profile.externalAiAllowed, ...(questionId ? { regenerateQuestionId: questionId, savedPaper: data.version.content_json } : {}) };
+    const savedPaper = data.version.content_json;
+    const difficultyQueue = assessmentDifficulties.flatMap((difficulty) => Array.from({ length: savedPaper.blueprint.difficultyDistribution[difficulty] || 0 }, () => difficulty));
+    const itemPlan = questionId
+      ? savedPaper.questions.filter((question) => question.id === questionId).map((question) => ({ id: question.id, marks: question.marks, itemType: question.itemType, difficulty: question.difficulty, canonicalIds: question.canonicalIds }))
+      : assessmentItemTypes.flatMap((itemType) => {
+          const count = savedPaper.blueprint.itemDistribution[itemType] || 0;
+          const marks = savedPaper.blueprint.marksDistribution[itemType] || 0;
+          return Array.from({ length: count }, (_, index) => ({
+            id: `q-v${data.version.version_number}-${itemType.toLowerCase()}-${index + 1}`,
+            marks: Math.floor(marks / count) + (index < marks % count ? 1 : 0),
+            itemType,
+            difficulty: "MEDIUM" as const,
+            canonicalIds: [eligibleCanonicalIds[0]],
+          }));
+        }).map((item, index) => ({ ...item, difficulty: difficultyQueue[index] || item.difficulty }));
+    const safeContext = { purpose: data.workspace.purpose, profile: { id: profile.id, title: profile.displayTitle, regime: profile.regime, educationLevel: profile.educationLevel, releaseId: profile.releaseId, releaseVersion: profile.releaseVersion }, itemPlan, eligibleCurriculum: curriculum, topicGuidance, eligibleCanonicalIds, currentVersion: data.version.version_number, rightsState: profile.rightsState, externalAiAllowed: profile.externalAiAllowed, ...(questionId ? { regenerateQuestionId: questionId, savedQuestion: savedPaper.questions.find((question) => question.id === questionId) } : {}) };
     const contextFingerprint = fingerprint({ safeContext, promptVersion });
     const ai = configuredAIGateway();
     const runInsert = await service.from("assessment_ai_generation_runs").insert({ school_id: data.access.schoolId, assessment_workspace_id: workspaceIdValue, created_by_user_id: data.access.userId, created_by_membership_id: data.access.membershipId, provider: ai.provider, model: ai.model, prompt_version: promptVersion, context_fingerprint: contextFingerprint, context_snapshot: { profileId, purpose: data.workspace.purpose, expectedVersion: data.version.version_number, blueprint: data.version.content_json.blueprint, eligibleCanonicalIds }, status: aiAllowed ? "RUNNING" : "RIGHTS_BLOCKED", validation_status: aiAllowed ? "NOT_RUN" : "FAILED", rights_state: rightsState }).select("id").single();
@@ -79,7 +115,20 @@ export async function generateAssessmentDraft(workspaceId: string, regenerateQue
     const runId = String(runInsert.data.id);
     const started = Date.now();
     try {
-      const result = await generateStructured({ system: `Draft a teacher-review-required assessment using the supplied verified curriculum wording and blueprint. Match the education level and subject. For a class test, include realistic application or interpretation tasks where the outcome supports them, with enough context to answer; do not force one scenario onto a simple formative check. Use only eligibleCanonicalIds. Give each question a specific expected response and subject-specific marking guide. Put explicit numeric mark allocations on every marking guide line; their sum must equal the question marks. Check the mathematics or chemistry for factual accuracy and give all data needed to answer. Do not invent source facts, curriculum IDs, official status, NCDC/UNEB claims, or assessment rules. Preserve purpose, durationMinutes, totalMarks, blueprint and participatingSectionIds exactly. Return only the canonical AssessmentPayload JSON with stable question IDs.${questionId ? ` Regenerate only question ID ${questionId} in savedPaper. Return the entire paper but copy every other question and all paper fields exactly. Preserve the selected question's ID, marks, item type, difficulty, and curriculum IDs. Improve its learner task, expected response, and scored marking guide. Never revise any other question.` : ""}`, payload: { workflow: questionId ? "ASSESSMENT_SINGLE_QUESTION" : "ASSESSMENT_DRAFT", safeContext }, maxTokens: 4096, validate: (value) => AssessmentPayloadSchema.parse(value) });
+      const result = await generateStructured({
+        system: `Write exactly one question for each itemPlan entry, in order. Use only the verified eligible curriculum and the given subject and class level. Return JSON with only a questions array; each entry has text, expectedResponse, and markingGuide (an array of scored strings). The application supplies IDs, item types, difficulty, marks, curriculum IDs, and paper fields from the saved teacher blueprint. Each guide line must begin with an explicit number of marks, and the guide total must equal that item's allocated marks. Provide a specific, answerable learner task and a correct expected answer; include every numerical datum needed. Use a plausible application situation only when it adds real reasoning. Do not invent official rules or copy sample paper wording.${questionId ? " Improve the saved question while preserving its allocated marks, type, difficulty, and scope." : ""}`,
+        payload: { workflow: questionId ? "ASSESSMENT_SINGLE_QUESTION" : "ASSESSMENT_DRAFT", safeContext },
+        maxTokens: 4096,
+        outputSchema: generatedQuestionsOutputSchema,
+        validate: (value) => {
+          const generated = generatedQuestionsSchema.parse(value);
+          if (generated.questions.length !== itemPlan.length) throw new Error(`ATE returned ${generated.questions.length} questions; the saved blueprint requires ${itemPlan.length}.`);
+          const questions = questionId
+            ? savedPaper.questions.map((question) => question.id === questionId ? { ...question, ...generated.questions[0] } : question)
+            : itemPlan.map((item, index) => ({ ...item, ...generated.questions[index], cognitiveDemand: null, rubric: null }));
+          return AssessmentPayloadSchema.parse({ ...savedPaper, questions });
+        },
+      });
       if (questionId) { const changeError = singleQuestionChangeError(data.version.content_json, result.output, questionId); if (changeError) throw new Error(changeError); }
       const validation = validateAssessment({ payload: result.output, blueprint: data.version.content_json.blueprint, eligibleCanonicalIds, knownCanonicalIds: eligibleCanonicalIds, participatingSectionIds: data.sections.map((section) => String(section.teaching_section_id)), profile, exportAllowed: profile.exportAllowed });
       if (!validation.valid) throw new Error(validation.issues[0]?.message || "AI assessment draft did not satisfy the blueprint.");
