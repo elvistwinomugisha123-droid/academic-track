@@ -13,6 +13,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireWorkspaceAccess } from "@/lib/auth/access";
 import { createPostgresKnowledgeClient } from "@/knowledge/db/client";
 import { assessmentLevelMatches } from "@/assessment/domain/curriculum-level";
+import { singleQuestionChangeError } from "@/assessment/domain/single-question";
 
 const promptVersion = "assessment-draft-v2-grounded";
 const uuid = z.string().uuid();
@@ -20,13 +21,15 @@ export type AssessmentProposal = { ok: true; runId: string; content: AssessmentP
 
 function fingerprint(value: unknown) { return createHash("sha256").update(canonicalJson(value)).digest("hex"); }
 
-export async function generateAssessmentDraft(workspaceId: string): Promise<AssessmentProposal> {
+export async function generateAssessmentDraft(workspaceId: string, regenerateQuestionId?: string): Promise<AssessmentProposal> {
   try {
     const data = await loadAssessmentWorkspace(workspaceId);
     const { blueprintIssues } = await import("@/assessment/domain/blueprint");
     const blueprintError = blueprintIssues(data.version.content_json.blueprint)[0];
     if (blueprintError) return { ok: false, code: "UNAVAILABLE", error: `${blueprintError} Save the blueprint before asking ATE to draft.` };
     const workspaceIdValue = uuid.parse(workspaceId);
+    const questionId = regenerateQuestionId ? z.string().min(1).max(120).parse(regenerateQuestionId) : null;
+    if (questionId && !data.version.content_json.questions.some((question) => question.id === questionId)) return { ok: false, code: "UNAVAILABLE", error: "That saved question is no longer in this version. Refresh the assessment." };
     const profile = data.runtimeProfile;
     if (!profile || data.profileResolution.state !== "RESOLVED") return { ok: false, code: "UNAVAILABLE", error: data.profileResolution.explanation };
     const profileId = profile.id;
@@ -68,7 +71,7 @@ export async function generateAssessmentDraft(workspaceId: string): Promise<Asse
       if (levels.error || !levels.data || levels.data.length !== levelIds.length) return { ok: false, code: "UNAVAILABLE", error: "The participating class levels could not be verified." };
       if (curriculum.some((item) => !item.level || levels.data!.some((level) => !assessmentLevelMatches(level.name, item.level!)))) return { ok: false, code: "UNAVAILABLE", error: "The taught curriculum topic does not match the class level. Correct the curriculum position before drafting this paper." };
     }
-    const safeContext = { purpose: data.workspace.purpose, profile: { id: profile.id, title: profile.displayTitle, regime: profile.regime, educationLevel: profile.educationLevel, releaseId: profile.releaseId, releaseVersion: profile.releaseVersion }, blueprint: data.version.content_json.blueprint, eligibleCurriculum: curriculum, topicGuidance, eligibleCanonicalIds, currentVersion: data.version.version_number, rightsState: profile.rightsState, externalAiAllowed: profile.externalAiAllowed };
+    const safeContext = { purpose: data.workspace.purpose, profile: { id: profile.id, title: profile.displayTitle, regime: profile.regime, educationLevel: profile.educationLevel, releaseId: profile.releaseId, releaseVersion: profile.releaseVersion }, blueprint: data.version.content_json.blueprint, eligibleCurriculum: curriculum, topicGuidance, eligibleCanonicalIds, currentVersion: data.version.version_number, rightsState: profile.rightsState, externalAiAllowed: profile.externalAiAllowed, ...(questionId ? { regenerateQuestionId: questionId, savedPaper: data.version.content_json } : {}) };
     const contextFingerprint = fingerprint({ safeContext, promptVersion });
     const ai = configuredAIGateway();
     const runInsert = await service.from("assessment_ai_generation_runs").insert({ school_id: data.access.schoolId, assessment_workspace_id: workspaceIdValue, created_by_user_id: data.access.userId, created_by_membership_id: data.access.membershipId, provider: ai.provider, model: ai.model, prompt_version: promptVersion, context_fingerprint: contextFingerprint, context_snapshot: { profileId, purpose: data.workspace.purpose, expectedVersion: data.version.version_number, blueprint: data.version.content_json.blueprint, eligibleCanonicalIds }, status: aiAllowed ? "RUNNING" : "RIGHTS_BLOCKED", validation_status: aiAllowed ? "NOT_RUN" : "FAILED", rights_state: rightsState }).select("id").single();
@@ -76,7 +79,8 @@ export async function generateAssessmentDraft(workspaceId: string): Promise<Asse
     const runId = String(runInsert.data.id);
     const started = Date.now();
     try {
-      const result = await generateStructured({ system: "Draft a teacher-review-required assessment using the supplied verified curriculum wording and blueprint. Match the education level and subject. For a class test, include realistic application or interpretation tasks where the outcome supports them, with enough context to answer; do not force one scenario onto a simple formative check. Use only eligibleCanonicalIds. Give each question a specific expected response and subject-specific marking guide. Put explicit numeric mark allocations on every marking guide line; their sum must equal the question marks. Check the mathematics or chemistry for factual accuracy and give all data needed to answer. Do not invent source facts, curriculum IDs, official status, NCDC/UNEB claims, or assessment rules. Preserve purpose, durationMinutes, totalMarks, blueprint and participatingSectionIds exactly. Return only the canonical AssessmentPayload JSON with stable question IDs.", payload: { workflow: "ASSESSMENT_DRAFT", safeContext }, maxTokens: 4800, validate: (value) => AssessmentPayloadSchema.parse(value) });
+      const result = await generateStructured({ system: `Draft a teacher-review-required assessment using the supplied verified curriculum wording and blueprint. Match the education level and subject. For a class test, include realistic application or interpretation tasks where the outcome supports them, with enough context to answer; do not force one scenario onto a simple formative check. Use only eligibleCanonicalIds. Give each question a specific expected response and subject-specific marking guide. Put explicit numeric mark allocations on every marking guide line; their sum must equal the question marks. Check the mathematics or chemistry for factual accuracy and give all data needed to answer. Do not invent source facts, curriculum IDs, official status, NCDC/UNEB claims, or assessment rules. Preserve purpose, durationMinutes, totalMarks, blueprint and participatingSectionIds exactly. Return only the canonical AssessmentPayload JSON with stable question IDs.${questionId ? ` Regenerate only question ID ${questionId} in savedPaper. Return the entire paper but copy every other question and all paper fields exactly. Preserve the selected question's ID, marks, item type, difficulty, and curriculum IDs. Improve its learner task, expected response, and scored marking guide. Never revise any other question.` : ""}`, payload: { workflow: questionId ? "ASSESSMENT_SINGLE_QUESTION" : "ASSESSMENT_DRAFT", safeContext }, maxTokens: 4800, validate: (value) => AssessmentPayloadSchema.parse(value) });
+      if (questionId) { const changeError = singleQuestionChangeError(data.version.content_json, result.output, questionId); if (changeError) throw new Error(changeError); }
       const validation = validateAssessment({ payload: result.output, blueprint: data.version.content_json.blueprint, eligibleCanonicalIds, knownCanonicalIds: eligibleCanonicalIds, participatingSectionIds: data.sections.map((section) => String(section.teaching_section_id)), profile, exportAllowed: profile.exportAllowed });
       if (!validation.valid) throw new Error(validation.issues[0]?.message || "AI assessment draft did not satisfy the blueprint.");
       const outputFingerprint = fingerprint(result.output);
