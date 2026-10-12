@@ -47,6 +47,13 @@ describe("lesson artifact AI trust boundary", () => {
     expect(() => validateGeneratedArtifact("BOARD_NOTES", { title: "Board notes", keyPoints: ["Protected source wording"], examples: [], equations: [], prompts: [] }, restricted)).toThrow(/curriculum wording/);
   });
 
+  it("requires specific answer evidence for each generated homework task", () => {
+    const homework = { title: "Cell structure practice", instructions: "Use your lesson notes.", tasks: ["Name the part of a plant cell that controls what enters and leaves the cell, and explain its role.", "Compare the shape of the cell wall and the cell membrane in a labelled plant cell drawing."], answerGuide: ["Cell membrane; accept an explanation that it controls movement of substances into and out of the cell.", "The rigid cell wall forms the outer boundary and supports the cell; the membrane lies immediately inside it."], followUpNotes: "Use responses to plan the next check." };
+    expect(validateGeneratedArtifact("HOMEWORK", homework, context)).toMatchObject({ answerGuide: homework.answerGuide });
+    expect(() => validateGeneratedArtifact("HOMEWORK", { ...homework, answerGuide: ["Any correct answer"] }, context)).toThrow(/ANSWER|HOMEWORK|guide/i);
+    expect(() => validateGeneratedArtifact("HOMEWORK", { ...homework, tasks: ["Discuss the topic.", homework.tasks[1]] }, context)).toThrow(/HOMEWORK/);
+  });
+
   it("tells the model the required plan and pack shapes before validating its response", () => {
     const lessonPrompt = lessonArtifactSystemPrompt("GENERATE_FORMAL_LESSON_PLAN", "FORMAL_LESSON_PLAN");
     expect(lessonPrompt).toContain('"teachingSequence"');

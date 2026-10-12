@@ -31,7 +31,7 @@ export const BoardNotesPayloadSchema = z.object({ title: z.string(), keyPoints: 
 export const LearnerNotesPayloadSchema = z.object({ title: z.string(), keyConcepts: z.array(z.string()), explanation: z.string(), examples: z.array(z.string()), applications: z.array(z.string()), summary: z.string() });
 export const ActivitySheetPayloadSchema = z.object({ title: z.string(), instructions: z.string(), materialsRequired: z.array(z.string()), tasks: z.array(z.string()), questions: z.array(z.string()), observationResponseArea: z.string(), conclusionPrompts: z.array(z.string()) });
 export const LessonSummaryPayloadSchema = z.object({ title: z.string(), keyTakeaways: z.array(z.string()), conciseSummary: z.string(), learnerReflection: z.string() });
-export const HomeworkPayloadSchema = z.object({ title: z.string(), instructions: z.string(), tasks: z.array(z.string()), followUpNotes: z.string() });
+export const HomeworkPayloadSchema = z.object({ title: z.string(), instructions: z.string(), tasks: z.array(z.string()), answerGuide: z.array(z.string()).default([]), followUpNotes: z.string() });
 
 export type LessonArtifactType = "FORMAL_LESSON_PLAN" | "BOARD_NOTES" | "LEARNER_NOTES" | "LESSON_SUMMARY" | "ACTIVITY_SHEET" | "HOMEWORK";
 export type BoardNotesPayload = z.infer<typeof BoardNotesPayloadSchema>;

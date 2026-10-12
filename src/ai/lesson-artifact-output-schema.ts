@@ -36,7 +36,7 @@ export const lessonArtifactOutputSchemas: Record<LessonArtifactType, Schema> = {
   LEARNER_NOTES: object({ title: string, keyConcepts: strings, explanation: string, examples: strings, applications: strings, summary: string }),
   ACTIVITY_SHEET: object({ title: string, instructions: string, materialsRequired: strings, tasks: strings, questions: strings, observationResponseArea: string, conclusionPrompts: strings }),
   LESSON_SUMMARY: object({ title: string, keyTakeaways: strings, conciseSummary: string, learnerReflection: string }),
-  HOMEWORK: object({ title: string, instructions: string, tasks: strings, followUpNotes: string }),
+  HOMEWORK: object({ title: string, instructions: string, tasks: strings, answerGuide: strings, followUpNotes: string }),
 };
 
 export const askATEOutputSchema = object({ answer: string, suggestedFollowUps: strings });

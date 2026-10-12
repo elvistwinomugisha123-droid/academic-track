@@ -13,7 +13,7 @@ export function lessonArtifactRenderModel(artifact: Exclude<CanonicalArtifactVer
     case "LEARNER_NOTES": { const p = artifact.payload; return { title: p.title, sections: [list("Key concepts", p.keyConcepts), paragraph("Explanation", p.explanation), list("Examples", p.examples), list("Applications", p.applications), paragraph("Summary", p.summary)] }; }
     case "ACTIVITY_SHEET": { const p = artifact.payload; return { title: p.title, sections: [paragraph("Instructions", p.instructions), list("Materials required", p.materialsRequired), list("Tasks", p.tasks), list("Questions", p.questions), paragraph("Observation / response", p.observationResponseArea), list("Conclusion", p.conclusionPrompts)] }; }
     case "LESSON_SUMMARY": { const p = artifact.payload; return { title: p.title, sections: [list("Key takeaways", p.keyTakeaways), paragraph("Summary", p.conciseSummary), paragraph("Learner reflection", p.learnerReflection)] }; }
-    case "HOMEWORK": { const p = artifact.payload; return { title: p.title, sections: [paragraph("Instructions", p.instructions), list("Tasks", p.tasks), paragraph("Follow-up", p.followUpNotes)] }; }
+    case "HOMEWORK": { const p = artifact.payload; return { title: p.title, sections: [paragraph("Instructions", p.instructions), list("Tasks", p.tasks), list("Teacher answer and feedback guide", p.answerGuide), paragraph("Follow-up", p.followUpNotes)] }; }
   }
 }
 

@@ -7,7 +7,7 @@ import { LessonArtifactDocument } from "./lesson-artifacts";
 const artifact: Exclude<CanonicalArtifactVersion, { artifactType: "ASSESSMENT" }> = {
   artifactId: "saved", versionId: "version", artifactType: "HOMEWORK", status: "DRAFT",
   ownerScope: "section", curriculumAnchorIds: [], provenance: [],
-  payload: { title: "Transport in Plants – Homework", instructions: "Complete the tasks.", tasks: ["Draw and label xylem tissue.", "Explain water movement from roots to leaves."], followUpNotes: "Bring your work to the next lesson." },
+  payload: { title: "Transport in Plants – Homework", instructions: "Complete the tasks.", tasks: ["Draw and label xylem tissue.", "Explain water movement from roots to leaves."], answerGuide: ["Labels identify xylem vessels.", "Explanation links root uptake and transpiration."], followUpNotes: "Bring your work to the next lesson." },
 };
 
 describe("lesson artifact PDF", () => {

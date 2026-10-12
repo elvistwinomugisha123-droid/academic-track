@@ -23,7 +23,7 @@ function defaultPackPayload(type: Exclude<LessonArtifactType, "FORMAL_LESSON_PLA
     LEARNER_NOTES: { title: `Learner notes · ${plan.title}`, keyConcepts: splitLines(plan.intendedCoverage), explanation: plan.learningIntention, examples: [], applications: [], summary },
     ACTIVITY_SHEET: { title: `Activity sheet · ${plan.title}`, instructions: "Use the lesson sequence to complete the activity.", materialsRequired: resources, tasks, questions: prompts, observationResponseArea: "", conclusionPrompts: splitLines(plan.conclusionFollowUp) },
     LESSON_SUMMARY: { title: `Lesson summary · ${plan.title}`, keyTakeaways: splitLines(plan.intendedCoverage), conciseSummary: summary, learnerReflection: "" },
-    HOMEWORK: { title: `Homework · ${plan.title}`, instructions: plan.conclusionFollowUp, tasks: [], followUpNotes: "" },
+    HOMEWORK: { title: `Homework · ${plan.title}`, instructions: plan.conclusionFollowUp, tasks: [], answerGuide: [], followUpNotes: "" },
   } as const;
   return defaults[type];
 }
