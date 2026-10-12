@@ -24,7 +24,7 @@ async function loadAssessmentStudioListOnce(nextPath = "/workspace/teacher/asses
   const access = await requireWorkspaceAccess(undefined, nextPath);
   if (!access.roles.includes("TEACHER")) throw new Error("Assessment Studio is available to assigned teachers.");
   const client = await createSupabaseServerClient();
-  const [sections, subjects, periods, workspaces, levels, streams, subjectBindings] = await Promise.all([
+  const [sections, subjects, periods, workspaces, levels, streams, subjectBindings, assessmentBindings] = await Promise.all([
     client.from("teaching_sections").select("id, academic_period_id, school_subject_id, class_level_id, stream_id, assignment_state, operational_status").eq("school_id", access.schoolId).eq("teacher_membership_id", access.membershipId).eq("assignment_state", "CONFIRMED").eq("operational_status", "ACTIVE"),
     client.from("school_subjects").select("id, name, code").eq("school_id", access.schoolId).order("name"),
     client.from("academic_periods").select("id, name, academic_year, starts_on, ends_on").eq("school_id", access.schoolId).order("starts_on", { ascending: false }),
@@ -32,8 +32,9 @@ async function loadAssessmentStudioListOnce(nextPath = "/workspace/teacher/asses
     client.from("class_levels").select("id, name").eq("school_id", access.schoolId),
     client.from("streams").select("id, name").eq("school_id", access.schoolId),
     client.from("school_subject_curriculum_bindings").select("school_subject_id, subject_profile_id, status, effective_from, effective_to").eq("school_id", access.schoolId),
+    client.from("knowledge_assessment_profile_bindings").select("assessment_profile_id, teaching_section_id, status, effective_from, effective_to").eq("school_id", access.schoolId).eq("status", "ACTIVE"),
   ]);
-  for (const result of [sections, subjects, periods, workspaces, levels, streams, subjectBindings]) if (result.error) throw new Error(`Assessment Studio data could not be loaded. ${result.error.code ?? ""} ${result.error.message ?? ""}`.trim());
+  for (const result of [sections, subjects, periods, workspaces, levels, streams, subjectBindings, assessmentBindings]) if (result.error) throw new Error(`Assessment Studio data could not be loaded. ${result.error.code ?? ""} ${result.error.message ?? ""}`.trim());
   const levelNames = new Map((levels.data ?? []).map((row) => [row.id, row.name]));
   const streamNames = new Map((streams.data ?? []).map((row) => [row.id, row.name]));
   const namedSections = (sections.data ?? []).map((section) => ({ ...section, display_name: `${levelNames.get(section.class_level_id) || "Class"} · ${streamNames.get(section.stream_id) || "Stream"}` }));
@@ -41,8 +42,10 @@ async function loadAssessmentStudioListOnce(nextPath = "/workspace/teacher/asses
   let knowledge: ReturnType<typeof createPostgresKnowledgeClient> | null = null;
   try {
     knowledge = createPostgresKnowledgeClient();
-    const profiles = await knowledge.query<Record<string, unknown>>("select id, release_id, subject_profile_id, assessment_key, display_title, purpose, regime, status from knowledge_assessment_profiles where status = 'ACTIVE' and ($2::boolean or regime <> 'TEST_SYNTHETIC') and purpose = any($1::text[]) order by display_title", [assessmentPurposes, allowSyntheticProfiles]);
-    return { access, sections: namedSections, subjects: subjects.data ?? [], periods: periods.data ?? [], subjectBindings: subjectBindings.data ?? [], profiles: profiles.rows, profileLoadError: null, workspaces: workspaces.data ?? [], purposes: assessmentPurposes };
+    const profiles = await knowledge.query<Record<string, unknown>>("select ap.id, ap.release_id, ap.assessment_release_id, ap.subject_profile_id, ap.assessment_key, ap.display_title, ap.purpose, ap.regime, ap.status from knowledge_assessment_profiles ap join knowledge_assessment_releases ar on ar.id=ap.assessment_release_id and ar.status='ACTIVE' where ap.status = 'ACTIVE' and ($2::boolean or ap.regime <> 'TEST_SYNTHETIC') and ap.purpose = any($1::text[]) order by ap.display_title", [assessmentPurposes, allowSyntheticProfiles]);
+    const ownedSections = new Set(namedSections.map((section) => String(section.id)));
+    const boundProfiles = new Set((assessmentBindings.data ?? []).filter((binding) => ownedSections.has(String(binding.teaching_section_id))).map((binding) => String(binding.assessment_profile_id)));
+    return { access, sections: namedSections, subjects: subjects.data ?? [], periods: periods.data ?? [], subjectBindings: subjectBindings.data ?? [], profiles: profiles.rows.filter((profile) => boundProfiles.has(String(profile.id))), profileLoadError: null, workspaces: workspaces.data ?? [], purposes: assessmentPurposes };
   } catch {
     return { access, sections: namedSections, subjects: subjects.data ?? [], periods: periods.data ?? [], subjectBindings: subjectBindings.data ?? [], profiles: [], profileLoadError: "Assessment guidance could not be checked right now. Your saved school and lesson work remains available; refresh this page to try again.", workspaces: workspaces.data ?? [], purposes: assessmentPurposes };
   } finally {
@@ -83,21 +86,22 @@ export async function loadRuntimeProfile(client: Awaited<ReturnType<typeof creat
   const assessmentDate = stringValue(workspace.assessment_date);
   const knowledge = createPostgresKnowledgeClient();
   try {
-    const profileResult = await knowledge.query<Record<string, unknown>>("select id, display_title, purpose, regime, release_id, subject_profile_id, status, applicable_source_roles, allows_broader_scope, allows_partial_scope, requires_review from knowledge_assessment_profiles where id=$1 limit 1", [profileId]);
+    const profileResult = await knowledge.query<Record<string, unknown>>("select id, display_title, purpose, regime, release_id, assessment_release_id, subject_profile_id, status, applicable_source_roles, allows_broader_scope, allows_partial_scope, requires_review from knowledge_assessment_profiles where id=$1 limit 1", [profileId]);
     const profileRow = profileResult.rows[0];
     if (!profileRow) return { state: "UNAVAILABLE", profile: null, explanation: "The assessment guidance for this workspace could not be loaded." };
-    const [releaseResult, subjectProfileResult, subjectBindingResult, sectionBindingsResult, sourcesResult] = await Promise.all([
-      knowledge.query<Record<string, unknown>>("select id, version_label, authority, status, effective_from, effective_to from knowledge_curriculum_releases where id=$1 limit 1", [stringValue(profileRow.release_id)]),
+    const [releaseResult, subjectProfileResult, subjectBindingResult, sectionBindingsResult, assessmentBindingsResult, sourcesResult] = await Promise.all([
+      knowledge.query<Record<string, unknown>>("select id, subject_profile_id, source_id, source_checksum_sha256, version_label, authority, status, effective_from, effective_to from knowledge_assessment_releases where id=$1 limit 1", [stringValue(profileRow.assessment_release_id)]),
       knowledge.query<Record<string, unknown>>("select id, governed_subject_id, education_level, status, runtime_status, release_id from knowledge_subject_profiles where id=$1 limit 1", [subjectProfileId]),
       client.from("school_subject_curriculum_bindings").select("status, effective_from, effective_to").eq("school_id", schoolId).eq("school_subject_id", schoolSubjectId).eq("subject_profile_id", subjectProfileId).order("effective_from", { ascending: false }),
       client.from("teaching_section_curriculum_bindings").select("teaching_section_id, status, effective_from, effective_to").eq("school_id", schoolId).in("teaching_section_id", sectionIds).eq("subject_profile_id", subjectProfileId),
+      client.from("knowledge_assessment_profile_bindings").select("teaching_section_id, status, effective_from, effective_to").eq("school_id", schoolId).eq("assessment_profile_id", profileId).in("teaching_section_id", sectionIds),
       knowledge.query<Record<string, unknown>>("select release_id, source_id, source_role, subject_profile_id, status from knowledge_release_sources where status='APPROVED' and release_id=$1", [stringValue(profileRow.release_id)]),
     ]);
-    if (!releaseResult.rows[0] || !subjectProfileResult.rows[0] || subjectBindingResult.error || sectionBindingsResult.error) return { state: "UNAVAILABLE", profile: null, explanation: "The assessment guidance is not active for this class and date." };
+    if (!releaseResult.rows[0] || !subjectProfileResult.rows[0] || subjectBindingResult.error || sectionBindingsResult.error || assessmentBindingsResult.error) return { state: "UNAVAILABLE", profile: null, explanation: "The assessment guidance or its school and section bindings could not be verified." };
     const releaseRow = releaseResult.rows[0];
     const subjectProfileRow = subjectProfileResult.rows[0];
     const applicableRoles = new Set(Array.isArray(profileRow.applicable_source_roles) ? profileRow.applicable_source_roles.map((role) => stringValue(role)) : []);
-    const releaseSources = releaseResult && sourcesResult.rows.filter((source) => stringValue(source.release_id) === stringValue(profileRow.release_id) && (source.subject_profile_id == null || stringValue(source.subject_profile_id) === subjectProfileId) && (applicableRoles.size === 0 || applicableRoles.has(stringValue(source.source_role))));
+    const releaseSources = sourcesResult.rows.filter((source) => stringValue(source.release_id) === stringValue(profileRow.release_id) && stringValue(source.source_id) === stringValue(releaseRow.source_id) && (source.subject_profile_id == null || stringValue(source.subject_profile_id) === subjectProfileId) && (applicableRoles.size === 0 || applicableRoles.has(stringValue(source.source_role))));
     const sourceIds = [...new Set(releaseSources.map((source) => stringValue(source.source_id)).filter(Boolean))];
     const [sourceRowsResult, decisionsResult] = await Promise.all([
       sourceIds.length ? knowledge.query<Record<string, unknown>>("select source_id, source_version, checksum_sha256, rights_status, production_use_status, external_ai_allowed, formal_artifact_allowed, export_allowed from knowledge_sources where source_id = any($1::text[])", [sourceIds]) : Promise.resolve({ rows: [] as Record<string, unknown>[] }),
@@ -108,7 +112,7 @@ export async function loadRuntimeProfile(client: Awaited<ReturnType<typeof creat
     const key = `${stringValue(decision.source_id)}:${stringValue(decision.source_checksum_sha256)}`;
     if (!decisionsBySource.has(key)) decisionsBySource.set(key, decision);
   }
-    const sources = sourceRowsResult.rows.map((source) => {
+    const sources = sourceRowsResult.rows.filter((source) => stringValue(source.checksum_sha256) === stringValue(releaseRow.source_checksum_sha256)).map((source) => {
     const decision = decisionsBySource.get(`${stringValue(source.source_id)}:${stringValue(source.checksum_sha256)}`);
     const current = decision && (!decision.review_expires_at || stringValue(decision.review_expires_at) >= assessmentDate) ? decision : null;
     return {
@@ -122,14 +126,15 @@ export async function loadRuntimeProfile(client: Awaited<ReturnType<typeof creat
     };
   });
     return resolveRuntimeAssessmentProfile({
-    profile: { id: profileId, displayTitle: stringValue(profileRow.display_title), purpose: stringValue(profileRow.purpose) as AssessmentProfile["purpose"], regime: stringValue(profileRow.regime), releaseId: stringValue(profileRow.release_id), subjectProfileId: profileRow.subject_profile_id == null ? null : stringValue(profileRow.subject_profile_id), status: stringValue(profileRow.status), allowsBroaderScope: Boolean(profileRow.allows_broader_scope), allowsPartialScope: Boolean(profileRow.allows_partial_scope), requiresReview: Boolean(profileRow.requires_review) },
-    release: { id: stringValue(releaseRow.id), versionLabel: stringValue(releaseRow.version_label), authority: stringValue(releaseRow.authority), status: stringValue(releaseRow.status), effectiveFrom: stringValue(releaseRow.effective_from), effectiveTo: releaseRow.effective_to == null ? null : stringValue(releaseRow.effective_to) },
+    profile: { id: profileId, displayTitle: stringValue(profileRow.display_title), purpose: stringValue(profileRow.purpose) as AssessmentProfile["purpose"], regime: stringValue(profileRow.regime), releaseId: stringValue(profileRow.assessment_release_id), subjectProfileId: profileRow.subject_profile_id == null ? null : stringValue(profileRow.subject_profile_id), status: stringValue(profileRow.status), allowsBroaderScope: Boolean(profileRow.allows_broader_scope), allowsPartialScope: Boolean(profileRow.allows_partial_scope), requiresReview: Boolean(profileRow.requires_review) },
+    release: { id: stringValue(releaseRow.id), subjectProfileId: stringValue(releaseRow.subject_profile_id), versionLabel: stringValue(releaseRow.version_label), authority: stringValue(releaseRow.authority), status: stringValue(releaseRow.status), effectiveFrom: stringValue(releaseRow.effective_from), effectiveTo: releaseRow.effective_to == null ? null : stringValue(releaseRow.effective_to) },
     subjectProfile: { id: stringValue(subjectProfileRow.id), releaseId: stringValue(subjectProfileRow.release_id), governedSubjectId: stringValue(subjectProfileRow.governed_subject_id), educationLevel: stringValue(subjectProfileRow.education_level), status: stringValue(subjectProfileRow.status), runtimeStatus: stringValue(subjectProfileRow.runtime_status) },
     subjectProfileId,
     subjectId: stringValue(subjectProfileRow.governed_subject_id),
     sectionIds,
     subjectBinding: records(subjectBindingResult.data).map((row) => ({ status: stringValue(row.status), effectiveFrom: stringValue(row.effective_from), effectiveTo: row.effective_to == null ? null : stringValue(row.effective_to) })).find((binding) => binding.effectiveFrom <= assessmentDate && (binding.effectiveTo === null || binding.effectiveTo >= assessmentDate)) ?? null,
     sectionBindings: records(sectionBindingsResult.data).map((row) => ({ sectionId: stringValue(row.teaching_section_id), status: stringValue(row.status), effectiveFrom: stringValue(row.effective_from), effectiveTo: row.effective_to == null ? null : stringValue(row.effective_to) })),
+    assessmentBindings: records(assessmentBindingsResult.data).map((row) => ({ sectionId: stringValue(row.teaching_section_id), status: stringValue(row.status), effectiveFrom: stringValue(row.effective_from), effectiveTo: row.effective_to == null ? null : stringValue(row.effective_to) })),
     assessmentDate,
     sources,
     });
