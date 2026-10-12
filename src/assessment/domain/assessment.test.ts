@@ -69,4 +69,10 @@ describe("Assessment Studio domain", () => {
     const result = validateAssessment({ payload: weak, blueprint: payload.blueprint, eligibleCanonicalIds: ["A", "B"], knownCanonicalIds: ["A", "B"], participatingSectionIds: payload.blueprint.participatingSectionIds, profile, exportAllowed: true });
     expect(result.issues.map((issue) => issue.code)).toEqual(expect.arrayContaining(["GENERIC_QUESTION", "MARKING_GUIDE_MARKS_MISMATCH"]));
   });
+
+  it("requires a mark allocation on every marking guide line", () => {
+    const questionWithUnscoredLine = { ...payload.questions[0], markingGuide: ["2 marks: correct method", "Final answer is 12"] };
+    const result = validateAssessment({ payload: { ...payload, questions: [questionWithUnscoredLine, payload.questions[1]] }, blueprint: payload.blueprint, eligibleCanonicalIds: ["A", "B"], knownCanonicalIds: ["A", "B"], participatingSectionIds: payload.blueprint.participatingSectionIds, profile, exportAllowed: true });
+    expect(result.issues.map((issue) => issue.code)).toContain("MARKING_GUIDE_MARKS_MISSING");
+  });
 });

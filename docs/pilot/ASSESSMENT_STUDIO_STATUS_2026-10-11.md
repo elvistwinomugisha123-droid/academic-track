@@ -2,13 +2,14 @@
 
 ## Live evidence
 
-Source: read-only queries of ATE_Pilot (`pdvvspuokkordgppjwxg`) on 11 October 2026.
+Source: read-only queries of ATE_Pilot (`pdvvspuokkordgppjwxg`) on 11–12 October 2026.
 
 - Four curriculum subject profiles are `ACTIVE/PILOT_ACTIVE`: Lower Secondary Mathematics and Chemistry, Advanced Secondary Chemistry and Principal Mathematics.
 - Two curriculum releases are active. They are syllabus releases, not assessment approval.
 - `knowledge_assessment_profiles`: **0 rows**. `assessment_workspaces`: **0 rows**.
 - 89 imported assessment candidate records exist, all remain `REVIEW_REQUIRED`. No assessment record verification decisions or assessment release memberships are present.
 - The demo school is Mount of Olives College, Kakiri — DEMO. Its four Teaching Sections and two classroom events are demonstration data; they do not prove general pilot adoption or educational quality.
+- The two S3 Chemistry streams are independent. East has a confirmed position in Formulae, Stoichiometry and Mole Concept and saved lesson-linked homework; West has no confirmed position. Neither has a teacher-confirmed delivered classroom event. The S5 and S6 demo events have no governed canonical ID on their preparations. Accordingly no current section has eligible delivered scope for a formal paper.
 
 ## Source and decision map
 
@@ -22,9 +23,19 @@ Source: read-only queries of ATE_Pilot (`pdvvspuokkordgppjwxg`) on 11 October 20
 
 The source decisions and checksum records are in `knowledge-tools/catalog/pilot-academic-decisions.json`, `pilot-verification-decisions.json`, and `pilot-operator-authorization.json`. The assessment corpus and review queue remain private and are not committed to Git.
 
-## Activation change that remains blocked
+## Runtime correction applied
 
-No database activation was made. The academic reviewer must first approve the exact lower-secondary or advanced-secondary assessment guidance records by subject, level and purpose, resolve the remaining open assessment review items, document applicable source rights for AI drafting, formal artifacts and exports, and approve effective dates. Then a reviewed migration may create the corresponding assessment release, subject-specific assessment profile, approved source memberships and school/Teaching Section bindings. The pilot operator must validate those rows and the runtime profile resolver before the status becomes `ACTIVE`. `TEST_SYNTHETIC` profiles remain excluded.
+Migration `0045_assessment_pilot_runtime_alignment.sql` was applied to the live pilot on 12 October 2026. It lets the assessment resolver recognize the existing checksum-bound `OPERATOR_AUTHORIZED_FOR_PILOT` source-rights decision and pilot curriculum membership, while still requiring the exact approved source checksum, formal-artifact permission, an active assessment release with a non-null effective start, matching subject/section bindings, and teacher-confirmed taught scope. It did not activate any profile, candidate, or unknown right.
+
+The current lower-secondary release `401011db-f10a-5521-830b-a6460581fa68` is `ACTIVE`, but its `effective_from` is null in the live database. The active-release immutability trigger prevents adding a profile to it. The assessment profile foreign key requires its subject profile to belong to the same release; a separate assessment-only release therefore cannot reuse the current subject profile without an explicit schema and resolver change. Merely inserting a profile row would give the teacher a false choice and still fail at workspace creation.
+
+## Exact publication gate
+
+No assessment profile was activated. A narrow **Lower Secondary S3 Chemistry class test** is the first defensible candidate. The 2019 Chemistry syllabus supports classroom questions, assignments and tests but does not prescribe a universal class-test blueprint. Bankai can define an internal, teacher-reviewed blueprint and label it as an operator rule. Publication requires a recorded assessment-release effective date and an approved approach to release lineage: either create a superseding lower-secondary release with cloned, checksum-bound subject/profile memberships and updated school bindings, or explicitly support a separately versioned assessment release linked to the existing subject profile. The latter requires a reviewed schema, resolver and RLS change because the current foreign key requires identical release IDs. Do not retrofit the active syllabus release or silently take its activation timestamp as an academic effective date.
+
+After that decision, publish only the Chemistry `CLASS_TEST` profile with `SUBJECT_SYLLABUS` source role and the existing current checksum-bound pilot rights decision. Keep the regime clearly `BANKAI_LOWER_SECONDARY_INTERNAL_CLASS_TEST`, with modest teacher-set duration, marks and item distribution constrained to delivered S3 Chemistry outcomes. Run the reviewer and export path on the DEMO school before any wider use. A demo teacher may confirm a real demonstration lesson outcome through the normal teacher UI, but scheduled or planned lessons alone are not eligible scope.
+
+Advanced Secondary still has a separate unresolved scoring conflict in the 2026 framework between the written five-times maximum-score rule and adjacent tables/worked example. Its 89 imported assessment candidates remain `REVIEW_REQUIRED`; no wholesale verification or rights conversion is justified.
 
 The current release and subject-profile IDs cannot be reused as an assessment release merely because they are active for curriculum. An unknown effective date is a closed gate.
 
