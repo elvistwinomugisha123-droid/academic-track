@@ -116,7 +116,9 @@ export function resolveRuntimeAssessmentProfile(input: RuntimeAssessmentProfileI
   if (!assessmentBindingsApplicable) return { state: "UNAVAILABLE", profile: null, explanation: "This assessment profile is not bound to every selected Teaching Section for the assessment date. Ask the school administrator to check the assessment bindings." };
   if (!allPilotAuthorised) return { state: "UNAVAILABLE", profile: null, explanation: input.sources.length === 0 ? "No approved assessment source is attached to this profile. Academic review and source rights are required." : "Assessment source rights or production use have not been approved for this pilot. A reviewer must resolve the source decision." };
   if (!profile.formalArtifactAllowed) return { state: "UNAVAILABLE", profile: null, explanation: "The source decision does not permit a formal assessment artifact. A reviewer must confirm that purpose before activation." };
-  return { state: "RESOLVED", profile, explanation: `Using ${profile.displayTitle} (${profile.releaseVersion}); this is verified assessment guidance, not an inferred national rule.` };
+  return { state: "RESOLVED", profile, explanation: profile.regime === "BANKAI_LOWER_SECONDARY_INTERNAL_CLASS_TEST"
+    ? `Using Bankai's internal class test rules (${profile.releaseVersion}). The verified NCDC subject syllabus grounds the taught scope.`
+    : `Using ${profile.displayTitle} (${profile.releaseVersion}); this is verified assessment guidance, not an inferred national rule.` };
 }
 
 export function resolveAssessmentProfile(input: {
@@ -141,5 +143,7 @@ export function resolveAssessmentProfile(input: {
   );
   const candidate = matching.sort((left, right) => Number(right.subjectProfileId === input.subjectProfileId) - Number(left.subjectProfileId === input.subjectProfileId))[0];
   if (!candidate) return { state: "UNAVAILABLE", profile: null, explanation: "No verified assessment profile is currently activated for this subject and purpose." };
-  return { state: "RESOLVED", profile: candidate, explanation: `Using ${candidate.displayTitle} (${candidate.releaseVersion}); this is verified assessment guidance, not an inferred national rule.` };
+  return { state: "RESOLVED", profile: candidate, explanation: candidate.regime === "BANKAI_LOWER_SECONDARY_INTERNAL_CLASS_TEST"
+    ? `Using Bankai's internal class test rules (${candidate.releaseVersion}). The verified NCDC subject syllabus grounds the taught scope.`
+    : `Using ${candidate.displayTitle} (${candidate.releaseVersion}); this is verified assessment guidance, not an inferred national rule.` };
 }
