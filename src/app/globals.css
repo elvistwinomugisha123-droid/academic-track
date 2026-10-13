@@ -971,6 +971,8 @@
 /* Appearance: shared semantic surfaces keep lesson and assessment work legible in each mode. */
 .appearance-control { display:inline-flex; align-items:center; gap:8px; color:var(--ate-muted); font-size:12px; font-weight:650; white-space:nowrap; }
 .appearance-control select { min-height:40px; padding:0 29px 0 10px; color:var(--ate-text); background:var(--ate-surface); border:1px solid var(--ate-border-strong); border-radius:var(--ate-radius-control); }
+.mobile-appearance { display:none; }
+@media (max-width:767px) { .mobile-appearance { display:block; padding:12px 14px; border-top:1px solid var(--ate-border); } .mobile-appearance .appearance-control { display:flex; justify-content:space-between; font-size:13px; } .mobile-appearance .appearance-control select { min-width:112px; } }
 .auth-appearance { margin-top:26px; }
 :root[data-theme=dark] { --ate-bg:#101923; --ate-surface:#192632; --ate-surface-subtle:#22313e; --ate-text:#edf3f7; --ate-muted:#b3c4d1; --ate-border:#344756; --ate-border-strong:#516878; --ate-navy:#e8f1f7; --ate-navy-soft:#29445d; --ate-blue:#83cff8; --ate-cyan:#78d9ed; --ate-success:#82dcb6; --ate-success-bg:#1b4136; --ate-focus:#9cddfa; color-scheme:dark; }
 :root[data-theme=dark] .sidebar,:root[data-theme=dark] .mobile-header,:root[data-theme=dark] .auth-rail { background:#0b2438; }
