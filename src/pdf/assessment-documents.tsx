@@ -1,8 +1,9 @@
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import React from "react";
 import type { CanonicalArtifactVersion } from "@/artifacts/types";
+import { assessmentPrintFont } from "./fonts";
 
-const styles = StyleSheet.create({ page: { padding: 42, fontFamily: "Helvetica", fontSize: 11, color: "#122033" }, school: { fontSize: 10, color: "#607084", marginBottom: 8 }, title: { fontSize: 18, marginBottom: 6 }, meta: { fontSize: 9, color: "#607084", marginBottom: 18 }, instructions: { marginBottom: 12, padding: 10, backgroundColor: "#f3f7fa" }, instruction: { fontSize: 9, lineHeight: 1.35, marginBottom: 3 }, question: { marginTop: 14 }, questionText: { fontSize: 11, lineHeight: 1.35 }, guide: { marginTop: 5, color: "#0878c9", fontSize: 9, lineHeight: 1.3 }, footer: { marginTop: 24, paddingTop: 10, borderTop: "1pt solid #d8e1e8", fontSize: 8, color: "#607084" } });
+const styles = StyleSheet.create({ page: { padding: 42, fontFamily: assessmentPrintFont, fontSize: 11, color: "#122033" }, school: { fontSize: 10, color: "#607084", marginBottom: 8 }, title: { fontSize: 18, marginBottom: 6 }, meta: { fontSize: 9, color: "#607084", marginBottom: 18 }, instructions: { marginBottom: 12, padding: 10, backgroundColor: "#f3f7fa" }, instruction: { fontSize: 9, lineHeight: 1.35, marginBottom: 3 }, question: { marginTop: 14 }, questionText: { fontSize: 11, lineHeight: 1.35 }, guide: { marginTop: 5, color: "#0878c9", fontSize: 9, lineHeight: 1.3 }, footer: { marginTop: 24, paddingTop: 10, borderTop: "1pt solid #d8e1e8", fontSize: 8, color: "#607084" } });
 
 function payloadOf(artifact: CanonicalArtifactVersion) { if (artifact.artifactType !== "ASSESSMENT") throw new Error("Unsupported artifact type for assessment renderer."); return artifact.payload; }
 
