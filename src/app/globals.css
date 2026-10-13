@@ -987,14 +987,45 @@
 :root[data-theme=dark] .state-permission { background:#322d49; border-color:#574f7a; }
 :root[data-theme=dark] .callout { border-color:var(--ate-border); border-top-color:var(--ate-blue); }
 :root[data-theme=dark] .environment-badge { border-color:#34705a; }
+:root[data-theme=dark] .assessment-stage-strip,
+:root[data-theme=dark] .assessment-principles,
+:root[data-theme=dark] .assessment-finalise-panel,
+:root[data-theme=dark] .assessment-ai-proposal,
+:root[data-theme=dark] .assessment-partial-scope { background:var(--ate-surface-subtle); border-color:var(--ate-border-strong); }
+:root[data-theme=dark] .assessment-stage-strip .complete,
+:root[data-theme=dark] .ai-proposal-summary { color:var(--ate-blue); }
+:root[data-theme=dark] .scope-tags span { color:#a9ddfa; background:#17394b; border-color:#38657c; }
+:root[data-theme=dark] .scope-tags span.broader { color:#f4d48d; background:#3b3320; border-color:#786344; }
+:root[data-theme=dark] .principle-icon,:root[data-theme=dark] .question-number { color:var(--ate-blue); background:#17394b; }
+:root[data-theme=dark] .principle-rule { border-color:var(--ate-border); }
+:root[data-theme=dark] .assessment-status.draft { color:#f4d48d; }
 @media (prefers-color-scheme:dark) {
   :root[data-theme=system],:root:not([data-theme]) { --ate-bg:#101923; --ate-surface:#192632; --ate-surface-subtle:#22313e; --ate-text:#edf3f7; --ate-muted:#b3c4d1; --ate-border:#344756; --ate-border-strong:#516878; --ate-navy:#e8f1f7; --ate-navy-soft:#29445d; --ate-blue:#83cff8; --ate-cyan:#78d9ed; --ate-success:#82dcb6; --ate-success-bg:#1b4136; --ate-focus:#9cddfa; color-scheme:dark; }
   :root[data-theme=system] .sidebar,:root[data-theme=system] .mobile-header,:root[data-theme=system] .auth-rail { background:#0b2438; }
   :root[data-theme=system] .button-primary { color:#08243a; background:#83cff8; border-color:#83cff8; }
   :root[data-theme=system] input,:root[data-theme=system] textarea,:root[data-theme=system] select { color:var(--ate-text); background:var(--ate-surface); border-color:var(--ate-border-strong); }
   :root[data-theme=system] .auth-page,:root[data-theme=system] .topbar { background:var(--ate-bg); }
+  :root[data-theme=system] .assessment-stage-strip,
+  :root[data-theme=system] .assessment-principles,
+  :root[data-theme=system] .assessment-finalise-panel,
+  :root[data-theme=system] .assessment-ai-proposal,
+  :root[data-theme=system] .assessment-partial-scope { background:var(--ate-surface-subtle); border-color:var(--ate-border-strong); }
+  :root[data-theme=system] .assessment-stage-strip .complete,
+  :root[data-theme=system] .ai-proposal-summary { color:var(--ate-blue); }
+  :root[data-theme=system] .scope-tags span { color:#a9ddfa; background:#17394b; border-color:#38657c; }
+  :root[data-theme=system] .scope-tags span.broader { color:#f4d48d; background:#3b3320; border-color:#786344; }
+  :root[data-theme=system] .principle-icon,:root[data-theme=system] .question-number { color:var(--ate-blue); background:#17394b; }
+  :root[data-theme=system] .principle-rule { border-color:var(--ate-border); }
+  :root[data-theme=system] .assessment-status.draft { color:#f4d48d; }
 }
 @media (max-width:767px) { .topbar-actions { gap:6px; } .topbar-actions .appearance-control { font-size:0; } .topbar-actions .appearance-control select { font-size:12px; min-width:92px; } .environment-badge { display:none; } }
+@media (max-width:767px) {
+  .workspace-heading h1 { font-size:clamp(1.65rem,7vw,2rem); line-height:1.12; letter-spacing:-.03em; overflow-wrap:normal; }
+  .workspace-heading .lede { max-width:36ch; }
+  .assessment-stage-strip { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); overflow:visible; gap:2px; }
+  .assessment-stage-strip span { min-width:0; padding:8px 4px; white-space:normal; text-align:center; line-height:1.25; }
+  .next-lesson h2 { font-size:clamp(1.35rem,5.4vw,1.8rem); line-height:1.16; }
+}
 @media print { :root { color-scheme:light !important; --ate-bg:#fff !important; --ate-surface:#fff !important; --ate-text:#111 !important; --ate-navy:#111 !important; --ate-muted:#333 !important; --ate-border:#aaa !important; } .sidebar,.mobile-bottom-nav,.mobile-header,.topbar,.appearance-control { display:none !important; } }
 :root[data-theme=dark] .password-toggle,:root[data-theme=system] .password-toggle { color:var(--ate-text); }
 :root[data-theme=dark] .assessment-unavailable,:root[data-theme=system] .assessment-unavailable { color:var(--ate-text); background:var(--ate-surface-subtle); border-color:var(--ate-border-strong); }
