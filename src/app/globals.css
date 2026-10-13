@@ -1040,3 +1040,7 @@
 :root[data-theme=dark] .next-lesson-action .button-primary { color:#0b2b46; background:#bde9ff; border-color:#bde9ff; }
 :root[data-theme=dark] .mobile-avatar { color:#0b2438; background:#d9eaf5; }
 @media (prefers-color-scheme:dark) { :root[data-theme=system] .next-lesson,:root[data-theme=system] .readiness-panel,:root[data-theme=system] .identity-mark,:root[data-theme=system] .skip-link { background:#0b2b46; } :root[data-theme=system] .next-lesson-action { background:#123550; } :root[data-theme=system] .next-lesson-action .button-primary { color:#0b2b46; background:#bde9ff; border-color:#bde9ff; } :root[data-theme=system] .mobile-avatar { color:#0b2438; background:#d9eaf5; } }
+@media (prefers-color-scheme:dark) { :root[data-theme=system] .lesson-workspace-tabs { background:#22313e; } :root[data-theme=system] .lesson-workspace-tabs button:hover { color:#edf3f7; background:#334b5c; } :root[data-theme=system] .lesson-workspace-tabs button span { color:#a9ddfa; background:#17394b; } }
+:root[data-theme=dark] .lesson-workspace-tabs { background:#22313e; }
+:root[data-theme=dark] .lesson-workspace-tabs button:hover { color:#edf3f7; background:#334b5c; }
+:root[data-theme=dark] .lesson-workspace-tabs button span { color:#a9ddfa; background:#17394b; }
