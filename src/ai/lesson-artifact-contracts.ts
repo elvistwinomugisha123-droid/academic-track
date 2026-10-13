@@ -155,6 +155,9 @@ export function validateGeneratedArtifact<T extends LessonArtifactType>(type: T,
     const homework = parsed as LessonArtifactPayloadMap["HOMEWORK"];
     if (homework.tasks.length < 2 || homework.tasks.length > 3 || homework.tasks.some((task) => task.trim().length < 25 || /^(answer the question|discuss the topic|write your answer)\.?$/i.test(task.trim()))) throw new Error("ATE_QUALITY_GATE_HOMEWORK: write two or three specific, answerable lesson tasks.");
     if (homework.answerGuide.length !== homework.tasks.length || homework.answerGuide.some((point) => point.trim().length < 20 || /^(any correct answer|mark accordingly|accept any answer)\.?$/i.test(point.trim()))) throw new Error("ATE_QUALITY_GATE_HOMEWORK: give one specific answer and feedback guide for every task.");
+    if (homework.answerGuide.some((guide, index) => /\b(?:in\s+)?(?:hundreds|tens)\s+of\s+(?:Uganda\s+)?shillings\b/i.test(guide) && !/\b(?:in\s+)?(?:hundreds|tens)\s+of\s+(?:Uganda\s+)?shillings\b/i.test(homework.tasks[index] || ""))) {
+      throw new Error("ATE_QUALITY_GATE_HOMEWORK: the answer guide changes the currency unit stated in the task.");
+    }
   }
   return parsed;
 }

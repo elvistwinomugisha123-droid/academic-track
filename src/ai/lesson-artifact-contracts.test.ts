@@ -52,6 +52,9 @@ describe("lesson artifact AI trust boundary", () => {
     expect(validateGeneratedArtifact("HOMEWORK", homework, context)).toMatchObject({ answerGuide: homework.answerGuide });
     expect(() => validateGeneratedArtifact("HOMEWORK", { ...homework, answerGuide: ["Any correct answer"] }, context)).toThrow(/ANSWER|HOMEWORK|guide/i);
     expect(() => validateGeneratedArtifact("HOMEWORK", { ...homework, tasks: ["Discuss the topic.", homework.tasks[1]] }, context)).toThrow(/HOMEWORK/);
+    const moneyTask = "Profit P is in Uganda shillings. Complete the square for P = -2x² + 40x - 150 and state its maximum.";
+    const moneyGuide = "P = -2(x - 10)² + 50, so the maximum is 50 in hundreds of Uganda shillings.";
+    expect(() => validateGeneratedArtifact("HOMEWORK", { ...homework, tasks: [moneyTask, homework.tasks[1]], answerGuide: [moneyGuide, homework.answerGuide[1]] }, context)).toThrow(/currency unit/);
   });
 
   it("tells the model the required plan and pack shapes before validating its response", () => {
