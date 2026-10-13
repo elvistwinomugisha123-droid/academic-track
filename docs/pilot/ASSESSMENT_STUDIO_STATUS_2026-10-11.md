@@ -1,5 +1,11 @@
 # Assessment Studio controlled-pilot status · 12 October 2026
 
+## 13 October authenticated completion addendum
+
+The 12 October snapshot below predates the teacher walkthrough. The DEMO teacher used the UI to record a clearly labelled simulated delivered S3 East Chemistry lesson on the mole concept. East then gained one eligible taught curriculum area; West remained ineligible and a West workspace attempt returned a taught-evidence explanation. The teacher created the bound Bankai internal class test, chose a 10-mark, 20-minute two-question blueprint, reviewed an AI proposal, edited and regenerated a single question, approved versions, finalised version 6, reopened it, and exported the question paper and marking guide as protected PDF and DOCX files. The final question content and guides were checked for Chemistry correctness and five marks per question. The workspace is `ef9347ca-0946-4072-bad2-e157e7965420`, `FINAL`, version 6, `TEACHER` authored. This is a controlled DEMO simulation, not genuine pilot classroom evidence.
+
+The authenticated S5 Principal Mathematics teacher flow saved a lesson-linked HOMEWORK artifact as version 2 after AI proposal review and teacher correction of instructions and follow-up. This is practice material, not an Advanced Secondary formal assessment. The live app-window test confirmed an active service worker, standalone display mode in a headful Chromium app window, a usable offline fallback, and authenticated 200 responses with valid PDF/DOCX signatures for both assessment exports. The 89 Advanced Secondary assessment candidates and the scoring conflict stated below remain gated.
+
 ## Live evidence
 
 Source: read-only queries of ATE_Pilot (`pdvvspuokkordgppjwxg`) on 11–12 October 2026.

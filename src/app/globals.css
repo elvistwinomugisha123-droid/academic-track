@@ -1044,3 +1044,5 @@
 :root[data-theme=dark] .lesson-workspace-tabs { background:#22313e; }
 :root[data-theme=dark] .lesson-workspace-tabs button:hover { color:#edf3f7; background:#334b5c; }
 :root[data-theme=dark] .lesson-workspace-tabs button span { color:#a9ddfa; background:#17394b; }
+:root[data-theme=dark] .saved-work-link span,:root[data-theme=dark] .saved-document-toolbar a { color:#a9ddfa; }
+@media (prefers-color-scheme:dark) { :root[data-theme=system] .saved-work-link span,:root[data-theme=system] .saved-document-toolbar a { color:#a9ddfa; } }
